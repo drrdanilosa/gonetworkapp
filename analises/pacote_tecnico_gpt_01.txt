@@ -1,0 +1,677 @@
+Ótimo! Vou gerar um pacote técnico com todos os códigos, estruturas de diretórios, stores Zustand, componentes React e rotas API para implementar automações de workflow e funcionalidades de interação entre cliente e editor dentro do padrão já usado no repositório `contatogonetwork/melhorapp_final`.
+
+As implementações serão organizadas para funcionar em Next.js 15 com Zustand e o padrão de arquitetura modular por features. Sempre que possível, incluirei sugestões de melhorias futuras com tecnologias mais robustas, mas implementarei inicialmente com soluções simples e diretas para fácil aplicação no VSCode. Em breve te trago o conteúdo completo para colar no projeto.
+
+
+# Implementação de Workflow Automático e Interação Cliente-Editor
+
+Para implementar as duas funcionalidades propostas sem quebrar a estrutura existente do projeto, siga os passos abaixo. Iremos atualizar os **stores Zustand** para suportar automações de workflow e notificações, criar novos **componentes UI** (Atomic Design) para tarefas, comentários e notificações, e integrar tudo na página de evento. Cada trecho de código inclui comentários indicando sua função.
+
+## 1. Atualizando os Stores (Zustand)
+
+**a. Store de Projetos (`store/useProjectsStore.ts`):** Vamos estender o store de projetos para incluir **tarefas do projeto** e ações automáticas disparadas por eventos. Isso envolve: adicionar a lista de `tasks` em cada projeto, criar tarefas padrão na criação de um novo evento, e implementar ações como marcar vídeo pronto, aprovação e solicitação de alterações. Também incluiremos a lógica de marcar comentários como resolvidos. Cole o código abaixo em `store/useProjectsStore.ts`, substituindo ou complementando o conteúdo existente conforme necessário:
+
+```typescript
+// store/useProjectsStore.ts
+import { create } from 'zustand';
+import { useUIStore } from '@/store/useUIStore';  // Importa o store de UI para disparar notificações
+
+// Definição de tipos para tarefas, comentários, entregas (vídeos) e projetos
+type TaskStatus = 'pending' | 'completed';
+interface Task {
+  id: string;
+  title: string;
+  status: TaskStatus;
+}
+interface Comment {
+  id: string;
+  authorId: string;
+  authorName: string;
+  text: string;
+  timestamp: number;
+  resolved: boolean;
+}
+type DeliverableStatus = 'editing' | 'ready_for_review' | 'changes_requested' | 'approved';
+interface Deliverable {
+  id: string;
+  title: string;
+  url?: string;
+  status: DeliverableStatus;
+  comments: Comment[];
+}
+interface Project {
+  id: string;
+  name: string;
+  clientId: string;
+  deliverables: Deliverable[];
+  tasks: Task[];
+}
+
+// Função utilitária para gerar IDs únicos (simples para demo; poderíamos usar uuid futuramente)
+function generateId(): string {
+  return Math.random().toString(36).substr(2, 9);
+}
+
+// Tarefas padrão para novos projetos/eventos
+const defaultTaskTitles: string[] = [
+  'Planejamento do projeto',
+  'Gravação/Produção do vídeo',
+  'Edição do vídeo',
+  'Revisão do cliente',
+  'Aprovação final'
+];
+
+interface ProjectsState {
+  projects: Project[];
+  addProject: (projectData: { id?: string; name: string; clientId: string }) => void;
+  markVideoReady: (projectId: string, deliverableId: string) => void;
+  approveDeliverable: (projectId: string, deliverableId: string) => void;
+  requestChanges: (projectId: string, deliverableId: string) => void;
+  markCommentResolved: (projectId: string, deliverableId: string, commentId: string) => void;
+  toggleTaskCompletion: (projectId: string, taskId: string) => void;
+  // ... outras ações existentes (ex: addComment, etc.)
+}
+
+export const useProjectsStore = create<ProjectsState>((set, get) => ({
+  projects: [],
+  
+  // Adiciona um novo projeto/evento e gera tarefas padrão
+  addProject: ({ id, name, clientId }) => {
+    const projectId = id || generateId();
+    // Cria as tarefas padrão para o novo projeto
+    const tasks: Task[] = defaultTaskTitles.map(title => ({
+      id: generateId(),
+      title,
+      status: 'pending'
+    }));
+    const newProject: Project = {
+      id: projectId,
+      name,
+      clientId,
+      deliverables: [],  // nenhum vídeo/entrega inicialmente
+      tasks
+    };
+    set(state => ({
+      projects: [...state.projects, newProject]
+    }));
+  },
+
+  // Editor marca um vídeo como "pronto para revisão"
+  markVideoReady: (projectId, deliverableId) => {
+    // Atualiza status do vídeo para "ready_for_review", adiciona tarefa de aprovação e notifica cliente
+    set(state => {
+      const projects = state.projects.map(project => {
+        if (project.id !== projectId) return project;
+        // Atualiza a entrega (vídeo) específica
+        const updatedDeliverables = project.deliverables.map(deliv => {
+          if (deliv.id !== deliverableId) return deliv;
+          return { ...deliv, status: 'ready_for_review' };
+        });
+        // Adiciona a tarefa "Aguardando aprovação do vídeo" se ainda não existir
+        let updatedTasks = project.tasks;
+        const approvalTaskExists = project.tasks.some(task => task.title.includes('Aprovação') && task.status === 'pending');
+        if (!approvalTaskExists) {
+          updatedTasks = [
+            ...project.tasks,
+            { id: generateId(), title: 'Aguardando aprovação do vídeo', status: 'pending' }
+          ];
+        }
+        return { ...project, deliverables: updatedDeliverables, tasks: updatedTasks };
+      });
+      return { projects };
+    });
+    // Dispara notificação na UI (toast) informando que o vídeo foi enviado para revisão
+    useUIStore.getState().addNotification('Vídeo marcado como pronto para revisão.');
+    // TODO: Em um cenário real, aqui entraríamos em contato com o backend/WebSocket para notificar o cliente do projeto
+  },
+
+  // Cliente aprova o vídeo entregue
+  approveDeliverable: (projectId, deliverableId) => {
+    set(state => {
+      const projects = state.projects.map(project => {
+        if (project.id !== projectId) return project;
+        // Atualiza status do vídeo para "approved"
+        const updatedDeliverables = project.deliverables.map(deliv => {
+          if (deliv.id !== deliverableId) return deliv;
+          return { ...deliv, status: 'approved' };
+        });
+        // Marca a tarefa de aprovação como concluída
+        const updatedTasks = project.tasks.map(task => {
+          if (task.title.includes('Aguardando aprovação') && task.status === 'pending') {
+            return { ...task, status: 'completed' };
+          }
+          return task;
+        });
+        return { ...project, deliverables: updatedDeliverables, tasks: updatedTasks };
+      });
+      return { projects };
+    });
+    // Notifica o cliente (usuário atual) que a aprovação foi registrada
+    useUIStore.getState().addNotification('Entrega aprovada com sucesso!');
+    // TODO: Notificar o editor via WebSocket que o vídeo foi aprovado (em uma aplicação real)
+  },
+
+  // Cliente solicita alterações no vídeo
+  requestChanges: (projectId, deliverableId) => {
+    set(state => {
+      const projects = state.projects.map(project => {
+        if (project.id !== projectId) return project;
+        // Atualiza status do vídeo para "changes_requested"
+        const updatedDeliverables = project.deliverables.map(deliv => {
+          if (deliv.id !== deliverableId) return deliv;
+          return { ...deliv, status: 'changes_requested' };
+        });
+        // Adiciona tarefa de "Implementar alterações solicitadas"
+        const updatedTasks = [
+          ...project.tasks,
+          { id: generateId(), title: 'Implementar alterações solicitadas', status: 'pending' }
+        ];
+        return { ...project, deliverables: updatedDeliverables, tasks: updatedTasks };
+      });
+      return { projects };
+    });
+    // Notifica o cliente (usuário atual) que a solicitação foi enviada
+    useUIStore.getState().addNotification('Solicitação de alterações registrada.');
+    // TODO: Notificar o editor via WebSocket que foram solicitadas alterações
+  },
+
+  // Editor marca um comentário como resolvido
+  markCommentResolved: (projectId, deliverableId, commentId) => {
+    set(state => {
+      const projects = state.projects.map(project => {
+        if (project.id !== projectId) return project;
+        const updatedDeliverables = project.deliverables.map(deliv => {
+          if (deliv.id !== deliverableId) return deliv;
+          const updatedComments = deliv.comments.map(comment => {
+            if (comment.id === commentId) {
+              return { ...comment, resolved: true };
+            }
+            return comment;
+          });
+          return { ...deliv, comments: updatedComments };
+        });
+        return { ...project, deliverables: updatedDeliverables };
+      });
+      return { projects };
+    });
+  },
+
+  // Alterna status de uma tarefa (para a equipe marcar como concluída/não concluída)
+  toggleTaskCompletion: (projectId, taskId) => {
+    set(state => {
+      const projects = state.projects.map(project => {
+        if (project.id !== projectId) return project;
+        const updatedTasks = project.tasks.map(task => {
+          if (task.id === taskId) {
+            const newStatus: TaskStatus = task.status === 'pending' ? 'completed' : 'pending';
+            return { ...task, status: newStatus };
+          }
+          return task;
+        });
+        return { ...project, tasks: updatedTasks };
+      });
+      return { projects };
+    });
+  }
+
+  // ... (demais ações ou estados do store de projetos)
+}));
+```
+
+No código acima, adicionamos a propriedade `tasks` ao projeto, definimos tarefas padrão (planejamento, gravação, edição, revisão, aprovação) ao criar um novo evento (`addProject`), e criamos ações automáticas:
+
+* `markVideoReady`: Quando o editor marca um vídeo como pronto para revisão, o estado da entrega muda para `ready_for_review`, é criada automaticamente uma tarefa **"Aguardando aprovação do vídeo"** (caso ainda não exista) e uma notificação é disparada (usando o store de UI, que configuraremos a seguir). Em uma aplicação real, aqui também notificaríamos o cliente via backend (por ex., enviando um evento em tempo real por WebSocket ou e-mail).
+
+* `approveDeliverable`: Quando o cliente aprova a entrega, marcamos o status do vídeo como `approved`, atualizamos a tarefa de aprovação para **concluída** (`completed`) e mostramos uma notificação de sucesso para o cliente. (Num cenário real, também avisaríamos o editor via WebSocket de que o vídeo foi aprovado).
+
+* `requestChanges`: Quando o cliente solicita mudanças, o status do vídeo passa para `changes_requested` e é criada uma tarefa **"Implementar alterações solicitadas"** para a equipe de edição. Também mantemos a tarefa de aprovação pendente, indicando que haverá nova rodada de aprovação. Uma notificação é exibida confirmando ao cliente que o pedido foi registrado. (Novamente, numa implementação real, o editor seria notificado em tempo real do pedido de alterações).
+
+* `markCommentResolved`: Marca um comentário (feedback do cliente) como **resolvido**. Somente editores devem usar essa ação, ao corrigir um ponto levantado pelo cliente. O comentário recebe `resolved: true` no estado.
+
+* `toggleTaskCompletion`: Permite alternar o status de uma tarefa qualquer entre pendente e concluída. Isso será usado principalmente pela equipe interna para marcar tarefas internas (ex.: "Edição do vídeo") como feitas. Observação: tarefas de aprovação do cliente não devem ser marcadas manualmente pela equipe – vamos tratar disso na interface.
+
+> **Nota:** As chamadas `useUIStore.getState().addNotification(...)` integram o store de UI para exibir notificações no front-end. Iremos configurar `useUIStore` no próximo passo. Os comentários `// TODO` indicam pontos de possível evolução futura, como integração com notificações em tempo real via WebSockets ou backend (sem adicionar dependências externas agora, mas planejando a evolução).
+
+**b. Store de UI (`store/useUIStore.ts`):** Agora adicionaremos um sistema simples de **notificações internas** usando Zustand. Este store manterá uma lista de notificações e funções para adicionar e remover notificações. Usaremos isso para mostrar toasts de aviso/ação para usuários (tanto editores quanto clientes, conforme o caso). Cole o código abaixo em `store/useUIStore.ts` (adapte para mesclar com conteúdo existente do UI store, se houver):
+
+```typescript
+// store/useUIStore.ts
+import { create } from 'zustand';
+
+interface Notification {
+  id: string;
+  message: string;
+  // Futuramente, poderíamos incluir tipo (info, erro, etc.) e outros metadados
+}
+
+interface UIState {
+  notifications: Notification[];
+  addNotification: (message: string) => void;
+  removeNotification: (id: string) => void;
+  // ... outras propriedades de UI (ex: estado de modal, tema, etc.)
+}
+
+// Gera ID único simples para notificações (poderia usar uuid no futuro)
+function generateId(): string {
+  return Math.random().toString(36).substr(2, 9);
+}
+
+export const useUIStore = create<UIState>((set, get) => ({
+  notifications: [],
+
+  addNotification: (message) => {
+    const id = generateId();
+    set(state => ({
+      notifications: [...state.notifications, { id, message }]
+    }));
+    // Remove automaticamente a notificação após 5 segundos
+    const removeFn = get().removeNotification;
+    setTimeout(() => {
+      removeFn(id);
+    }, 5000);
+  },
+
+  removeNotification: (id) => {
+    set(state => ({
+      notifications: state.notifications.filter(n => n.id !== id)
+    }));
+  }
+
+  // ... (outras propriedades/ações de UI já existentes)
+}));
+```
+
+No código acima, `notifications` é um array global de notificações ativas. Ao chamar `addNotification("Texto da mensagem")`, uma nova notificação é adicionada com um `id` único e removida automaticamente após 5 segundos (usando `setTimeout`). A função `removeNotification` permite remover manualmente uma notificação antes do tempo (útil para um botão de fechar, por exemplo). Mantivemos tudo simples, sem dependências adicionais.
+
+> **Dica:** No futuro, você pode trocar este sistema simples por uma biblioteca de toasts mais robusta (como o **react-hot-toast** ou integrar o componente de Toast do shadcn/UI), mas nosso código acima cumpre o básico sem adicionar dependências externas agora.
+
+## 2. Criando os Componentes de Interface (Atomic Design)
+
+Agora vamos criar os componentes necessários na interface, seguindo a organização modular do projeto (`components/widgets`, `components/video`, etc.). Esses componentes usarão os stores que definimos para ler o estado e disparar ações. Lembre-se de incluir `**"use client"**` no topo de cada componente interativo, já que estamos no ambiente Next.js App Router.
+
+**a. Lista de Tarefas do Projeto (`components/widgets/TaskList.tsx`):** Este componente exibirá as tarefas do projeto/evento em forma de checklist. Cada tarefa concluída será mostrada riscada, e as caixas de seleção permitirão marcar como concluído ou não. Somente membros da equipe (editores) poderão interagir marcando tarefas; para clientes, ou para tarefas de aprovação do cliente, os checkboxes ficam desabilitados (evitando que a equipe marque aprovações como feitas manualmente). Crie o arquivo e cole o código:
+
+```tsx
+// components/widgets/TaskList.tsx
+"use client";
+
+import { useAuthStore } from '@/store/useAuthStore';
+import { useProjectsStore } from '@/store/useProjectsStore';
+
+interface TaskListProps {
+  projectId: string;
+}
+
+export function TaskList({ projectId }: TaskListProps) {
+  // Obtemos as tarefas do projeto atual do store
+  const tasks = useProjectsStore(state => {
+    const project = state.projects.find(p => p.id === projectId);
+    return project ? project.tasks : [];
+  });
+  const toggleTaskCompletion = useProjectsStore(state => state.toggleTaskCompletion);
+  const currentUserRole = useAuthStore(state => state.user?.role);
+
+  return (
+    <div className="bg-white shadow rounded p-4 mb-4">
+      <h3 className="font-semibold mb-2">Tarefas do Projeto</h3>
+      <ul className="space-y-1">
+        {tasks.map(task => (
+          <li key={task.id} className="flex items-center">
+            <input
+              type="checkbox"
+              className="mr-2"
+              checked={task.status === 'completed'}
+              onChange={() => toggleTaskCompletion(projectId, task.id)}
+              disabled={currentUserRole !== 'editor' || task.title.toLowerCase().includes('aprovação')}
+            />
+            <span className={task.status === 'completed' ? 'line-through text-gray-500' : ''}>
+              {task.title}
+            </span>
+            {task.status === 'completed' && (
+              <span className="ml-2 text-green-600 text-sm">[Concluída]</span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+Explicação: o componente busca as tarefas do projeto pelo `projectId` (via Zustand). Para cada tarefa, exibimos uma linha com um checkbox e o título. Se a tarefa está marcada como `completed`, estilizamos o texto riscado e adicionamos a tag "\[Concluída]". A propriedade `disabled` do checkbox fica verdadeira se o usuário atual **não** for editor ou se a tarefa tiver "aprovação" no título – isso impede que clientes alterem tarefas (eles verão apenas o progresso) e que a equipe marque tarefas de aprovação de cliente manualmente. A função `toggleTaskCompletion` é chamada quando um editor marca/desmarca uma tarefa pendente (por exemplo, após terminar a edição do vídeo, o editor pode marcar a tarefa "Edição do vídeo" como concluída).
+
+**b. Toast de Notificações (`components/widgets/NotificationToast.tsx`):** Este componente exibirá as notificações ativas em forma de pequenos pop-ups (toasts) no canto da tela. Podemos adicioná-lo ao layout principal para ficar disponível em toda a aplicação. Crie o arquivo e cole o código:
+
+```tsx
+// components/widgets/NotificationToast.tsx
+"use client";
+
+import { useUIStore } from '@/store/useUIStore';
+
+export function NotificationToast() {
+  const notifications = useUIStore(state => state.notifications);
+  const removeNotification = useUIStore(state => state.removeNotification);
+
+  if (notifications.length === 0) return null;  // se não há notificações, não renderiza nada
+
+  return (
+    <div className="fixed top-4 right-4 space-y-2 z-50">
+      {notifications.map(note => (
+        <div 
+          key={note.id} 
+          className="bg-gray-800 text-white px-4 py-3 rounded shadow flex items-center justify-between"
+        >
+          <span>{note.message}</span>
+          <button 
+            onClick={() => removeNotification(note.id)} 
+            className="ml-4 text-white font-bold"
+          >
+            x
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+Explicação: o componente observa a lista de `notifications` no `useUIStore`. Cada notificação é apresentada como uma caixa escura (texto branco) no canto superior direito. O botão "x" permite fechar a notificação antecipadamente (chamando `removeNotification`). Usamos `position: fixed` e um alto índice Z (`z-50`) para garantir que os toasts flutuem sobre o conteúdo. As notificações também desaparecem automaticamente após o tempo configurado no store (5 segundos). Este componente deve ser montado uma vez na aplicação (por exemplo, no layout global) para captar todas as notificações disparadas.
+
+**c. Item de Comentário (`components/video/CommentItem.tsx`):** Este componente representa um comentário individual em uma entrega de vídeo, mostrando o texto, timestamp e autor, e permitindo marcar como resolvido se o usuário for editor. Crie o arquivo e adicione:
+
+```tsx
+// components/video/CommentItem.tsx
+"use client";
+
+import { useProjectsStore } from '@/store/useProjectsStore';
+import { useAuthStore } from '@/store/useAuthStore';
+
+interface CommentItemProps {
+  projectId: string;
+  deliverableId: string;
+  comment: {
+    id: string;
+    authorId: string;
+    authorName: string;
+    text: string;
+    timestamp: number;
+    resolved: boolean;
+  };
+}
+
+export function CommentItem({ projectId, deliverableId, comment }: CommentItemProps) {
+  const markCommentResolved = useProjectsStore(state => state.markCommentResolved);
+  const currentUserRole = useAuthStore(state => state.user?.role);
+
+  // Formata timestamp (segundos) para mm:ss (minutos e segundos)
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return \`\${m.toString().padStart(2, '0')}:\${s.toString().padStart(2, '0')}\`;
+  };
+
+  return (
+    <div className="mb-2 p-2 border-b border-gray-200">
+      <div className="text-sm text-gray-600">
+        <strong>{comment.authorName}</strong> <span>@ {formatTime(comment.timestamp)}</span>
+      </div>
+      <div className="text-gray-800">{comment.text}</div>
+      <div>
+        {comment.resolved ? (
+          <span className="text-green-600 text-sm font-medium">Resolvido</span>
+        ) : (
+          currentUserRole === 'editor' && (
+            <button
+              onClick={() => markCommentResolved(projectId, deliverableId, comment.id)}
+              className="text-blue-600 text-sm underline"
+            >
+              Marcar como resolvido
+            </button>
+          )
+        )}
+      </div>
+    </div>
+  );
+}
+```
+
+Explicação: cada comentário mostra o nome do autor, o tempo no vídeo (`timestamp`) formatado em minutos\:segundos, e o texto. Se o comentário foi marcado como `resolved`, exibimos a etiqueta **"Resolvido"** em verde. Se não foi resolvido e o usuário atual é um **editor**, exibimos um botão **"Marcar como resolvido"**; ao clicar, ele chama `markCommentResolved` no store, atualizando o status. (Clientes não veem botão, e consideram comentários não resolvidos como pendentes por padrão). Assim, os editores podem indicar visualmente que um feedback foi atendido. Os clientes, ao revisar, verão quais comentários já foram resolvidos. *(Obs.: Caso seja necessário reabrir um comentário, poder-se-ia implementar um botão "Reabrir" similar, chamando uma ação para `resolved: false`. Não incluímos aqui por simplicidade.)*
+
+**d. Ações da Entrega de Vídeo (`components/video/DeliverableActions.tsx`):** Este componente renderiza os botões de ação e status relacionados a uma entrega de vídeo, de acordo com o **papel do usuário** (cliente ou editor) e o **status da entrega**. Isso inclui: botão para editor marcar vídeo como pronto para revisão, botão de aprovação para cliente, botão de solicitar alterações para cliente, e indicadores de status (aguardando aprovação, aprovado, alterações solicitadas, etc.). Crie o arquivo e adicione:
+
+```tsx
+// components/video/DeliverableActions.tsx
+"use client";
+
+import { useAuthStore } from '@/store/useAuthStore';
+import { useProjectsStore } from '@/store/useProjectsStore';
+
+interface DeliverableActionsProps {
+  projectId: string;
+  deliverable: {
+    id: string;
+    title: string;
+    status: string;
+  };
+}
+
+export function DeliverableActions({ projectId, deliverable }: DeliverableActionsProps) {
+  const currentUserRole = useAuthStore(state => state.user?.role);
+  const markVideoReady = useProjectsStore(state => state.markVideoReady);
+  const approveDeliverable = useProjectsStore(state => state.approveDeliverable);
+  const requestChanges = useProjectsStore(state => state.requestChanges);
+
+  const { status } = deliverable;
+
+  if (currentUserRole === 'editor') {
+    // Ações para o Editor
+    if (status === 'editing' || status === 'changes_requested') {
+      return (
+        <button
+          onClick={() => markVideoReady(projectId, deliverable.id)}
+          className="px-4 py-2 bg-blue-600 text-white rounded"
+        >
+          Marcar vídeo como pronto para revisão
+        </button>
+      );
+    }
+    if (status === 'ready_for_review') {
+      return <span className="text-orange-600 font-medium">⏳ Aguardando aprovação do cliente</span>;
+    }
+    if (status === 'approved') {
+      return <span className="text-green-600 font-medium">✅ Vídeo aprovado pelo cliente</span>;
+    }
+  }
+
+  if (currentUserRole === 'client') {
+    // Ações para o Cliente
+    if (status === 'ready_for_review') {
+      return (
+        <div>
+          <button
+            onClick={() => approveDeliverable(projectId, deliverable.id)}
+            className="px-4 py-2 mr-2 bg-green-600 text-white rounded"
+          >
+            Aprovar vídeo
+          </button>
+          <button
+            onClick={() => requestChanges(projectId, deliverable.id)}
+            className="px-4 py-2 bg-yellow-500 text-white rounded"
+          >
+            Solicitar alterações
+          </button>
+        </div>
+      );
+    }
+    if (status === 'approved') {
+      return <span className="text-green-700 font-medium">✅ Você já aprovou esta entrega</span>;
+    }
+    if (status === 'changes_requested') {
+      return <span className="text-red-600 font-medium">🔄 Alterações solicitadas. Aguardando nova versão.</span>;
+    }
+    // Se ainda está em edição (não enviado para revisão)
+    if (status === 'editing') {
+      return <span className="text-gray-600">⏳ O editor está trabalhando na entrega...</span>;
+    }
+  }
+
+  return null;
+}
+```
+
+Explicação: esse componente verifica o `currentUserRole` e o `status` da entrega para decidir o que renderizar:
+
+* **Editor (equipe):**
+
+  * Se o status da entrega é `"editing"` (vídeo em edição) **ou** `"changes_requested"` (cliente pediu alterações e o editor está ajustando), mostramos o botão **"Marcar vídeo como pronto para revisão"**. Ao clicar, chama `markVideoReady` no store, disparando a automação de notificação e criação de tarefa de aprovação.
+  * Se o status é `"ready_for_review"` (ou seja, o editor já marcou como pronto e aguarda resposta), mostramos um rótulo **"⏳ Aguardando aprovação do cliente"** em laranja, indicando que agora é com o cliente.
+  * Se o status é `"approved"`, mostramos **"✅ Vídeo aprovado pelo cliente"** em verde, indicando conclusão.
+* **Cliente:**
+
+  * Se o status é `"ready_for_review"` (aguardando a ação do cliente), exibimos **dois botões**: **"Aprovar vídeo"** (verde) e **"Solicitar alterações"** (amarelo). Estes chamam `approveDeliverable` ou `requestChanges` no store, respectivamente. Ao clicar, o status e tarefas serão atualizados automaticamente (conforme a lógica do store), e o cliente verá um toast de confirmação.
+  * Se o status é `"approved"` (cliente já aprovou anteriormente), exibimos **"✅ Você já aprovou esta entrega"** para clareza (e não mostramos botões, já que o processo terminou).
+  * Se o status é `"changes_requested"` (cliente já pediu alterações e está aguardando uma nova versão), exibimos **"🔄 Alterações solicitadas. Aguardando nova versão."** em vermelho, informando que a bola está com o editor agora.
+  * Se o status é `"editing"` (o vídeo ainda nem foi enviado para revisão), exibimos **"⏳ O editor está trabalhando na entrega..."** em cinza, indicando que em breve haverá algo para revisar.
+
+Dessa forma, cada usuário vê apenas os controles pertinentes e informações de status claras. Os botões e textos seguem o padrão visual (cores do Tailwind para status diferentes). Sinta-se à vontade para ajustar o texto/estilos conforme o padrão do projeto (por exemplo, usar componentes de UI do shadcn se houver).
+
+## 3. Integrando na Página de Evento e Layout
+
+Com stores e componentes prontos, vamos **integrar tudo na interface existente**:
+
+**a. Layout Global (`app/layout.tsx`):** Importe e renderize o componente `<NotificationToast />` uma vez no layout global, para que as notificações fiquem disponíveis em qualquer página. Por exemplo:
+
+```tsx
+// app/layout.tsx (trecho relevante)
+import { NotificationToast } from '@/components/widgets/NotificationToast';
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="pt-BR">
+      <head>...</head>
+      <body>
+        {children}
+        <NotificationToast />  {/* Monta o container de toasts no app inteiro */}
+      </body>
+    </html>
+  );
+}
+```
+
+Isso garantirá que toda notificação adicionada via `useUIStore` apareça para o usuário, independentemente da página.
+
+**b. Página de Detalhe do Evento (`app/events/[eventId]/page.tsx`):** Nesta página, devemos exibir a lista de tarefas, o vídeo com comentários e os botões de ação configurados acima. Edite a página conforme o esboço abaixo, certificando-se de importar os novos componentes (`TaskList`, `DeliverableActions`, `CommentItem`) e usar o `useProjectsStore` para obter o projeto atual:
+
+```tsx
+// app/events/[eventId]/page.tsx (exemplo simplificado)
+"use client";
+import { useProjectsStore } from '@/store/useProjectsStore';
+import { TaskList } from '@/components/widgets/TaskList';
+import { CommentItem } from '@/components/video/CommentItem';
+import { DeliverableActions } from '@/components/video/DeliverableActions';
+
+// ... obter o ID do evento da rota (por exemplo, via props.params) ...
+const projectId = params.eventId;
+
+// Buscar projeto no Zustand (alternativamente, poderia vir via React Query)
+const project = useProjectsStore(state => state.projects.find(p => p.id === projectId));
+if (!project) {
+  return <div>Carregando...</div>;
+}
+
+// Supondo um vídeo/entrega principal por projeto:
+const deliverable = project.deliverables[0];
+
+return (
+  <div>
+    <h1 className="text-xl font-bold mb-4">Evento: {project.name}</h1>
+
+    {/* Lista de tarefas do projeto */}
+    <TaskList projectId={projectId} />
+
+    {/* Conteúdo da entrega de vídeo */}
+    {deliverable && (
+      <div className="mb-8">
+        {/* Player de vídeo (ou thumbnail) */}
+        <video src={deliverable.url} controls className="w-full mb-2" />
+        {/* Botões de ação da entrega (aprovação/alterações ou status) */}
+        <DeliverableActions projectId={projectId} deliverable={deliverable} />
+        
+        {/* Seção de comentários da entrega */}
+        <div className="bg-gray-50 p-4 rounded mt-4">
+          <h3 className="font-semibold mb-2">Comentários:</h3>
+          {deliverable.comments.map(comment => (
+            <CommentItem
+              key={comment.id}
+              projectId={projectId}
+              deliverableId={deliverable.id}
+              comment={comment}
+            />
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+);
+```
+
+Ajuste o código acima conforme a estrutura exata do seu projeto (por exemplo, métodos de obtenção de dados). O importante é que estamos **inserindo os componentes** criados:
+
+* `<TaskList projectId={...} />` – lista as tarefas padrão e atualizadas do projeto.
+* `<DeliverableActions ... />` – mostra os botões ou status referentes à entrega, de acordo com o usuário.
+* Mapeamento de comentários do `deliverable` para `<CommentItem ... />` – lista os comentários com opção de resolução.
+* O `<NotificationToast />` já foi incluído no layout global, então não é necessário adicioná-lo aqui na página (evite duplicação).
+
+**c. Fluxo de Criação de Evento:** Quando um novo evento/projeto for criado (por exemplo, via um formulário em alguma página de criação), utilize o método `addProject` do `useProjectsStore` para adicioná-lo localmente com as tarefas padrão. Supondo que você tenha um formulário que chama uma API para criar o evento no backend, no retorno você pode fazer:
+
+```tsx
+useProjectsStore.getState().addProject({ id: criado.id, name: criado.nome, clientId: criado.clienteId });
+```
+
+Isso garante que imediatamente após criar um evento, o estado cliente já contenha as tarefas padrão daquele projeto. Caso esteja usando React Query para listar projetos, outra abordagem é revalidar a lista após criação – contanto que o backend envie também as tarefas padrão, ou você pode inserir manualmente no cache. Em nosso caso, estamos focando na atualização do estado cliente para efeito imediato.
+
+## 4. Testando as Novas Funcionalidades
+
+Após colar e ajustar todos os códigos acima no seu projeto, rode o aplicativo (`npm run dev`) e verifique os seguintes cenários para garantir que tudo está funcionando:
+
+1. **Novo Evento com Tarefas Padrão:** Crie um novo evento/projeto (por exemplo, "Evento X"). Ao ser criado, vá para a página do evento e confirme que a seção "Tarefas do Projeto" exibe as tarefas padrão (Planejamento, Gravação, Edição, etc.) marcadas como pendentes. Isso indica que o `addProject` funcionou e populou as tarefas corretamente.
+
+2. **Fluxo Editor -> Cliente (Revisão):** Faça login como **editor** e adicione uma entrega (vídeo) ao evento. Uma vez pronto, clique no botão **"Marcar vídeo como pronto para revisão"**. Isso deve:
+
+   * Mudar o status da entrega para *ready\_for\_review* internamente.
+   * Adicionar automaticamente a tarefa "**Aguardando aprovação do vídeo**" na lista de tarefas do projeto.
+   * Exibir um toast de notificação no canto superior direito confirmando que o vídeo foi enviado para revisão.
+   * (No mundo real, enviaria notificação ao cliente; aqui vemos a indicação localmente.)
+
+3. **Fluxo Cliente (Aprovação):** Faça login como **cliente** que possui acesso a esse evento (ou alternativamente, mude temporariamente o `currentUserRole` para 'client' no estado para simular). Ao abrir a página do evento:
+
+   * Você deve ver o botão **"Aprovar vídeo"** e **"Solicitar alterações"** porque o status está "pronto para revisão".
+   * Clique em **"Aprovar vídeo"**. Isso deve marcar a tarefa de aprovação como concluída (veja a TaskList – "Aguardando aprovação do vídeo" ficará riscada como *\[Concluída]*), alterar o status da entrega para *approved*, remover os botões de ação e em vez disso mostrar "✅ Você já aprovou esta entrega". Um toast de "Entrega aprovada com sucesso!" será exibido para confirmar sua ação.
+   * (Novamente, em cenário real o editor receberia uma notificação de aprovação; aqui focamos no lado do cliente.)
+
+4. **Fluxo Cliente (Solicitar Alterações):** Alternativamente, em vez de aprovar, teste o botão **"Solicitar alterações"**:
+
+   * Ao clicar, o status da entrega deve mudar para *changes\_requested*. Os botões somem e você verá "🔄 Alterações solicitadas. Aguardando nova versão." indicando que o cliente está aguardando.
+   * Na TaskList, uma nova tarefa "**Implementar alterações solicitadas**" será adicionada automaticamente para a equipe, enquanto a tarefa de "Aguardando aprovação do vídeo" permanece pendente (pois haverá outra rodada de aprovação depois).
+   * Um toast "Solicitação de alterações registrada." aparece para o cliente. (Em uso real, o editor seria alertado do pedido de alterações.)
+   * Se você agora fizer login como editor e visitar o evento, verá o status *changes\_requested* e o botão "Marcar vídeo como pronto..." novamente disponível (para enviar a nova versão). As tarefas indicarão que há uma pendente de implementar alterações. Uma vez que o editor fizer os ajustes e clique novamente em "Marcar pronto para revisão", você poderia repetir o ciclo de aprovação.
+
+5. **Comentários com Resolução:** Adicione comentários como cliente (o projeto já suporta comentários com timestamp). Depois, ao logar como editor e visualizar os comentários listados, clique em **"Marcar como resolvido"** em alguns deles. Verifique que:
+
+   * O texto "Resolvido" aparece ao lado do comentário, em verde, e o botão some (pois já está resolvido).
+   * Se fizer login novamente como cliente, aqueles comentários marcados como resolvidos aparecem com a etiqueta "Resolvido", indicando que o editor já cuidou daqueles pontos.
+
+6. **Notificações Internas:** Teste cenários de notificações:
+
+   * Toda vez que você executa uma dessas ações (marcar vídeo pronto, aprovar, pedir alteração), um toast deve aparecer no canto. Tente não clicar para que ele desapareça sozinho após alguns segundos, e tente clicar no "x" para fechar imediatamente – ambos devem remover a notificação.
+   * As notificações devem respeitar o estilo e não acumular indefinidamente (cada uma sai após 5s). Você pode gerar notificações de teste chamando `useUIStore.getState().addNotification("Mensagem")` no console do navegador para ver o comportamento.
+
+Se todos os passos acima funcionarem como descrito, você terá integrado com sucesso as **automações de workflow** e as **funcionalidades de interação cliente-editor** no projeto **MelhorApp**, mantendo o padrão visual e estrutural existente. 🎉
+
+Cada parte do código é modular e isolada, seguindo a arquitetura de features (usamos `store/` para estado global, `components/widgets` e `components/video` para UI, etc.). Você pode evoluir essas implementações futuramente, por exemplo:
+
+* Refinar o sistema de notificações para usar WebSockets reais e notificar usuários específicos em tempo real.
+* Persistir o status de tarefas e comentários no backend, sincronizando com a interface (as estruturas estão prontas para isso).
+* Adicionar feedback visual mais rico (por exemplo, usar ícones do shadcn/UI nos botões, animações nos toasts, etc.).
+
+Integrado o pacote de códigos acima, o aplicativo deverá oferecer uma experiência aprimorada, automatizando tarefas repetitivas (workflow) e melhorando a comunicação entre clientes e editores. Boa codificação! 🚀

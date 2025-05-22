@@ -1,0 +1,30 @@
+# Configuração de normalização de finais de linha
+* text=auto
+# Arquivos de texto explícitos
+*.js text
+*.jsx text
+*.ts text
+*.tsx text
+*.json text
+*.md text
+*.css text
+*.scss text
+*.html text
+# Arquivos binários que não devem ser modificados
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.svg binary
+# Arquivos específicos do Windows
+*.bat text eol=crlf
+*.cmd text eol=crlf
+# Arquivos específicos do Unix/Linux
+*.sh text eol=lf
+*.mp4 filter=lfs diff=lfs merge=lfs -text
+public/exports/projeto-1/v1.mp4 filter=lfs diff=lfs merge=lfs -text

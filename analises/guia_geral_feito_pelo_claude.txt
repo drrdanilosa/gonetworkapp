@@ -1,0 +1,877 @@
+# Roteiro Técnico para Reconstrução do MelhorApp_final
+
+Documento técnico elaborado para a equipe da Vercel reconstruir o `melhorapp_final`, baseado no repositório GitHub [contatogonetwork/melhorapp_final](https://github.com/contatogonetwork/melhorapp_final).
+
+**Data de referência:** 2025-05-22
+
+## 1. Estrutura e Arquitetura do Projeto
+
+O MelhorApp é construído com uma arquitetura modular baseada em features, seguindo princípios de separação de responsabilidades. A estrutura completa do diretório é:
+
+```
+melhorapp_final/
+├── app/                       # Next.js App Router
+│   ├── page.tsx               # Página inicial
+│   ├── events/                # Páginas de eventos
+│   │   ├── page.tsx           # Listagem de eventos
+│   │   ├── new/               # Criação de novo evento
+│   │   └── [eventId]/         # Rotas dinâmicas para cada evento
+│   │       ├── page.tsx       # Detalhes do evento
+│   │       ├── briefing/      # Página de briefing do evento
+│   │       ├── videos/        # Página de vídeos/edição
+│   │       └── history/       # Histórico do evento
+│   └── api/                   # Rotas de API Next.js
+│       ├── briefings/         # API de briefings
+│       │   ├── route.ts       # Lista/cria briefings
+│       │   └── [eventId]/     # Briefing específico por evento
+│       │       └── route.ts
+│       └── events/            # API de eventos
+│           └── [eventId]/     # Operações específicas por evento
+│               ├── route.ts   # CRUD do evento
+│               └── videos/    # API de vídeos por evento
+│                   └── route.ts
+├── components/                # Componentes React compartilhados
+│   ├── ui/                    # Componentes de UI (shadcn)
+│   │   ├── button.tsx         # Botões estilizados
+│   │   ├── card.tsx           # Cards
+│   │   ├── input.tsx          # Inputs
+│   │   └── ...
+│   ├── video/                 # Componentes relacionados a vídeo
+│   │   ├── player.tsx         # Player de vídeo
+│   │   └── annotation.tsx     # Anotações/comentários em vídeo
+│   └── widgets/               # Widgets funcionais completos
+│       ├── login-widget.tsx   # Widget de login/cadastro
+│       └── ...
+├── features/                  # Código organizado por domínio
+│   ├── auth/                  # Funcionalidade de autenticação
+│   │   ├── components/        # Componentes específicos de auth
+│   │   └── hooks/             # Hooks específicos de auth
+│   ├── briefing/              # Funcionalidade de briefing
+│   │   ├── components/        # Formulários e visores de briefing
+│   │   └── hooks/             # Hooks específicos de briefing
+│   └── ...
+├── services/                  # Abstrações para API
+│   ├── auth-service.ts        # Serviços de autenticação
+│   ├── briefing-service.ts    # CRUD de briefing
+│   ├── event-service.ts       # CRUD de eventos
+│   └── ...
+├── store/                     # Stores Zustand (estado global)
+│   ├── useAuthStore.ts        # Estado de autenticação
+│   ├── useProjectsStore.ts    # Estado de projetos/vídeos
+│   └── useUIStore.ts          # Estado de UI (notificações, etc.)
+├── contexts/                  # Contextos React
+├── hooks/                     # Hooks personalizados
+├── lib/                       # Funções utilitárias
+│   ├── scheduleGenerator.ts   # Gerador de cronograma automático
+│   └── ...
+├── styles/                    # Estilos globais
+├── types/                     # Definições TypeScript
+├── public/                    # Arquivos estáticos
+│   └── exports/               # Diretório monitorado para vídeos
+│       └── [eventId]/         # Subpasta por evento
+├── scripts/                   # Scripts auxiliares
+│   └── video-watcher.js       # Watcher de vídeos com chokidar
+└── [arquivos de configuração] # next.config.mjs, package.json, etc.
+```
+
+### Propósito dos principais diretórios:
+
+#### `app/`
+Contém as páginas Next.js usando o App Router. Cada arquivo `page.tsx` representa uma rota da aplicação. A pasta `api/` contém todas as rotas de API interna do Next.js.
+
+#### `components/`
+Componentes React reutilizáveis, organizados em:
+- `ui/`: Componentes base da interface (shadcn/UI)
+- `video/`: Componentes relacionados à visualização/edição de vídeos
+- `widgets/`: Componentes de alto nível que encapsulam funcionalidade completa
+
+#### `features/`
+Módulos organizados por domínio, cada um encapsulando:
+- Componentes específicos daquela funcionalidade
+- Hooks personalizados
+- Lógica de negócio
+- Tipos e interfaces
+
+#### `services/`
+Abstrações para chamadas de API, como:
+```typescript
+// services/briefing-service.ts
+export async function getBriefingByEventId(eventId: string) {
+  const response = await fetch(`/api/briefings/${eventId}`);
+  if (!response.ok) throw new Error('Failed to fetch briefing');
+  return response.json();
+}
+
+export async function updateBriefing(eventId: string, data: BriefingData) {
+  const response = await fetch(`/api/briefings/${eventId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error('Failed to update briefing');
+  return response.json();
+}
+```
+
+#### `store/`
+Gerenciamento de estado global com Zustand:
+```typescript
+// store/useProjectsStore.ts
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+export const useProjectsStore = create(
+  persist(
+    (set) => ({
+      projects: [],
+      videos: [],
+      addProject: (project) => set((state) => ({ 
+        projects: [...state.projects, project] 
+      })),
+      updateVideoStatus: (videoId, status) => set((state) => ({
+        videos: state.videos.map(v => 
+          v.id === videoId ? { ...v, status } : v
+        )
+      })),
+      // ... outros métodos
+    }),
+    { name: 'projects-storage' }
+  )
+);
+```
+
+## 2. Fluxo Completo da Aplicação
+
+O fluxo do MelhorApp segue estas etapas principais:
+
+### 1. Autenticação
+- Usuário acessa a página inicial e utiliza o `<LoginWidget />` para login/registro
+- Após autenticação, o estado global é atualizado:
+
+```typescript
+// features/auth/components/login-form.tsx
+import { useAuthStore } from '@/store/useAuthStore';
+
+export function LoginForm() {
+  const login = useAuthStore(state => state.login);
+  
+  const onSubmit = async (data) => {
+    // Validação e chamada de API
+    const user = await loginUser(data.email, data.password);
+    login(user); // Atualiza store global
+    router.push('/events'); // Redireciona para dashboard
+  };
+  
+  // Renderização do formulário
+}
+```
+
+### 2. Dashboard/Listagem de Projetos
+- Após login, usuário visualiza lista de projetos em `/events`
+- Dados carregados do estado global ou API
+
+### 3. Criação de Evento
+- Através de `/events/new`, editor preenche formulário com:
+  - Título, descrição, data do evento, prazo final, número de vídeos
+  - Pode gerar cronograma automático
+  
+```typescript
+// app/events/new/page.tsx
+import { generateScheduleFromBriefing } from '@/lib/scheduleGenerator';
+
+export default function NewEventPage() {
+  const [schedule, setSchedule] = useState(null);
+  
+  const generateSchedule = () => {
+    const newSchedule = generateScheduleFromBriefing(
+      formData.title, 
+      formData.numVideos, 
+      formData.eventDate, 
+      formData.finalDueDate
+    );
+    setSchedule(newSchedule);
+  };
+  
+  // Renderização de formulário e preview de cronograma
+}
+```
+
+### 4. Detalhes do Evento
+- Após criação, redireciona para `/events/[eventId]`
+- Múltiplas abas disponíveis:
+  - Informações Gerais (Briefing)
+  - Edição/Aprovação
+  - Histórico
+  - Assets
+
+### 5. Envio de Vídeo
+- Duas formas:
+  1. Upload via formulário na aba de edição
+  2. Colocando vídeos em `public/exports/<eventId>/`, monitorado pelo watcher
+
+### 6. Edição, Comentários e Revisão
+- Na aba Edição/Aprovação, o ciclo é:
+  1. Editor marca vídeo como pronto para revisão
+  2. Cliente faz comentários com timestamp
+  3. Cliente solicita alterações ou aprova
+  
+```typescript
+// features/video/components/approval-section.tsx
+import { useProjectsStore } from '@/store/useProjectsStore';
+
+export function ApprovalSection({ videoId, eventId }) {
+  const { markVideoReady, requestChanges, approveVideo } = useProjectsStore();
+  
+  const handleApprove = () => {
+    approveVideo(videoId);
+    // Atualiza API
+    updateVideoStatus(eventId, videoId, 'approved');
+  };
+  
+  // Renderização dos botões de ação e comentários
+}
+```
+
+### 7. Aprovação Final
+- Cliente pode aprovar versão final
+- Interface de assinatura digital disponível
+- Status atualizado para "approved" com data/hora
+
+### 8. Entregas e Histórico
+- Sistema mantém histórico de todas as versões e comentários
+- Status final visível no dashboard
+
+### 9. Assets Reutilizáveis
+- Gerenciamento básico de assets (mídia)
+- Busca por nome/tag
+
+## 3. Lógica de Permissões por Perfil
+
+O sistema define três perfis de usuário:
+
+### 1. Administradores (`admin`)
+- Acesso total ao sistema
+- Podem acessar painel administrativo (`/admin/*`)
+- Visualizam e editam qualquer informação
+
+### 2. Editores (`editor`)
+- Responsáveis por criar e gerenciar projetos
+- Podem criar/editar briefings, fazer upload de vídeos, etc.
+- Têm acesso a controles de edição
+
+### 3. Clientes (`client`)
+- Acesso apenas aos projetos em que são clientes
+- Podem visualizar briefing e vídeos
+- Podem fazer comentários, aprovar/solicitar alterações
+
+### Implementação das permissões:
+
+```typescript
+// components/role-guard.tsx
+import { useAuthStore } from '@/store/useAuthStore';
+
+export function RoleGuard({ 
+  children, 
+  allowedRoles 
+}: { 
+  children: React.ReactNode, 
+  allowedRoles: Array<'admin' | 'editor' | 'client'> 
+}) {
+  const { user } = useAuthStore();
+  
+  if (!user || !allowedRoles.includes(user.role)) {
+    return null; // Ou componente de acesso negado
+  }
+  
+  return <>{children}</>;
+}
+
+// Uso em componentes:
+<RoleGuard allowedRoles={['admin', 'editor']}>
+  <Button onClick={deleteVersion}>Excluir Versão</Button>
+</RoleGuard>
+```
+
+Exemplo de lógica condicional para controles de UI:
+
+```typescript
+// features/briefing/components/briefing-form.tsx
+import { useAuthStore } from '@/store/useAuthStore';
+
+export function BriefingForm({ eventId }) {
+  const { user } = useAuthStore();
+  const isEditingAllowed = user?.role === 'admin' || user?.role === 'editor';
+  
+  return (
+    <form>
+      <input 
+        type="text" 
+        name="title" 
+        disabled={!isEditingAllowed}
+        {...register('title')}
+      />
+      
+      {/* Outros campos... */}
+      
+      {isEditingAllowed && (
+        <Button type="submit">Salvar Alterações</Button>
+      )}
+    </form>
+  );
+}
+```
+
+## 4. Rotas Dinâmicas e Contexto de Evento
+
+O Next.js App Router permite rotas dinâmicas através da nomenclatura de pastas com colchetes:
+
+### Estrutura das Rotas
+
+- `app/events/[eventId]/page.tsx` - Detalhes do evento
+- `app/events/[eventId]/briefing/page.tsx` - Briefing do evento
+- `app/events/[eventId]/videos/page.tsx` - Vídeos do evento
+
+### Acesso ao `eventId` em componentes de servidor:
+
+```typescript
+// app/events/[eventId]/page.tsx
+export default function EventDetailsPage({ params }: { params: { eventId: string } }) {
+  const eventId = params.eventId;
+  
+  // Carrega dados do evento usando o ID
+  // ...
+  
+  return (
+    <div>
+      <h1>Evento {eventId}</h1>
+      <EventTabsNavigation eventId={eventId} />
+      {/* Conteúdo... */}
+    </div>
+  );
+}
+```
+
+### Acesso ao `eventId` em componentes de cliente:
+
+```typescript
+// features/video/components/video-list.tsx
+'use client';
+
+import { useParams } from 'next/navigation';
+import { useProjectsStore } from '@/store/useProjectsStore';
+
+export function VideoList() {
+  const params = useParams();
+  const eventId = params.eventId as string;
+  
+  const videos = useProjectsStore(state => 
+    state.videos.filter(v => v.eventId === eventId)
+  );
+  
+  // Renderização dos vídeos do evento
+  return (
+    <div>
+      {videos.map(video => (
+        <VideoCard key={video.id} video={video} />
+      ))}
+    </div>
+  );
+}
+```
+
+## 5. Implementação do Video Watcher
+
+O sistema utiliza um script Node.js com `chokidar` para detectar novos vídeos exportados:
+
+### Script Watcher (`scripts/video-watcher.js`):
+
+```javascript
+const chokidar = require('chokidar');
+const fetch = require('node-fetch');
+
+const EXPORTS_DIR = './public/exports';
+const API_URL = 'http://localhost:3000/api';
+
+console.log(`Iniciando watcher de vídeos em ${EXPORTS_DIR}/**/*.mp4...`);
+
+// Inicia o watcher
+const watcher = chokidar.watch(`${EXPORTS_DIR}/**/*.mp4`, {
+  persistent: true,
+  ignoreInitial: false,
+  awaitWriteFinish: true
+});
+
+watcher.on('add', async (path) => {
+  // Extrai eventId do caminho (assumindo estrutura public/exports/123/video.mp4)
+  const match = path.match(/\/exports\/([^\/]+)\/([^\/]+)$/);
+  if (!match) return;
+  
+  const [_, eventId, fileName] = match;
+  console.log(`Novo vídeo detectado: ${fileName} para evento ${eventId}`);
+  
+  try {
+    // Notifica API sobre o novo vídeo
+    const response = await fetch(`${API_URL}/events/${eventId}/videos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fileName })
+    });
+    
+    if (response.ok) {
+      console.log(`Vídeo ${fileName} importado com sucesso para evento ${eventId}`);
+    } else {
+      console.error(`Erro ao importar vídeo: ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error(`Erro na chamada à API: ${error.message}`);
+  }
+});
+
+console.log('Watcher iniciado! Aguardando novos arquivos...');
+```
+
+### Rota de API para Receber Vídeos (`app/api/events/[eventId]/videos/route.ts`):
+
+```typescript
+import { NextRequest, NextResponse } from 'next/server';
+import { getEventById, addVideoToEvent } from '@/services/event-service';
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { eventId: string } }
+) {
+  try {
+    const eventId = params.eventId;
+    const { fileName } = await req.json();
+    
+    // Verificar se evento existe
+    const event = await getEventById(eventId);
+    if (!event) {
+      return NextResponse.json(
+        { error: 'Evento não encontrado' },
+        { status: 404 }
+      );
+    }
+    
+    // Construir URL do vídeo
+    const videoUrl = `/exports/${eventId}/${fileName}`;
+    
+    // Adicionar vídeo ao evento (usando serviço ou store)
+    const videoVersion = await addVideoToEvent(eventId, {
+      fileName,
+      url: videoUrl,
+      createdAt: new Date().toISOString(),
+      status: 'editing'
+    });
+    
+    return NextResponse.json({
+      success: true,
+      video: videoVersion
+    });
+  } catch (error) {
+    console.error('Erro ao importar vídeo:', error);
+    return NextResponse.json(
+      { error: 'Erro ao processar a requisição' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+### Integração com o Store:
+
+```typescript
+// services/event-service.ts
+import { useProjectsStore } from '@/store/useProjectsStore';
+
+export async function addVideoToEvent(eventId, videoData) {
+  // Adiciona ao store global
+  const addVideo = useProjectsStore.getState().addVideo;
+  const newVideo = {
+    id: generateId(),
+    eventId,
+    ...videoData
+  };
+  
+  addVideo(newVideo);
+  return newVideo;
+}
+```
+
+### Execução do Watcher:
+
+Para executar o watcher durante o desenvolvimento:
+1. Em um terminal: `npm run dev` (inicia o Next.js)
+2. Em outro terminal: `npm run watch:videos` (inicia o watcher)
+
+Alternativamente, use o script combinado:
+```bash
+npm run dev:all  # Inicia Next.js e watcher juntos usando concurrently
+```
+
+## 6. Interface por Abas e Contexto de Evento
+
+A página de detalhes do evento é organizada em abas para facilitar a navegação:
+
+### Componente de Navegação por Abas:
+
+```typescript
+// features/event/components/event-tabs.tsx
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
+
+export function EventTabsNavigation({ eventId }: { eventId: string }) {
+  const pathname = usePathname();
+  
+  const tabs = [
+    { 
+      name: 'Briefing', 
+      href: `/events/${eventId}/briefing`,
+      active: pathname === `/events/${eventId}/briefing` 
+    },
+    { 
+      name: 'Edição/Aprovação', 
+      href: `/events/${eventId}/videos`,
+      active: pathname === `/events/${eventId}/videos` 
+    },
+    { 
+      name: 'Histórico', 
+      href: `/events/${eventId}/history`,
+      active: pathname === `/events/${eventId}/history` 
+    },
+    { 
+      name: 'Assets', 
+      href: `/events/${eventId}/assets`,
+      active: pathname === `/events/${eventId}/assets` 
+    },
+  ];
+  
+  return (
+    <nav className="flex space-x-4 border-b mb-6">
+      {tabs.map((tab) => (
+        <Link
+          key={tab.name}
+          href={tab.href}
+          className={cn(
+            "px-4 py-2 text-sm font-medium",
+            tab.active
+              ? "border-b-2 border-primary text-primary"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          {tab.name}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+```
+
+### Layout para Páginas de Evento:
+
+```typescript
+// app/events/[eventId]/layout.tsx
+import { EventTabsNavigation } from '@/features/event/components/event-tabs';
+
+export default function EventLayout({ 
+  params, 
+  children 
+}: { 
+  params: { eventId: string }, 
+  children: React.ReactNode 
+}) {
+  return (
+    <div className="container py-6">
+      <EventTabsNavigation eventId={params.eventId} />
+      {children}
+    </div>
+  );
+}
+```
+
+### Componente Específico de Aba (exemplo: Briefing):
+
+```typescript
+// app/events/[eventId]/briefing/page.tsx
+import { BriefingForm } from '@/features/briefing/components/briefing-form';
+import { getBriefingByEventId } from '@/services/briefing-service';
+
+export default async function BriefingPage({ 
+  params 
+}: { 
+  params: { eventId: string } 
+}) {
+  // Carregar dados de briefing do evento
+  const briefing = await getBriefingByEventId(params.eventId);
+  
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold">Briefing do Evento</h1>
+      <BriefingForm 
+        eventId={params.eventId} 
+        initialData={briefing} 
+      />
+    </div>
+  );
+}
+```
+
+## 7. Execução Local e Tratamento de Dados
+
+O MelhorApp é projetado para funcionar localmente sem dependência de bancos de dados externos:
+
+### Gerenciamento de Estado com Zustand:
+
+```typescript
+// store/useProjectsStore.ts
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { Event, Video, Comment } from '@/types';
+
+type ProjectsStore = {
+  events: Event[];
+  videos: Video[];
+  comments: Comment[];
+  
+  // Ações
+  addEvent: (event: Event) => void;
+  updateEvent: (eventId: string, data: Partial<Event>) => void;
+  addVideo: (video: Video) => void;
+  updateVideoStatus: (videoId: string, status: string) => void;
+  addComment: (comment: Comment) => void;
+};
+
+export const useProjectsStore = create<ProjectsStore>()(
+  persist(
+    (set) => ({
+      events: initialEvents, // Dados iniciais de mock
+      videos: initialVideos,
+      comments: [],
+      
+      addEvent: (event) => set((state) => ({
+        events: [...state.events, event]
+      })),
+      
+      updateEvent: (eventId, data) => set((state) => ({
+        events: state.events.map(event => 
+          event.id === eventId ? { ...event, ...data } : event
+        )
+      })),
+      
+      // Outras ações...
+    }),
+    {
+      name: 'projects-storage', // Nome no localStorage
+    }
+  )
+);
+```
+
+### Dados Iniciais para Desenvolvimento:
+
+```typescript
+// store/mock-data.ts
+export const initialEvents = [
+  {
+    id: '123',
+    title: 'Evento de Demonstração',
+    description: 'Projeto exemplo para testes',
+    eventDate: '2025-06-15',
+    finalDueDate: '2025-07-01',
+    createdAt: '2025-05-20',
+    status: 'in_progress',
+    clientId: '2',
+    editorId: '1',
+  },
+  // Outros eventos...
+];
+
+export const initialVideos = [
+  {
+    id: 'v1',
+    eventId: '123',
+    fileName: 'abertura.mp4',
+    url: '/exports/123/abertura.mp4',
+    createdAt: '2025-05-21',
+    status: 'editing',
+  },
+  // Outros vídeos...
+];
+```
+
+### Serviços API Simulados:
+
+```typescript
+// services/event-service.ts
+import { useProjectsStore } from '@/store/useProjectsStore';
+
+export async function getEventById(eventId: string) {
+  // Em um ambiente com banco de dados, aqui faria uma chamada fetch real
+  // Em local, usa o store diretamente
+  const events = useProjectsStore.getState().events;
+  return events.find(event => event.id === eventId);
+}
+
+export async function createEvent(eventData: any) {
+  const newEvent = {
+    id: Date.now().toString(), // Geração simples de ID
+    ...eventData,
+    createdAt: new Date().toISOString(),
+    status: 'draft'
+  };
+  
+  // Adiciona ao store local
+  useProjectsStore.getState().addEvent(newEvent);
+  return newEvent;
+}
+```
+
+## 8. Dependências Necessárias
+
+### Bibliotecas Principais:
+
+```json
+{
+  "dependencies": {
+    "next": "^15.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^5.3.0",
+    "tailwindcss": "^3.4.0",
+    "postcss": "^8.4.32",
+    "autoprefixer": "^10.4.16",
+    
+    "zustand": "^4.5.0",
+    "@tanstack/react-query": "^4.35.0",
+    "react-hook-form": "^7.50.0",
+    "zod": "^3.22.0",
+    "@hookform/resolvers": "^3.3.0",
+    
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.0.0",
+    "lucide-react": "^0.300.0",
+    "tailwind-merge": "^2.1.0",
+    
+    "socket.io-client": "^4.7.0",
+    "socket.io": "^4.7.0",
+    
+    "chokidar": "^3.5.3",
+    "node-fetch": "^3.3.0",
+    "concurrently": "^8.2.0",
+    
+    "@types/react": "^18.2.0",
+    "@types/node": "^20.10.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.55.0",
+    "eslint-config-next": "^15.0.0",
+    "typescript": "^5.3.0"
+  }
+}
+```
+
+### Comando para Instalação:
+
+```bash
+npm install next@latest react@latest react-dom@latest typescript tailwindcss postcss autoprefixer zustand @tanstack/react-query react-hook-form zod @hookform/resolvers class-variance-authority clsx lucide-react tailwind-merge socket.io-client socket.io chokidar node-fetch concurrently
+npm install -D eslint eslint-config-next typescript
+```
+
+## 9. Configuração do Ambiente
+
+### Arquivo `.env.local`:
+
+```
+# Configuração para Socket.io (opcional)
+NEXT_PUBLIC_SOCKET_URL=http://localhost:3001
+
+# Porta para o servidor Next.js (opcional)
+PORT=3000
+
+# Outras variáveis específicas do projeto
+```
+
+### Processo de Configuração:
+
+1. Copie o arquivo de exemplo:
+   ```bash
+   cp .env.local.example .env.local
+   ```
+
+2. Edite as variáveis conforme necessário
+
+### Configuração para Desenvolvimento:
+- `NEXT_PUBLIC_SOCKET_URL` não precisa ser definido para desenvolvimento local
+- O Next.js usará a porta 3000 por padrão
+
+### Configuração para Produção Local:
+- Ajuste as variáveis conforme necessário para teste em modo de produção
+
+## 10. Comandos de Inicialização
+
+### Instalação de Dependências:
+```bash
+npm install
+```
+
+### Criação de Pastas Necessárias:
+```bash
+mkdir -p public/exports/123
+```
+
+### Execução em Modo Desenvolvimento:
+
+```bash
+# Iniciar apenas o Next.js
+npm run dev
+
+# Iniciar o watcher de vídeos (em outro terminal)
+npm run watch:videos
+
+# OU iniciar tudo junto (usando concurrently)
+npm run dev:all
+```
+
+### Build e Execução em Modo Produção:
+
+```bash
+# Gerar build de produção
+npm run build
+
+# Iniciar servidor de produção
+npm start
+```
+
+### Script `package.json` para Referência:
+
+```json
+{
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "watch:videos": "node scripts/video-watcher.js",
+    "socket-server": "node scripts/socket-server.js",
+    "dev:all": "concurrently \"npm run dev\" \"npm run watch:videos\" \"npm run socket-server\""
+  }
+}
+```
+
+## Conclusão
+
+Este roteiro técnico abrange todos os aspectos necessários para reconstruir o MelhorApp_final com todas as suas funcionalidades. Seguindo estas instruções detalhadas, a equipe da Vercel poderá implementar:
+
+- A arquitetura modular baseada em features
+- O fluxo completo da aplicação, do login à entrega final
+- O sistema de permissões por perfil de usuário
+- As rotas dinâmicas com contexto de evento
+- O watcher de vídeos para importação automática
+- A interface por abas para navegação fluida
+- A execução local com persistência de dados
+- A configuração completa do ambiente de desenvolvimento
+
+A implementação resultante será uma plataforma funcional para gerenciamento de projetos de vídeo, com todas as funcionalidades originais do MelhorApp_final preservadas.

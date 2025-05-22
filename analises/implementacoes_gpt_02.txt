@@ -1,0 +1,879 @@
+Perfeito! Vou desenvolver os códigos e orientações completos para implementar as seguintes funcionalidades, seguindo sua ordem de prioridade e a arquitetura atual do MelhorApp:
+
+1. Integração de IA para gerar sugestões automáticas com base no briefing
+2. Comunicação em tempo real via chat ou comentários sincronizados
+3. Aprovação com assinatura digital do cliente
+4. Biblioteca inteligente de assets com busca e tagging
+5. Relatórios de performance por evento com dashboards visuais
+
+Todos os códigos serão preparados em TypeScript/Next.js 15 com Zustand e a arquitetura modular baseada em features, respeitando o padrão visual e estrutural atual do repositório. Apresentarei os códigos prontos para colar no VSCode, com indicações para melhorias futuras.
+
+Em breve, trago o primeiro bloco com a integração de IA para sugestões baseadas no briefing.
+
+
+# Implementação das Funcionalidades Solicitadas no MelhorApp
+
+A seguir apresentamos cada funcionalidade pedida, em ordem de prioridade, com código completo (stores Zustand, componentes React e rotas API) e instruções de integração e teste. Todo o código está em TypeScript e segue a estrutura modular do projeto **MelhorApp** (Next.js App Router, Zustand, Tailwind/Dracula Theme). Comentários no código indicam melhorias futuras (ex.: integração com APIs externas) e dependências opcionais.
+
+## 1. Integração de IA para Sugestões Automáticas (Briefing)
+
+Esta funcionalidade gera sugestões automáticas de roteiro, estrutura de vídeo e tags com base no conteúdo do briefing preenchido pelo cliente. Incluímos um **store Zustand** para gerenciar o estado de sugestão, um **componente de UI** com botão e área de sugestões, e uma **rota API** local para gerar sugestões (simulada). Futuramente, essa rota pode ser substituída por integração com a API do OpenAI (indicamos isso nos comentários).
+
+### Store: `store/useSuggestionStore.ts`
+
+Gerencia o estado das sugestões (carregamento, resultado ou erro) e expõe a ação `generateSuggestions` que chama a API local `/api/suggestions`. Certifique-se de importar este store apenas em componentes client-side.
+
+```tsx
+// store/useSuggestionStore.ts
+import { create } from 'zustand';
+
+interface SuggestionsResult {
+  script: string;
+  structure: string;
+  tags: string[];
+}
+
+interface SuggestionState {
+  loading: boolean;
+  suggestions: SuggestionsResult | null;
+  error: string | null;
+  generateSuggestions: (briefingText: string) => Promise<void>;
+}
+
+export const useSuggestionStore = create<SuggestionState>((set) => ({
+  loading: false,
+  suggestions: null,
+  error: null,
+  // Ação para gerar sugestões chamando a API local
+  generateSuggestions: async (briefingText) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await fetch('/api/suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ briefing: briefingText })
+      });
+      if (!res.ok) {
+        throw new Error(`Erro ${res.status} ao gerar sugestões`);
+      }
+      const data: SuggestionsResult = await res.json();
+      set({ suggestions: data });
+    } catch (err: any) {
+      console.error('Erro ao obter sugestões:', err);
+      set({ error: err.message || 'Falha ao gerar sugestões' });
+    } finally {
+      set({ loading: false });
+    }
+  }
+}));
+```
+
+### Componente: `components/widgets/BriefingSuggestions.tsx`
+
+Componente React client-side que exibe um botão "Gerar Sugestões" e, quando clicado, usa o store acima para solicitar sugestões. Mostra um indicador de *loading* enquanto aguarda a resposta e então exibe as sugestões de roteiro, estrutura e tags geradas. Deve ser inserido na página do formulário de briefing (por exemplo, após o textarea ou campos de briefing).
+
+```tsx
+// components/widgets/BriefingSuggestions.tsx
+'use client';
+import { useState } from 'react';
+import { useSuggestionStore } from '@/store/useSuggestionStore';
+
+interface BriefingSuggestionsProps {
+  briefingText: string;
+}
+
+export default function BriefingSuggestions({ briefingText }: BriefingSuggestionsProps) {
+  const { loading, suggestions, error, generateSuggestions } = useSuggestionStore();
+  const [hasRequested, setHasRequested] = useState(false);
+
+  const handleGenerate = async () => {
+    if (!briefingText || briefingText.trim().length === 0) return;
+    setHasRequested(true);
+    await generateSuggestions(briefingText);
+  };
+
+  return (
+    <div className="mt-4 p-4 rounded bg-neutral-800 text-neutral-100">
+      <button
+        onClick={handleGenerate}
+        disabled={loading || !briefingText}
+        className="px-4 py-2 mb-3 rounded bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600"
+      >
+        {loading ? 'Gerando sugestões...' : 'Gerar Sugestões'}
+      </button>
+      {/* Área de sugestões ou mensagens de erro */}
+      {error && (
+        <p className="text-red-400">Erro: {error}</p>
+      )}
+      {!error && suggestions && hasRequested && !loading && (
+        <div className="mt-2">
+          <h4 className="font-bold">Sugestão de Roteiro:</h4>
+          <p className="mb-2 whitespace-pre-line">{suggestions.script}</p>
+          <h4 className="font-bold">Sugestão de Estrutura:</h4>
+          <p className="mb-2 whitespace-pre-line">{suggestions.structure}</p>
+          <h4 className="font-bold">Tags Recomendadas:</h4>
+          <div className="flex flex-wrap gap-2">
+            {suggestions.tags.map((tag, idx) => (
+              <span key={idx} className="px-2 py-1 text-sm bg-teal-700 rounded">
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+      {/* Fallback quando ainda não foi solicitado */}
+      {!error && !suggestions && !loading && !hasRequested && (
+        <p className="text-sm text-neutral-400">Preencha o briefing e clique em "Gerar Sugestões" para dicas automáticas.</p>
+      )}
+    </div>
+  );
+}
+```
+
+### Rota API: `app/api/suggestions/route.ts`
+
+Endpoint API (Next.js App Router) que recebe o briefing e retorna sugestões simuladas. No futuro, essa lógica pode ser aprimorada com IA real (por exemplo, chamando a API da OpenAI com o conteúdo do briefing). Por ora, usamos uma simulação simples: geramos um texto de roteiro e estrutura genérico e extraímos palavras-chave do briefing para sugerir tags.
+
+```ts
+// app/api/suggestions/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function POST(request: NextRequest) {
+  const { briefing } = await request.json();
+  if (!briefing || briefing.trim().length === 0) {
+    return NextResponse.json({ error: 'Briefing vazio' }, { status: 400 });
+  }
+  // Lógica simulada para gerar sugestões. (Melhoria futura: integrar com OpenAI API)
+  const scriptSugestao = `Com base no briefing fornecido, uma ideia de roteiro seria começar apresentando: "${briefing.slice(0, 60)}..." e então desenvolver os pontos principais, concluindo com uma chamada à ação.`;
+  const estruturaSugestao = 'Estrutura sugerida: Introdução, Desenvolvimento dos tópicos centrais em segmentos claros, e Conclusão reforçando a mensagem final.';
+  // Gerar tags simples a partir das palavras do briefing (pega 3 primeiras palavras significativas como exemplo)
+  const palavras = briefing.split(/\s+/).filter((w: string) => w.length > 3);
+  const tagsSugestao = palavras.slice(0, 3).map((w: string) => w.replace(/[^a-zA-Z0-9]/g, '').toLowerCase());
+  return NextResponse.json({
+    script: scriptSugestao,
+    structure: estruturaSugestao,
+    tags: tagsSugestao.length ? tagsSugestao : ['video', 'ideia', 'produção']
+  });
+}
+```
+
+**Integração e Teste:** Para integrar esta funcionalidade:
+
+1. Inclua o componente **`<BriefingSuggestions />`** na página de briefing do evento (por exemplo, em `app/events/[eventId]/briefing/page.tsx` ou logo após o formulário de briefing), passando o texto do briefing como propriedade conforme o exemplo abaixo.
+2. Preencha o briefing e clique em **"Gerar Sugestões"**. Verifique se aparece a mensagem de carregamento e, em seguida, as sugestões geradas (roteiro, estrutura e tags) são exibidas.
+3. Teste também o caso de erro: deixe o briefing vazio e clique no botão para confirmar que uma mensagem de erro é mostrada.
+
+```tsx
+// Exemplo de uso na página de Briefing (trecho simplificado)
+import BriefingSuggestions from '@/components/widgets/BriefingSuggestions';
+...
+const [briefingText, setBriefingText] = useState('');
+return (
+  <form>
+    <textarea value={briefingText} onChange={(e) => setBriefingText(e.target.value)} ... />
+    {/* Botão e sugestões */}
+    <BriefingSuggestions briefingText={briefingText} />
+  </form>
+);
+```
+
+## 2. Comunicação em Tempo Real via Chat/Comentários
+
+Esta funcionalidade adiciona um chat em tempo real por evento, permitindo comunicação direta entre o **cliente** e o **editor**, além de sincronizar comentários no vídeo. Implementamos um **store de colaboração** (Zustand) que gerencia mensagens, presença de usuários e indicação de digitação (*"typing"*), e um **componente de chat** que exibe as mensagens e permite envio em tempo real.
+
+> **Nota:** Aqui utilizamos uma simulação local de "tempo real". Para uma solução em produção, recomenda-se integrar um WebSocket real (por exemplo, usando **Socket.IO** ou **Web APIs** nativas) ou serviços de terceiros (Pusher, Firebase) para sincronizar mensagens entre diferentes clientes. Indicamos nos comentários onde essa evolução pode ser feita.
+
+### Store: `store/useCollaborationStore.ts`
+
+Este store, extensível do existente `useCollaborationStore`, gerencia o estado de colaboração em tempo real: mantém as mensagens do chat, status online de cada parte (cliente/editor) e quem está digitando no momento. A ação `sendMessage` adiciona uma mensagem e simula o recebimento pela outra parte após um breve intervalo (para demonstrar a interação).
+
+```tsx
+// store/useCollaborationStore.ts (extensão ou inclusão de funcionalidades de chat)
+import { create } from 'zustand';
+
+interface ChatMessage {
+  id: string;
+  sender: 'editor' | 'client';
+  text: string;
+  timestamp: number;
+}
+interface CollaborationState {
+  messages: ChatMessage[];
+  clientOnline: boolean;
+  editorOnline: boolean;
+  clientTyping: boolean;
+  editorTyping: boolean;
+  sendMessage: (sender: 'editor' | 'client', text: string) => void;
+  setTyping: (sender: 'editor' | 'client', isTyping: boolean) => void;
+  connectUser: (user: 'editor' | 'client') => void;
+  disconnectUser: (user: 'editor' | 'client') => void;
+}
+
+export const useCollaborationStore = create<CollaborationState>((set, get) => ({
+  messages: [],
+  clientOnline: false,
+  editorOnline: false,
+  clientTyping: false,
+  editorTyping: false,
+  // Registra usuário como online
+  connectUser: (user) => set((state) => (
+    user === 'client' ? { clientOnline: true } : { editorOnline: true }
+  )),
+  // Registra usuário como offline
+  disconnectUser: (user) => set((state) => (
+    user === 'client' ? { clientOnline: false } : { editorOnline: false }
+  )),
+  // Atualiza status "digitando" do usuário
+  setTyping: (user, isTyping) => set(() => (
+    user === 'client' ? { clientTyping: isTyping } : { editorTyping: isTyping }
+  )),
+  // Envia mensagem e simula resposta do outro lado
+  sendMessage: (sender, text) => {
+    if (!text.trim()) return;
+    const newMsg: ChatMessage = {
+      id: Date.now().toString(),
+      sender,
+      text,
+      timestamp: Date.now()
+    };
+    // Adiciona mensagem enviada
+    set((state) => ({ 
+      messages: [...state.messages, newMsg],
+      // Ao enviar, o usuário atual não está mais digitando
+      clientTyping: sender === 'client' ? false : state.clientTyping,
+      editorTyping: sender === 'editor' ? false : state.editorTyping
+    }));
+    // Simulação: após curto intervalo, gerar resposta automática do outro usuário
+    // (Melhoria futura: aqui entraria lógica de WebSocket recebendo mensagem real do outro cliente)
+    setTimeout(() => {
+      const other: 'editor' | 'client' = sender === 'client' ? 'editor' : 'client';
+      // Marca "outro usuário está digitando"
+      set(() => (other === 'client' ? { clientTyping: true } : { editorTyping: true }));
+      setTimeout(() => {
+        const reply: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          sender: other,
+          text: sender === 'client'
+            ? 'Mensagem recebida, vou verificar o vídeo.'
+            : 'Entendi, obrigado pelo feedback!',
+          timestamp: Date.now()
+        };
+        // Adiciona a mensagem de resposta
+        set((state) => ({ 
+          messages: [...state.messages, reply],
+          clientTyping: false,
+          editorTyping: false
+        }));
+      }, 1000); // espera 1s "digitando" antes de enviar
+    }, 500);
+  }
+}));
+```
+
+### Componente: `components/widgets/ChatBox.tsx`
+
+Este componente React (client-side) exibe a interface de chat: um histórico de mensagens, indicadores de usuário online/offline e "digitando...", e um campo de entrada para novas mensagens. Ele utiliza o `useCollaborationStore` para recuperar e atualizar o estado do chat em tempo real. O design utiliza Tailwind para estilizar as mensagens (diferenciando visualmente as do cliente e do editor).
+
+```tsx
+// components/widgets/ChatBox.tsx
+'use client';
+import { useEffect, useRef } from 'react';
+import { useCollaborationStore } from '@/store/useCollaborationStore';
+
+interface ChatBoxProps {
+  currentUser: 'editor' | 'client';
+}
+
+export default function ChatBox({ currentUser }: ChatBoxProps) {
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const {
+    messages, clientOnline, editorOnline, clientTyping, editorTyping,
+    sendMessage, setTyping, connectUser, disconnectUser
+  } = useCollaborationStore();
+  const otherUser: 'editor' | 'client' = currentUser === 'client' ? 'editor' : 'client';
+
+  // Mark current user as online when component mounts/unmounts
+  useEffect(() => {
+    connectUser(currentUser);
+    return () => {
+      disconnectUser(currentUser);
+    };
+  }, [currentUser, connectUser, disconnectUser]);
+
+  const handleSend = () => {
+    const text = inputRef.current?.value || '';
+    if (!text.trim()) return;
+    sendMessage(currentUser, text);
+    if (inputRef.current) {
+      inputRef.current.value = '';
+    }
+  };
+  const handleTyping = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setTyping(currentUser, e.target.value.length > 0);
+  };
+
+  return (
+    <div className="border border-neutral-700 rounded p-3 max-w-lg flex flex-col bg-neutral-800 text-neutral-100">
+      {/* Header com status de usuários */}
+      <div className="mb-2 text-sm text-neutral-400">
+        <span className={`mr-4 ${clientOnline ? 'text-green-400' : 'text-neutral-500'}`}>
+          🟢 Cliente {clientOnline ? '(online)' : '(offline)'}
+        </span>
+        <span className={`${editorOnline ? 'text-green-400' : 'text-neutral-500'}`}>
+          🟢 Editor {editorOnline ? '(online)' : '(offline)'}
+        </span>
+      </div>
+      {/* Área de mensagens */}
+      <div className="flex-1 overflow-y-auto mb-2 pr-2">
+        {messages.map(msg => (
+          <div key={msg.id} className={`mb-1 flex ${msg.sender === 'client' ? 'justify-start' : 'justify-end'}`}>
+            <div className={`px-2 py-1 rounded text-sm max-w-xs break-words 
+              ${msg.sender === 'client' ? 'bg-blue-700 text-white' : 'bg-purple-600 text-white'}`}>
+              {msg.text}
+            </div>
+          </div>
+        ))}
+        {/* Indicador de "digitando" do outro usuário */}
+        { (currentUser === 'client' && editorTyping) && (
+          <div className="text-neutral-400 text-xs mb-1">Editor está digitando...</div>
+        )}
+        { (currentUser === 'editor' && clientTyping) && (
+          <div className="text-neutral-400 text-xs mb-1">Cliente está digitando...</div>
+        )}
+      </div>
+      {/* Input de nova mensagem */}
+      <div className="flex items-center">
+        <textarea
+          ref={inputRef}
+          rows={2}
+          onChange={handleTyping}
+          className="flex-1 text-sm p-2 mr-2 rounded bg-neutral-700 text-white"
+          placeholder="Digite uma mensagem..."
+        />
+        <button onClick={handleSend} className="px-3 py-1 bg-teal-600 rounded hover:bg-teal-700">
+          Enviar
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+**Integração e Teste:** Para integrar e testar o chat em tempo real:
+
+1. Inclua o componente **`<ChatBox />`** na página do evento (por exemplo, em `app/events/[eventId]/page.tsx` ou na seção de comentários do player de vídeo). Passe via props o usuário atual (`'client'` ou `'editor'`, conforme o papel do usuário logado), por exemplo:
+
+   ```tsx
+   // Exemplo de integração na página do evento
+   import ChatBox from '@/components/widgets/ChatBox';
+   ...
+   // Supondo que sabemos o papel do usuário logado (role)
+   <ChatBox currentUser={userRole === 'editor' ? 'editor' : 'client'} />
+   ```
+
+2. Abra duas janelas do navegador: uma simulando o cliente e outra o editor (ou alternativamente, alterne a prop `currentUser` entre `'client'` e `'editor'` para simular cada lado).
+
+3. Envie mensagens de um lado e observe que elas aparecem na interface (incluindo a resposta automática simulada do outro usuário).
+
+4. Verifique o indicador de "*digitando...*" quando o outro usuário está digitando e o status online/offline (feche uma das janelas para ver o outro usuário ficar *offline*).
+
+5. Lembre-se que esta é apenas uma simulação local. Em um cenário real multiusuário, seria necessário um servidor WebSocket para sincronizar mensagens e remover a lógica de resposta automática.
+
+## 3. Aprovação com Assinatura Digital do Cliente
+
+Nesta funcionalidade, ao **aprovar um vídeo** o cliente pode fornecer uma assinatura digital como confirmação. Implementamos um **componente de assinatura** que permite desenhar ou digitar o nome como assinatura, e uma **rota API** que registra (simulada) a aprovação com assinatura, incluindo IP do cliente, data e hora. Os dados por enquanto são armazenados localmente (em memória ou store), mas o código está preparado para futura persistência em banco de dados ou armazenamento externo.
+
+### Componente: `components/widgets/SignaturePad.tsx`
+
+Este componente exibe uma pequena área de assinatura onde o cliente pode desenhar sua assinatura com o mouse ou toque, e alternativamente digitar seu nome. Inclui botões para limpar o desenho e confirmar a assinatura. Ao confirmar, ele captura a imagem da assinatura (ou o nome digitado) e chama a callback `onConfirm` fornecida via props, enviando os dados da assinatura.
+
+```tsx
+// components/widgets/SignaturePad.tsx
+'use client';
+import { useRef, useState, useEffect } from 'react';
+
+interface SignaturePadProps {
+  onConfirm: (signatureData: { dataUrl?: string; name?: string }) => void;
+}
+
+export default function SignaturePad({ onConfirm }: SignaturePadProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [drawing, setDrawing] = useState(false);
+  const [typedName, setTypedName] = useState('');
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      // Ajusta resolução do canvas para melhor qualidade
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+  }, []);
+
+  const startDraw = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    // Pega posição relativa no canvas
+    const rect = canvas.getBoundingClientRect();
+    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    setDrawing(true);
+  };
+  const draw = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!drawing) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (!ctx) return;
+    const rect = canvas.getBoundingClientRect();
+    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+    ctx.stroke();
+  };
+  const endDraw = () => {
+    setDrawing(false);
+  };
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (ctx && canvas) {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+  };
+  const confirmSignature = () => {
+    const canvas = canvasRef.current;
+    // Se algo foi desenhado no canvas, usa-o; senão, usa o nome digitado
+    if (canvas) {
+      const blankCanvas = document.createElement('canvas');
+      blankCanvas.width = canvas.width;
+      blankCanvas.height = canvas.height;
+      const blankCtx = blankCanvas.getContext('2d');
+      blankCtx?.fillRect(0, 0, blankCanvas.width, blankCanvas.height);
+      const isCanvasBlank = canvas.toDataURL() === blankCanvas.toDataURL();
+      if (!isCanvasBlank) {
+        const dataUrl = canvas.toDataURL('image/png');
+        onConfirm({ dataUrl });
+        return;
+      }
+    }
+    // Se canvas estiver em branco ou indisponível, usa nome digitado
+    if (typedName.trim()) {
+      onConfirm({ name: typedName.trim() });
+    } else {
+      alert('Por favor, assine (desenhe ou digite seu nome) antes de confirmar.');
+    }
+  };
+
+  return (
+    <div className="p-4 bg-neutral-800 border border-neutral-600 rounded">
+      <h3 className="text-neutral-100 mb-2">Assinatura do Cliente:</h3>
+      {/* Canvas para desenhar assinatura */}
+      <canvas
+        ref={canvasRef}
+        width={300}
+        height={100}
+        className="bg-white mb-2"
+        onPointerDown={startDraw}
+        onPointerMove={draw}
+        onPointerUp={endDraw}
+        onPointerLeave={endDraw}
+      />
+      {/* Input para digitar nome caso prefira */}
+      <input
+        type="text"
+        placeholder="Ou digite seu nome"
+        value={typedName}
+        onChange={(e) => setTypedName(e.target.value)}
+        className="mb-2 w-full px-2 py-1 text-sm bg-neutral-700 text-white rounded"
+      />
+      {/* Botões de ações */}
+      <div className="flex justify-between">
+        <button type="button" onClick={clearCanvas} className="px-3 py-1 bg-gray-600 rounded hover:bg-gray-500">
+          Limpar
+        </button>
+        <button type="button" onClick={confirmSignature} className="px-3 py-1 bg-teal-600 rounded hover:bg-teal-700">
+          Confirmar Assinatura
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+### Rota API: `app/api/events/[eventId]/approve/route.ts`
+
+Esta rota recebe os dados da assinatura quando o cliente aprova o vídeo. Ela registra (simulado) a aprovação, capturando o endereço IP do cliente e timestamp atuais. Sem um banco de dados no momento, os dados podem ser guardados em memória ou simplesmente retornados na resposta. Indicamos via comentários onde essa informação poderia ser persistida futuramente.
+
+```ts
+// app/api/events/[eventId]/approve/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+
+// Estrutura para armazenar aprovações em memória (simulação)
+interface ApprovalRecord {
+  eventId: string;
+  signatureType: 'image' | 'text';
+  signatureData: string;
+  ip: string;
+  timestamp: string;
+}
+const approvals: ApprovalRecord[] = [];
+
+export async function POST(request: NextRequest, { params }: { params: { eventId: string } }) {
+  const { eventId } = params;
+  const body = await request.json();
+  const { dataUrl, name } = body;
+  if (!eventId) {
+    return NextResponse.json({ error: 'ID do evento não fornecido' }, { status: 400 });
+  }
+  // Determina tipo de assinatura e conteúdo
+  let signatureType: 'image' | 'text';
+  let signatureData: string;
+  if (dataUrl) {
+    signatureType = 'image';
+    signatureData = dataUrl; // Base64 da imagem da assinatura
+  } else if (name) {
+    signatureType = 'text';
+    signatureData = name;
+  } else {
+    return NextResponse.json({ error: 'Dados de assinatura ausentes' }, { status: 400 });
+  }
+  // Captura IP do cliente (pode variar conforme deployment)
+  const clientIP = request.headers.get('x-forwarded-for') || request.ip || '0.0.0.0';
+  const timestamp = new Date().toISOString();
+  // Armazena aprovação localmente (simulado; melhoria futura: salvar em banco de dados)
+  approvals.push({ eventId, signatureType, signatureData, ip: clientIP, timestamp });
+  console.log('Aprovação registrada:', approvals[approvals.length - 1]);
+  // Retorna confirmação com dados relevantes
+  return NextResponse.json({
+    success: true,
+    eventId,
+    signatureType,
+    ip: clientIP,
+    timestamp
+  });
+}
+```
+
+### Uso na Página de Evento (Aprovação)
+
+Na página de detalhes do evento (por exemplo, `app/events/[eventId]/page.tsx` ou similar), você adicionará um botão de "Aprovar" que abre o **SignaturePad** em um modal ou seção. Quando o cliente confirma a assinatura, chamamos a rota API para registrar a aprovação.
+
+```tsx
+// Exemplo de integração na página de detalhes do evento
+import { useState } from 'react';
+import SignaturePad from '@/components/widgets/SignaturePad';
+
+export default function EventDetailsPage({ params }: { params: { eventId: string } }) {
+  const [showSign, setShowSign] = useState(false);
+  const [approved, setApproved] = useState(false);
+  const [approvalInfo, setApprovalInfo] = useState<any>(null);
+  const eventId = params.eventId;
+
+  const handleApprove = async (signature: { dataUrl?: string; name?: string }) => {
+    // Chama API de aprovação
+    const res = await fetch(`/api/events/${eventId}/approve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(signature)
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setApproved(true);
+      setApprovalInfo(data);
+    } else {
+      alert('Falha ao registrar aprovação');
+    }
+    setShowSign(false);
+  };
+
+  return (
+    <div>
+      {/* ... detalhes do evento e vídeo ... */}
+      {!approved ? (
+        <button onClick={() => setShowSign(true)} className="px-4 py-2 bg-teal-600 rounded">
+          Aprovar Vídeo
+        </button>
+      ) : (
+        <p className="text-green-500">Vídeo aprovado em {approvalInfo?.timestamp?.substring(0,19).replace('T',' ')} pelo cliente.</p>
+      )}
+      {showSign && (
+        <div className="modal">
+          <SignaturePad onConfirm={handleApprove} />
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+**Teste:** Para testar o fluxo de aprovação:
+
+1. No final do fluxo do evento (por exemplo, após o editor enviar o vídeo final), clique no botão **"Aprovar Vídeo"**. O componente de assinatura digital (`SignaturePad`) deverá aparecer (pode ser em um modal).
+2. Assine no canvas (desenhando com o mouse ou touch) **ou** digite seu nome no campo fornecido.
+3. Clique em **"Confirmar Assinatura"**. Isso enviará os dados para a rota API de aprovação.
+4. Verifique que a interface atualiza para indicar o vídeo como aprovado (por exemplo, mostrando a data/hora da aprovação e desabilitando o botão de aprovar).
+5. Confira no console/terminal do servidor o log impresso com os dados da aprovação (incluindo IP, timestamp e tipo de assinatura). *(Em produção, esses dados deveriam ser salvos em banco de dados e exibidos no histórico do projeto, aqui estamos apenas simulando.)*
+
+## 4. Biblioteca Inteligente de Assets com Busca e Tagging
+
+Esta funcionalidade oferece uma biblioteca para gerenciar arquivos de mídia (vídeos, imagens, áudios) com organização por tags e busca de arquivos. O usuário pode fazer **upload** de arquivos, **adicionar tags** manualmente, e **buscar** por nome ou tag. Implementamos um **store Zustand** para gerenciar a lista de assets e suas tags, e um **componente de biblioteca** que exibe os assets e fornece recursos de upload e busca.
+
+> **Nota:** A "inteligência" aqui fica como sugestão para melhorias futuras - por exemplo, integrar com IA para tagueamento automático (ex.: analisar imagem/vídeo e sugerir tags relevantes). Incluímos um comentário no código indicando essa evolução.
+
+### Store: `store/useAssetsStore.ts`
+
+Gerencia a lista de assets (cada asset tem id, nome, tipo e tags) e fornece ações para adicionar um novo asset (a partir de um arquivo selecionado pelo usuário), definir tags e buscar. Por simplicidade, os arquivos enviados não são realmente enviados a um servidor; o store apenas armazena localmente um URL de referência (utilizando URL.createObjectURL para visualização). Em produção, você faria upload para um servidor ou serviço de storage e armazenaria a URL real.
+
+```tsx
+// store/useAssetsStore.ts
+import { create } from 'zustand';
+
+export type AssetType = 'image' | 'video' | 'audio';
+export interface Asset {
+  id: string;
+  name: string;
+  type: AssetType;
+  url: string;
+  tags: string[];
+}
+
+interface AssetsState {
+  assets: Asset[];
+  searchQuery: string;
+  addAsset: (file: File, tags?: string[]) => void;
+  setSearchQuery: (query: string) => void;
+}
+
+export const useAssetsStore = create<AssetsState>((set) => ({
+  assets: [],
+  searchQuery: '',
+  addAsset: (file, tags = []) => {
+    const id = Date.now().toString();
+    // Determina tipo do asset pelo tipo MIME do arquivo
+    let type: AssetType = 'image';
+    if (file.type.startsWith('video')) type = 'video';
+    else if (file.type.startsWith('audio')) type = 'audio';
+    // Cria URL local para visualização (não persistente)
+    const url = URL.createObjectURL(file);
+    const newAsset: Asset = {
+      id,
+      name: file.name,
+      type,
+      url,
+      tags
+    };
+    set((state) => ({ assets: [...state.assets, newAsset] }));
+    // FUTURO: Poderíamos integrar um serviço de IA aqui para analisar o arquivo e gerar tags automáticas.
+  },
+  setSearchQuery: (query) => set({ searchQuery: query })
+}));
+```
+
+### Componente: `app/events/[eventId]/assets/page.tsx`  (Página de biblioteca de assets para um evento)
+
+Este componente representa a página/biblioteca de assets. Nele há um campo de busca, um botão/input de upload e a listagem de arquivos carregados. A listagem pode ser exibida em grade ou lista; aqui usamos uma simples lista com nome do arquivo, tipo, preview (se for imagem/vídeo) e tags. Há também a funcionalidade de filtrar a lista conforme a busca (por nome ou tags).
+
+```tsx
+// app/events/[eventId]/assets/page.tsx
+'use client';
+import { useState } from 'react';
+import { useAssetsStore } from '@/store/useAssetsStore';
+
+export default function AssetLibraryPage() {
+  const { assets, searchQuery, addAsset, setSearchQuery } = useAssetsStore();
+  const [tagInput, setTagInput] = useState(''); // tags fornecidas no upload
+
+  const filteredAssets = assets.filter(asset => {
+    const q = searchQuery.toLowerCase();
+    return asset.name.toLowerCase().includes(q) || asset.tags.some(tag => tag.toLowerCase().includes(q));
+  });
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    for (const file of files) {
+      // Processa tags escritas (separadas por vírgula ou espaço)
+      const tags = tagInput.split(/[,\s]+/).filter(Boolean);
+      addAsset(file, tags);
+    }
+    // Limpa campos após upload
+    e.target.value = '';
+    setTagInput('');
+  };
+
+  return (
+    <div className="p-4">
+      <h2 className="text-xl font-bold mb-4 text-neutral-100">Biblioteca de Assets</h2>
+      {/* Barra de ferramentas: busca e upload */}
+      <div className="flex items-center gap-4 mb-4">
+        <input
+          type="text"
+          placeholder="Buscar por nome ou tag..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="px-3 py-1 rounded bg-neutral-700 text-white flex-1"
+        />
+        <input
+          type="text"
+          placeholder="Tags (opcional)"
+          value={tagInput}
+          onChange={(e) => setTagInput(e.target.value)}
+          className="px-3 py-1 rounded bg-neutral-700 text-white"
+        />
+        <label className="px-4 py-2 bg-teal-600 rounded cursor-pointer hover:bg-teal-700">
+          Upload
+          <input type="file" multiple className="hidden" onChange={handleUpload} />
+        </label>
+      </div>
+      {/* Lista de assets filtrados */}
+      <div>
+        {filteredAssets.map(asset => (
+          <div key={asset.id} className="flex items-center gap-4 p-2 mb-2 border border-neutral-700 rounded">
+            {/* Preview pequeno se imagem ou video */}
+            {asset.type === 'image' ? (
+              <img src={asset.url} alt={asset.name} className="w-16 h-16 object-cover rounded" />
+            ) : asset.type === 'video' ? (
+              <video src={asset.url} className="w-16 h-16 rounded" controls={false} />
+            ) : (
+              <div className="w-16 h-16 flex items-center justify-center bg-neutral-700 text-white">
+                🎵
+              </div>
+            )}
+            {/* Nome e tags */}
+            <div className="flex-1">
+              <p className="text-neutral-100">{asset.name}</p>
+              <p className="text-sm text-neutral-400">Tags: {asset.tags.join(', ') || '—'}</p>
+            </div>
+          </div>
+        ))}
+        {filteredAssets.length === 0 && (
+          <p className="text-neutral-400">Nenhum asset encontrado para a busca "{searchQuery}".</p>
+        )}
+      </div>
+    </div>
+  );
+}
+```
+
+**Integração e Teste:** Para verificar a biblioteca de assets:
+
+1. Acesse a página de **Assets** do evento (ex: `/events/[eventId]/assets`). A interface exibirá a lista de assets (inicialmente vazia), campo de busca e opção de upload.
+2. Clique no botão **Upload** e selecione um ou mais arquivos (imagem, vídeo ou áudio) do seu computador. Se desejar, antes de clicar em *Upload*, digite tags no campo "Tags (opcional)" (separadas por vírgula ou espaço) para serem associadas aos arquivos.
+3. Após selecionar os arquivos, eles aparecerão na lista, mostrando nome, tipo (com pré-visualização se imagem/vídeo) e as tags atribuídas.
+4. Utilize o campo **Buscar** para filtrar os assets por nome ou tag. Por exemplo, digite uma parte do nome do arquivo ou uma tag adicionada e confirme que apenas os assets correspondentes são mostrados.
+5. *(Lembre-se: os arquivos e tags estão armazenados apenas em memória; ao recarregar a página eles serão perdidos. Integrações futuras envolveriam upload a um servidor e persistência dos metadados em banco.)*
+
+## 5. Relatórios de Performance por Evento (Dashboards Visuais)
+
+Por fim, implementamos relatórios básicos de performance para cada evento, exibindo métricas como **tempo médio de aprovação**, **tarefas concluídas** e **comentários resolvidos**, com visualização através de gráficos simples. Usamos a biblioteca **Recharts** para plotar gráficos (é preciso instalar: `npm install recharts`). Os dados são obtidos do estado (Zustand) dos projetos e comentários.
+
+### Componente: `components/widgets/EventPerformance.tsx`
+
+Este componente obtém as métricas do evento atual (por exemplo, via `useProjectsStore` que contém projetos, comentários e status) e renderiza gráficos mostrando o percentual de tarefas concluídas e comentários resolvidos, bem como o tempo médio de aprovação. Utilizamos dois gráficos de pizza (PieChart do Recharts) para ilustrar proporções de tarefas e comentários concluídos. Cores e estilos seguem o tema (usando cores compatíveis com o tema Dracula).
+
+```tsx
+// components/widgets/EventPerformance.tsx
+'use client';
+import { PieChart, Pie, Cell, Tooltip } from 'recharts';
+import { useProjectsStore } from '@/store/useProjectsStore';  // store existente de projetos/comentários
+
+const COLORS_TASKS = ['#10B981', '#4B5563'];    // verde para feitas, cinza para pendentes
+const COLORS_COMMENTS = ['#3B82F6', '#4B5563']; // azul para resolvidos, cinza para pendentes
+
+export default function EventPerformance() {
+  const currentProject = useProjectsStore((state) => state.currentProject);
+  if (!currentProject) return null;
+  // Calcula métricas
+  const tasksTotal = currentProject.tasks?.length ?? 0;
+  const tasksCompleted = currentProject.tasks?.filter((t: any) => t.completed).length ?? 0;
+  const commentsTotal = currentProject.comments?.length ?? 0;
+  const commentsResolved = currentProject.comments?.filter((c: any) => c.resolved).length ?? 0;
+  // Tempo médio de aprovação (dias) - diferença entre criação e aprovação (se aprovado)
+  let avgApprovalTimeDays = 0;
+  if (currentProject.createdAt && currentProject.approvedAt) {
+    const diffMs = new Date(currentProject.approvedAt).getTime() - new Date(currentProject.createdAt).getTime();
+    avgApprovalTimeDays = diffMs / (1000 * 60 * 60 * 24);
+  }
+  // Dados para gráficos
+  const taskData = [
+    { name: 'Concluídas', value: tasksCompleted },
+    { name: 'Pendentes', value: Math.max(0, tasksTotal - tasksCompleted) }
+  ];
+  const commentData = [
+    { name: 'Resolvidos', value: commentsResolved },
+    { name: 'Pendentes', value: Math.max(0, commentsTotal - commentsResolved) }
+  ];
+
+  return (
+    <div className="p-4 bg-neutral-800 rounded">
+      <h3 className="text-lg text-neutral-100 font-bold mb-2">Relatório de Performance</h3>
+      <div className="text-neutral-100 mb-4">
+        <p>Tempo médio para aprovação: <strong>{avgApprovalTimeDays.toFixed(1)}</strong> dias</p>
+        <p>Tarefas concluídas: <strong>{tasksCompleted}</strong> de <strong>{tasksTotal}</strong></p>
+        <p>Comentários resolvidos: <strong>{commentsResolved}</strong> de <strong>{commentsTotal}</strong></p>
+      </div>
+      <div className="flex gap-8 justify-start items-center">
+        {/* Gráfico de Pizza - Tarefas */}
+        <div>
+          <PieChart width={120} height={120}>
+            <Pie data={taskData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={50} innerRadius={30} label>
+              {taskData.map((entry, index) => (
+                <Cell key={`cell-task-${index}`} fill={COLORS_TASKS[index % COLORS_TASKS.length]} />
+              ))}
+            </Pie>
+            <Tooltip />
+          </PieChart>
+          <p className="text-center text-xs text-neutral-200">Tarefas</p>
+        </div>
+        {/* Gráfico de Pizza - Comentários */}
+        <div>
+          <PieChart width={120} height={120}>
+            <Pie data={commentData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={50} innerRadius={30} label>
+              {commentData.map((entry, index) => (
+                <Cell key={`cell-comm-${index}`} fill={COLORS_COMMENTS[index % COLORS_COMMENTS.length]} />
+              ))}
+            </Pie>
+            <Tooltip />
+          </PieChart>
+          <p className="text-center text-xs text-neutral-200">Comentários</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+**Integração e Teste:** Para adicionar o dashboard de performance:
+
+1. Instale a biblioteca **Recharts** no projeto, caso ainda não esteja presente: `npm install recharts`.
+
+2. Importe e inclua o componente **`<EventPerformance />`** na página do evento (por exemplo, em uma seção "Relatórios" na página de detalhes do evento). Certifique-se de carregá-lo no cliente (pode usar import dinâmico com `ssr: false` conforme exemplificado abaixo) já que gráficos dependem do DOM:
+
+   ```tsx
+   import dynamic from 'next/dynamic';
+   const EventPerformance = dynamic(() => import('@/components/widgets/EventPerformance'), { ssr: false });
+   ...
+   // No JSX da página do evento:
+   <EventPerformance />
+   ```
+
+3. Navegue até a página de um evento que possua algumas tarefas e comentários no estado. O componente exibirá:
+
+   * O tempo médio para aprovação (diferença entre criação e aprovação do evento, se disponível).
+   * Quantidade de tarefas concluídas vs. totais.
+   * Quantidade de comentários resolvidos vs. totais.
+   * Dois gráficos de pizza mostrando a porcentagem de tarefas concluídas e de comentários resolvidos.
+
+4. Verifique se os números e gráficos correspondem aos dados do evento. Por exemplo, se marcar uma tarefa como concluída ou um comentário como resolvido (no estado do projeto via DevTools ou simulação), o gráfico deve ser atualizado refletindo a mudança.
+
+5. Se o evento não tiver sido aprovado ainda (sem `approvedAt`), o tempo médio de aprovação exibido será 0.0 dias (podendo ser adaptado futuramente para não exibir nada nesse caso, se desejado).
+
+---
+
+**Conclusão:** Os códigos acima adicionam as funcionalidades solicitadas de forma modular, seguindo o padrão do projeto. Lembre-se de ajustar as importações e caminhos de acordo com a estrutura do seu projeto (por exemplo, certificar-se de que os paths `@/store/...` e `@/components/...` estão corretos no seu `tsconfig.json`). Após colar os arquivos nos diretórios correspondentes (`store`, `components/widgets`, `features` ou `app/events/[eventId]` conforme indicado), execute o projeto e teste cada funcionalidade seguindo as orientações fornecidas em cada seção. Ajustes de estilo (Tailwind/tema) podem ser feitos para harmonizar com o restante da aplicação.

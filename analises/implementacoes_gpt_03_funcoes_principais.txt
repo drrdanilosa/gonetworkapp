@@ -1,0 +1,870 @@
+Perfeito. Vou desenvolver os códigos completos e orientações de integração para as três funcionalidades cruciais que você destacou:
+
+1. **Timeline visual do projeto:** com fases (planejamento, produção, edição, revisão, aprovação), entregas e prazos, com visualização clara no front-end.
+2. **Geração automática de cronograma:** gerada a partir das informações do briefing, com IA leve e regras base pré-definidas.
+3. **Sistema de versões de vídeo com comparativo visual:** controle de múltiplas versões por entrega, com navegação entre versões e comparação (lado a lado ou sobreposição).
+
+Todos os códigos seguirão seu padrão de projeto (Next.js 15, Zustand, modularidade por features, design coerente com o tema Dracula) e serão entregues prontos para colar no VSCode.
+
+Já inicio o desenvolvimento e trago o pacote completo em breve.
+
+
+# Implementação de Funcionalidades Avançadas
+
+## Timeline Visual do Projeto
+
+A timeline visual do projeto permite acompanhar de forma interativa as fases **Planejamento**, **Gravação**, **Edição**, **Revisão** e **Aprovação** – exibindo entregas, prazos e status de cada etapa. Iremos implementar um componente de timeline horizontal usando **React + Tailwind CSS** (tema Dracula) para representar essas fases proporcionais às datas, destacando atrasos e concluídos com cores e ícones. Optamos por HTML/CSS responsivo para reduzir dependências, mas futuramente poderíamos integrar bibliotecas como visx ou recharts para recursos avançados (zoom, animações).
+
+**Estrutura de dados:** Cada fase será representada por um objeto `Phase` com nome, datas planejadas de início/fim e status de conclusão. A timeline calculará a proporção de cada fase no tempo total do projeto e exibirá segmentos coloridos em sequência. Fases concluídas aparecerão em verde com um **✔️**; fases em andamento ou futuras aparecerão em azul; fases atrasadas (não concluídas após a data de término planejada) em vermelho. Além disso, marcaremos visualmente o prazo final do projeto se houver, indicando se alguma fase ultrapassa esse prazo.
+
+### Componente Timeline (`components/widgets/Timeline.tsx`)
+
+Este componente recebe as fases do projeto (e opcionalmente uma data de prazo final) e renderiza a barra de timeline. Incluímos comentários indicando melhorias futuras, como animações ou tooltips nos pontos da timeline:
+
+```tsx
+"use client";
+
+import React from "react";
+import { format } from "date-fns"; // Opcional: para formatar datas em labels legíveis
+
+// Definição da estrutura de fase (poderia estar em types/phase.d.ts)
+interface Phase {
+  name: string;
+  plannedStart: Date;
+  plannedEnd: Date;
+  completed: boolean;
+}
+
+// Propriedades aceitas pelo componente Timeline
+interface TimelineProps {
+  phases: Phase[];
+  finalDueDate?: Date;  // prazo final do projeto (se houver)
+}
+
+const Timeline: React.FC<TimelineProps> = ({ phases, finalDueDate }) => {
+  if (!phases || phases.length === 0) return null;
+
+  // Ordena fases por data de início (garantia de ordem correta na visualização)
+  const sortedPhases = [...phases].sort((a, b) => a.plannedStart.getTime() - b.plannedStart.getTime());
+  const timelineStart = sortedPhases[0].plannedStart;
+  // Considera fim do timeline como o máximo entre última fase e prazo final (para incluir prazo na visualização)
+  const lastPhaseEnd = sortedPhases[sortedPhases.length - 1].plannedEnd;
+  const timelineEnd = finalDueDate && finalDueDate > lastPhaseEnd ? finalDueDate : lastPhaseEnd;
+
+  const totalDurationMs = timelineEnd.getTime() - timelineStart.getTime();
+
+  // Monta string de colunas do grid proporcionais à duração de cada fase (em dias, com mínimo para fases instantâneas)
+  const columns: string[] = sortedPhases.map((phase) => {
+    let durationMs = phase.plannedEnd.getTime() - phase.plannedStart.getTime();
+    if (durationMs <= 0) {
+      durationMs = 12 * 60 * 60 * 1000; // 12h em ms: fases sem duração (ex: gravação em 1 dia) terão 0.5 dia visual
+    }
+    // Fração relativa da fase no total
+    const fraction = durationMs / totalDurationMs;
+    // Evita frações muito pequenas (ex: 0.5 dia de gravação)
+    const fractionStr = (fraction * 100).toFixed(2);
+    return `${fractionStr}fr`;
+  });
+  const gridTemplate = columns.join(" ");
+
+  // Função utilitária para determinar cor de fundo conforme status
+  const getPhaseColorClass = (phase: Phase) => {
+    if (phase.completed) {
+      return "bg-green-600"; // concluído: verde
+    }
+    const now = new Date();
+    if (phase.plannedEnd < now) {
+      return "bg-red-600"; // atrasado: vermelho
+    }
+    if (phase.plannedStart <= now && phase.plannedEnd >= now) {
+      return "bg-yellow-500"; // em andamento: amarelo
+    }
+    return "bg-blue-600"; // pendente/futuro: azul
+  };
+
+  // Calcula posição percentual do prazo final (se houver) para desenhar um marcador
+  let finalDueMarkerStyle: React.CSSProperties | undefined;
+  if (finalDueDate) {
+    // Limita o marcador ao range do timeline (0% a 100%)
+    const clamped = Math.min(Math.max(finalDueDate.getTime(), timelineStart.getTime()), timelineEnd.getTime());
+    const pct = ((clamped - timelineStart.getTime()) / totalDurationMs) * 100;
+    finalDueMarkerStyle = { left: `${pct}%` };
+  }
+
+  return (
+    <div className="relative w-full p-4"> 
+      {/* Contêiner da timeline */}
+      <div 
+        className="grid items-center gap-1 w-full" 
+        style={{ gridTemplateColumns: gridTemplate }}
+      >
+        {sortedPhases.map((phase) => {
+          const colorClass = getPhaseColorClass(phase);
+          const phaseEndsAfterDue = finalDueDate && phase.plannedEnd > finalDueDate;
+          return (
+            <div key={phase.name} className={`${colorClass} relative h-8`}>
+              {/* Label da fase (nome + indicadores) */}
+              <span className="text-xs text-center whitespace-nowrap overflow-visible">
+                {phase.name}
+                {phase.completed && " ✔"} 
+                {/* Indicador de atraso em tempo real */}
+                {!phase.completed && phase.plannedEnd < new Date() && (
+                  <span className="ml-1 text-red-200">(atrasado)</span>
+                )}
+                {/* Indicador se a fase termina após o prazo final */}
+                {phaseEndsAfterDue && (
+                  <span className="ml-1 text-yellow-200">(!)</span>
+                )}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      {/* Marcador visual do prazo final (linha vertical) */}
+      {finalDueMarkerStyle && (
+        <div 
+          className="absolute top-0 bottom-0 border-l-2 border-yellow-400 opacity-70" 
+          style={finalDueMarkerStyle}
+          title="Prazo final"
+        />
+      )}
+      {/* (Opcional) Linha do tempo atual (agora) para referência */}
+      {/* Futuramente podemos adicionar uma linha vertical para 'hoje' se quisermos destacar a data atual */}
+    </div>
+  );
+};
+
+export default Timeline;
+```
+
+> **Dica:** No código acima usamos **CSS Grid** com colunas em unidades `fr` proporcionais à duração de cada fase, o que distribui os segmentos da timeline de acordo com o tempo planejado. Cores foram escolhidas para o tema escuro (Dracula), mas é possível ajustar para usar classes ou variáveis de cor específicas do tema se definidas no Tailwind (por exemplo, usar cores personalizadas definidas no `tailwind.config.ts`). Em fases muito curtas (como gravação em um único dia), usamos um mínimo de 0.5 dia para que o segmento seja visível. Poderíamos melhorar a disposição do texto usando tooltips ou exibindo o nome completo da fase ao passar o mouse (hover), evitando sobreposição de labels em segmentos curtos. **Futuras melhorias** podem incluir animações de progresso ou atualização em tempo real (ex.: mover a linha "agora" conforme o tempo passa) e interação (clicar em uma fase para ver detalhes ou editar datas).
+
+### Integração da Timeline na página do projeto
+
+Para integrar o componente de timeline, adicionamos ele na página de detalhes do evento/projeto, exibindo-o logo após o título do projeto. Supondo que a página de evento esteja em `app/events/[eventId]/page.tsx`, podemos fazê-la consumir os dados da timeline a partir do estado global (Zustand) ou de props server-side. Abaixo um trecho de exemplo integrando a timeline usando Zustand para obter o projeto atual:
+
+```tsx
+"use client";
+
+import { useProjectsStore } from "@/store/useProjectsStore";
+import Timeline from "@/components/widgets/Timeline";
+
+export default function EventDetailPage({ params }: { params: { eventId: string } }) {
+  const event = useProjectsStore((state) => state.currentProject);
+  if (!event) return <div>Carregando projeto...</div>;
+
+  return (
+    <div className="px-6 py-4">
+      <h1 className="text-2xl font-bold mb-4">{event.name}</h1>
+      {/* Renderiza a timeline com as fases do projeto e prazo final (se houver) */}
+      <Timeline phases={event.timeline} finalDueDate={event.finalDueDate} />
+      {/* ... demais seções da página, e.g. lista de vídeos, comentários ... */}
+    </div>
+  );
+}
+```
+
+No exemplo acima, assumimos que `currentProject` no Zustand já foi definido (por exemplo, após o usuário criar ou selecionar um projeto). A timeline utiliza `event.timeline` (array de fases) e `event.finalDueDate` para renderizar. Certifique-se de marcar o componente de página como `"use client"` caso use hooks do Zustand diretamente nele (como no snippet acima), ou alternativamente faça o fetch dos dados em uma camada server-side e passe para um componente cliente. Aqui, para simplicidade, tratamos a página inteira como cliente.
+
+> **Observação:** A timeline é recalculada a cada render com base nos dados atuais do projeto. Se houver atualizações (por exemplo, fases marcadas como concluídas ou novas datas), o componente refletirá automaticamente devido ao binding do Zustand. Para colaboração em tempo real, poderíamos integrar websockets ou usar uma solução de estado compartilhado (como Yjs/Liveblocks) para sincronizar mudanças da timeline entre usuários – isso ficaria como **melhoria futura**.
+
+## Geração Automática de Cronograma com Base no Briefing
+
+Nesta seção implementaremos a geração automática de um cronograma de projeto assim que o briefing for preenchido. A ideia é, ao coletar informações do cliente (número de vídeos, data do evento, prazo final desejado, etc.), criar automaticamente marcos/fases estimados para o projeto. Usaremos regras simples (e.g. multiplicar número de vídeos por dias de edição) para simular uma "IA local" que sugere o cronograma, permitindo ajustes manuais pelo usuário antes de salvar.
+
+**Lógica de geração:** Vamos definir uma função utilitária `generateScheduleFromBriefing` que calcula as fases do timeline conforme os dados do briefing:
+
+* **Planejamento:** começa imediatamente (data atual) e dura alguns dias (ex.: 3 dias, ou até uma semana, dependendo da proximidade do evento).
+* **Gravação:** se houver uma data de evento fornecida, considera-se que a gravação ocorre nesse dia (ou intervalo de dias se necessário). Caso não haja data de evento (por exemplo, vídeos montados apenas com material do cliente), pulamos esta fase.
+* **Edição:** começa após a gravação (ou após planejamento, se não houve gravação). A duração pode ser proporcional ao número de vídeos – por exemplo, *2-3 dias por vídeo*. (Aqui usamos 3 dias por vídeo como default, podendo refinar por preferências no briefing).
+* **Revisão:** fase para o cliente revisar os vídeos entregues, digamos 2-3 dias.
+* **Aprovação:** fase final para ajustes finais e aprovação, \~1 dia.
+
+Também levamos em conta o **prazo final** se fornecido. O algoritmo tentará não ultrapassar esse prazo – por exemplo, encurtando fases ou sobrepondo se necessário. Caso o prazo final seja muito apertado, podemos marcar no cronograma que certas fases terminariam após o prazo (indicando risco de atraso).
+
+A função retornará o array de fases (`Phase[]`) gerado. Em seguida, integraremos isso na tela de briefing: quando o usuário preencher e clicar "Gerar Cronograma", exibiremos o cronograma sugerido (possivelmente com inputs para editar datas manualmente). Depois de ajustes, ao criar o projeto, salvaremos esse cronograma no estado global.
+
+### Função Geradora de Cronograma (`lib/scheduleGenerator.ts`)
+
+```tsx
+// lib/scheduleGenerator.ts
+import { addDays, subDays } from "date-fns";
+// Reutilizamos a mesma interface Phase definida anteriormente
+interface Phase {
+  name: string;
+  plannedStart: Date;
+  plannedEnd: Date;
+  completed: boolean;
+}
+
+/**
+ * Gera um cronograma de fases do projeto com base nos dados de briefing fornecidos.
+ * @param projectName Nome do projeto (para referência, opcional)
+ * @param numVideos Quantidade de vídeos a serem produzidos
+ * @param eventDate Data do evento (se houver gravação ao vivo)
+ * @param finalDueDate Prazo final desejado para entrega do projeto (opcional)
+ * @returns Array de fases planejadas (Phase[])
+ */
+export function generateScheduleFromBriefing(projectName: string, numVideos: number, eventDate?: Date, finalDueDate?: Date): Phase[] {
+  const now = new Date();
+  const phases: Phase[] = [];
+  // 1. Planejamento
+  let planningEnd: Date;
+  if (eventDate) {
+    // Planejamento até no máx 1 dia antes do evento, ou 7 dias a partir de hoje, o que for menor.
+    const oneDayBeforeEvent = subDays(eventDate, 1);
+    const maxPlanning = addDays(now, 7);
+    planningEnd = oneDayBeforeEvent < maxPlanning ? oneDayBeforeEvent : maxPlanning;
+  } else {
+    // Sem data de evento: planejamento curto (ex: 3 dias)
+    planningEnd = addDays(now, 3);
+  }
+  phases.push({
+    name: "Planejamento",
+    plannedStart: now,
+    plannedEnd: planningEnd,
+    completed: false
+  });
+
+  // 2. Gravação (se houver evento)
+  let lastEnd = planningEnd;
+  if (eventDate) {
+    const eventStart = eventDate;
+    // Considera gravação acontecendo no dia do evento (início = fim = eventDate para simplificar)
+    const eventEnd = eventDate; 
+    phases.push({
+      name: "Gravação",
+      plannedStart: eventStart,
+      plannedEnd: eventEnd,
+      completed: false
+    });
+    lastEnd = eventEnd;
+  }
+
+  // 3. Edição
+  // Duração base: 3 dias por vídeo (pode ser ajustado conforme complexidade)
+  const editStart = addDays(lastEnd, 1);
+  let editDurationDays = numVideos * 3;
+  let editEnd = addDays(editStart, editDurationDays);
+  // 4. Revisão
+  const reviewStart = addDays(editEnd, 1);
+  const reviewDurationDays = 3;
+  let reviewEnd = addDays(reviewStart, reviewDurationDays);
+  // 5. Aprovação
+  const approvalStart = addDays(reviewEnd, 1);
+  const approvalDurationDays = 1;
+  let approvalEnd = addDays(approvalStart, approvalDurationDays);
+
+  // Ajuste baseado no prazo final: se fornecido e cronograma extrapola o prazo, comprime fases pós-evento
+  if (finalDueDate) {
+    const finalDueTime = finalDueDate.getTime();
+    const plannedFinalTime = approvalEnd.getTime();
+    if (plannedFinalTime > finalDueTime) {
+      console.warn("Cronograma inicial ultrapassa o prazo final desejado. Ajustando fases para tentar cumprir o prazo.");
+      // Calcula quanto tempo precisa reduzir
+      const overrunDays = Math.ceil((plannedFinalTime - finalDueTime) / (1000 * 60 * 60 * 24));
+      // Reduz dias de revisão e edição para caber (simplificadamente, primeiro tenta reduzir revisão, depois edição se necessário)
+      let remainingOverrun = overrunDays;
+      if (remainingOverrun > 0) {
+        const newReviewDuration = Math.max(reviewDurationDays - remainingOverrun, 1);
+        remainingOverrun -= (reviewDurationDays - newReviewDuration);
+        // Ajusta fim da revisão
+        reviewEnd = addDays(reviewStart, newReviewDuration);
+      }
+      if (remainingOverrun > 0) {
+        const newEditDuration = Math.max(editDurationDays - remainingOverrun, Math.ceil(numVideos * 1.5)); 
+        // garante pelo menos ~1.5 dias por vídeo mínimo
+        editDurationDays = newEditDuration;
+        editEnd = addDays(editStart, newEditDuration);
+      }
+      // Recalcula fases subsequentes após compressão
+      // (Nota: Aprovação mantém 1 dia, pode começar imediatamente após revisão)
+      reviewEnd = reviewStart > editEnd ? reviewStart : addDays(editEnd, 1); 
+      // se edição ficou menor, revisão começa logo após edição
+      approvalEnd = addDays(reviewEnd, approvalDurationDays + 1);
+    }
+    // Poderíamos também marcar de alguma forma que essas fases foram comprimidas para atender o prazo.
+  }
+
+  // Adiciona fases de edição, revisão e aprovação com possíveis ajustes
+  phases.push({
+    name: "Edição",
+    plannedStart: editStart,
+    plannedEnd: editEnd,
+    completed: false
+  });
+  phases.push({
+    name: "Revisão",
+    plannedStart: reviewStart,
+    plannedEnd: reviewEnd,
+    completed: false
+  });
+  phases.push({
+    name: "Aprovação",
+    plannedStart: addDays(reviewEnd, 1),  // aprovação começa após revisão terminar
+    plannedEnd: approvalEnd,
+    completed: false
+  });
+
+  // (Opcional) Poderíamos inserir aqui uma fase de "Entrega Final" como marco no final, 
+  // ou marcar o final do projeto = approvalEnd.
+  return phases;
+}
+```
+
+> **Nota:** Esta função é simplificada e baseada em regras fixas. Colocamos comentários indicando onde melhorias poderiam ser feitas:
+>
+> * **IA real:** Em vez de regras fixas, poderíamos usar um modelo de IA ou heurísticas mais sofisticadas (por exemplo, analisando a duração desejada de cada vídeo, complexidade do conteúdo, etc.) para ajustar dinamicamente as durações das fases. Aqui apenas simulamos essa inteligência com cálculos básicos.
+> * **Ajuste de prazo:** Fizemos um ajuste simples se o cronograma ultrapassa o prazo final: reduzimos dias de revisão e edição. Em projetos reais, poderíamos distribuir a redução de forma mais inteligente ou avisar o usuário sobre a impossibilidade de cumprir o prazo com as configurações atuais.
+> * **Paralelismo:** Não consideramos a possibilidade de editar vídeos em paralelo ou realizar revisão de alguns vídeos enquanto edita outros. Em versões futuras, a geração poderia suportar fases paralelas (por ex., se há vários editores, editar múltiplos vídeos simultaneamente).
+> * **Fases extras:** Dependendo do briefing, poderíamos adicionar marcos extras (ex: *“Primeira versão enviada”*, *“Feedback do cliente recebido”*), mas mantivemos apenas as 5 macro-fases pedidas.
+
+### Tela de Briefing com Geração de Cronograma (`app/events/new/page.tsx`)
+
+Agora integramos a geração automática na interface de briefing. Ao preencher os campos e clicar no botão gerar, o cronograma sugerido é exibido para revisão. Vamos supor que a rota `app/events/new/page.tsx` seja a página de criação de um novo projeto/evento onde o briefing é preenchido. Usaremos **React Hook Form** ou state local para gerenciar os inputs (neste exemplo, usamos `useState` simplificado para focar no essencial, mas na prática poderia ser integrado com `react-hook-form` + Zod para validação, conforme o projeto já utiliza).
+
+No formulário, permitimos que o usuário ajuste manualmente as datas geradas antes de salvar. Para simplicidade, podemos mostrar as datas em inputs do tipo date/datetime-local, permitindo edição. Ao enviar (submit), criaremos o projeto e armazenaremos os dados (incluindo a timeline ajustada) no Zustand global, para que a página de detalhes do projeto possa usar.
+
+```tsx
+"use client";
+
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { generateScheduleFromBriefing } from "@/lib/scheduleGenerator";
+import { useProjectsStore } from "@/store/useProjectsStore";
+
+export default function NewEventPage() {
+  const router = useRouter();
+  const createProject = useProjectsStore((state) => state.createProject);
+  
+  // Estados locais para campos do briefing
+  const [projectName, setProjectName] = useState("");
+  const [numVideos, setNumVideos] = useState(1);
+  const [eventDate, setEventDate] = useState<string>("");       // usar string para type=date input
+  const [finalDueDate, setFinalDueDate] = useState<string>("");
+  const [generatedTimeline, setGeneratedTimeline] = useState<Phase[]>([]);
+
+  // Handler: gerar cronograma quando botão clicado
+  const handleGenerateTimeline = () => {
+    if (!projectName) {
+      alert("Por favor, informe um nome para o projeto antes de gerar o cronograma.");
+      return;
+    }
+    const eventDateObj = eventDate ? new Date(eventDate) : undefined;
+    const finalDueDateObj = finalDueDate ? new Date(finalDueDate) : undefined;
+    const phases = generateScheduleFromBriefing(projectName, numVideos, eventDateObj, finalDueDateObj);
+    setGeneratedTimeline(phases);
+  };
+
+  // Handler: criar projeto novo com timeline (chamado no submit final do formulário)
+  const handleCreateProject = () => {
+    if (!projectName) {
+      alert("Nome do projeto é obrigatório.");
+      return;
+    }
+    // Use finalDueDate se preenchido
+    const eventDateObj = eventDate ? new Date(eventDate) : undefined;
+    const finalDueDateObj = finalDueDate ? new Date(finalDueDate) : undefined;
+    // Se não gerou cronograma ainda, gera agora automaticamente
+    const phases = generatedTimeline.length ? generatedTimeline : 
+                   generateScheduleFromBriefing(projectName, numVideos, eventDateObj, finalDueDateObj);
+    // Chama ação do store para criar projeto (salvar estado global)
+    createProject({
+      name: projectName,
+      eventDate: eventDateObj,
+      finalDueDate: finalDueDateObj,
+      timeline: phases,
+      videos: []  // inicialmente nenhum vídeo/vídeo vazio; será preenchido depois
+    });
+    // Redireciona para página do projeto recém-criado (por exemplo, /events/ID)
+    router.push("/events/current"); 
+    // ^^^ Obs: aqui usamos "/events/current" genericamente; na prática, poderia ser o ID real ou 
+    // podemos ter logicano store que define currentProject e uma página genérica que lê do estado.
+  };
+
+  return (
+    <div className="max-w-xl mx-auto p-6 bg-neutral-900 text-white rounded">
+      <h1 className="text-2xl font-bold mb-4">Novo Projeto – Briefing</h1>
+      {/* Formulário de briefing */}
+      <div className="space-y-4">
+        <div>
+          <label className="block font-medium mb-1">Nome do Projeto:</label>
+          <input 
+            type="text" 
+            value={projectName} 
+            onChange={(e) => setProjectName(e.target.value)} 
+            className="w-full px-3 py-2 rounded text-black" 
+            placeholder="Ex: Vídeo Institucional Evento X" 
+          />
+        </div>
+        <div>
+          <label className="block font-medium mb-1">Número de Vídeos:</label>
+          <input 
+            type="number" 
+            value={numVideos} 
+            onChange={(e) => setNumVideos(Number(e.target.value))} 
+            className="w-full px-3 py-2 rounded text-black"
+            min={1} 
+          />
+        </div>
+        <div>
+          <label className="block font-medium mb-1">Data do Evento (Gravação):</label>
+          <input 
+            type="date" 
+            value={eventDate} 
+            onChange={(e) => setEventDate(e.target.value)} 
+            className="px-3 py-2 rounded text-black"
+          />
+          <small className="block text-gray-400">Deixe em branco se não houver gravação ao vivo.</small>
+        </div>
+        <div>
+          <label className="block font-medium mb-1">Prazo Final Desejado:</label>
+          <input 
+            type="date" 
+            value={finalDueDate} 
+            onChange={(e) => setFinalDueDate(e.target.value)} 
+            className="px-3 py-2 rounded text-black"
+          />
+          <small className="block text-gray-400">Se houver uma data limite para entrega.</small>
+        </div>
+        {/* Botão para gerar cronograma */}
+        <button 
+          type="button" 
+          onClick={handleGenerateTimeline} 
+          className="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded"
+        >
+          Gerar Cronograma
+        </button>
+      </div>
+
+      {/* Se cronograma foi gerado, exibimos para revisão */}
+      {generatedTimeline.length > 0 && (
+        <div className="mt-6">
+          <h2 className="text-xl font-semibold mb-2">Cronograma Sugerido:</h2>
+          <ul className="mb-4">
+            {generatedTimeline.map((phase, idx) => (
+              <li key={idx} className="text-sm mb-1">
+                <strong>{phase.name}:</strong> {format(phase.plannedStart, "dd/MM/yyyy")} &rarr; {format(phase.plannedEnd, "dd/MM/yyyy")}
+                {phase.plannedEnd < new Date() && " (⚠ atraso provável)"}
+                {finalDueDate && phase.plannedEnd > new Date(finalDueDate) && " (além do prazo!)"}
+              </li>
+            ))}
+          </ul>
+          <p className="text-gray-300 text-sm">
+            *Você pode ajustar as datas acima antes de criar o projeto (futuramente, implementar inputs editáveis).
+          </p>
+        </div>
+      )}
+
+      {/* Botão final para criar o projeto */}
+      <div className="mt-6 text-center">
+        <button 
+          type="button" 
+          onClick={handleCreateProject} 
+          className="px-6 py-3 bg-green-600 hover:bg-green-700 font-medium rounded"
+        >
+          Salvar Projeto
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+No código acima, o formulário coleta os dados do briefing e ao clicar em **Gerar Cronograma**, usamos `generateScheduleFromBriefing` para obter um array de fases. Mostramos essas fases em uma lista simples com datas formatadas (usamos `date-fns` para formatar dd/MM/yyyy por simplicidade). Destacamos, em cada item, se a fase provavelmente ficará **atrasada** em relação à data atual ou **além do prazo** final – isso é informativo para o usuário ajustar antes de prosseguir (por exemplo, se ele definiu um prazo final muito apertado, ficará marcado "(além do prazo!)" ao lado de fases que extrapolam).
+
+> **Possíveis melhorias:** Poderíamos tornar as datas das fases editáveis diretamente nessa tela (por exemplo, usando inputs de data para cada fase gerada ao invés de apenas listar). Devido ao tempo, apenas indicamos que isso é possível. Outra melhoria é integrar essa tela ao **React Hook Form + Zod** já usados no projeto, para validações (por exemplo, garantir que `numVideos` seja positivo, que o prazo final não seja antes da data de evento, etc.). Também seria interessante mostrar visualmente esse cronograma antes de salvar – poderíamos reutilizar o componente Timeline aqui para dar uma prévia gráfica (bastaria importar `Timeline` e usar `generatedTimeline` como prop). Isso daria ao usuário uma visualização semelhante à timeline final já no briefing, podendo ajustar datas se implementado.
+
+Após clicar em **Salvar Projeto**, chamamos `createProject` do Zustand para guardar o novo projeto no estado global e então navegamos para a página do projeto recém-criado. No exemplo, usamos `router.push("/events/current")` de forma simplificada. Em uma aplicação real, você poderia redirecionar para `/events/{id}` usando o ID real retornado (caso integrado com backend) ou simplesmente ter a página de projeto reagindo ao estado global (como usamos `currentProject` no exemplo anterior). Ajuste essa navegação conforme a lógica da sua aplicação (por exemplo, talvez o `createProject` retorne o ID ou já defina `currentProject` e a página de destino saiba exibir).
+
+## Sistema de Versões de Vídeo com Comparativo Visual
+
+Por fim, implementaremos o sistema de versões de vídeo, permitindo upload de múltiplas versões (V1, V2, ... final) de um mesmo vídeo, e comparação visual entre elas. Essa funcionalidade é crucial para o fluxo de revisão: o editor pode enviar versões sucessivas e o cliente pode comparar lado a lado para ver melhorias e alterações.
+
+**Visão geral da solução:**
+
+* Armazenaremos as diferentes versões de vídeo em uma estrutura de dados dentro do projeto (por exemplo, cada projeto tem uma lista de vídeos/deliverables, e cada vídeo tem suas versões).
+* A interface permitirá fazer **upload** de uma nova versão (usaremos um input file para selecionar o vídeo localmente, simulando envio; na prática, integraríamos com um serviço de armazenamento).
+* Exibiremos uma lista de versões (nomes e data de upload), identificando a versão final ou atual.
+* Se houver mais de uma versão, habilitamos o **comparativo visual**:
+
+  * Aqui implementamos uma comparação simples: dois players de vídeo lado a lado, um exibindo a versão anterior e outro a versão atual, para o usuário dar play e observar as diferenças.
+  * Também incluiremos a possibilidade de alternar entre versões (um toggle) ou escolher versões específicas para comparar (podemos deixar isso como melhoria futura).
+* Cada versão também estará vinculada aos comentários e status de aprovação:
+
+  * Comentários feitos em uma versão anterior devem permanecer associados a ela. Na interface, podemos filtrar os comentários pelo ID da versão selecionada, garantindo que, ao visualizar V2, só apareçam os comentários relevantes não resolvidos daquela versão (e talvez indicar quais foram resolvidos da V1).
+  * **Nota:** Não implementaremos todo o sistema de comentários aqui, mas orientaremos como ajustá-lo: incluir um campo `versionId` em cada comentário e filtrar por versão atual. Assim, no player de vídeo, ao trocar de versão, a lista de comentários muda para aqueles daquela versão. Comentários resolvidos podem ser marcados, etc.
+* Usaremos o Zustand para gerenciar o estado de versões globalmente (provavelmente integrando na mesma store de projetos). Assim, ao adicionar uma versão, todos os componentes relevantes (lista de versões, players, etc.) atualizam automaticamente.
+
+### Ajustes na Store Global para Suportar Versões
+
+Vamos estender a store de projetos (`useProjectsStore`) para armazenar versões de vídeo. Supondo que cada projeto tenha uma estrutura como:
+
+```ts
+interface VideoVersion {
+  id: string;
+  name: string;       // e.g., "v1", "v2", "Final"
+  url: string;        // URL do arquivo de vídeo (local ou CDNs após upload)
+  uploadedAt: Date;
+}
+interface VideoDeliverable {
+  id: string;
+  title: string;
+  versions: VideoVersion[];
+}
+interface Project {
+  id: string;
+  name: string;
+  eventDate?: Date;
+  finalDueDate?: Date;
+  timeline: Phase[];
+  videos: VideoDeliverable[];  // lista de vídeos do projeto (podem ser vários)
+}
+```
+
+No contexto deste sistema, vamos supor que por enquanto cada projeto tem pelo menos um vídeo deliverable (podemos criar automaticamente um ao criar o projeto, ou adicionar depois). Para simplificar, trataremos o primeiro item de `videos` como o principal (por exemplo, se o projeto envolve um vídeo principal). Em projetos futuros, isso pode ser adaptado para múltiplos vídeos com seleção de qual comparar.
+
+Atualizaremos a store para incluir:
+
+* `createProject` agora inicializa o array de `videos` (por exemplo, com um deliverable vazio ou com um placeholder).
+* `addVideoVersion` função para anexar uma nova versão a um determinado vídeo do projeto.
+* (Opcional) `setCurrentProject` se quisermos definir qual projeto está em contexto (aqui assumimos `createProject` já define o recém-criado como current).
+* (Opcional) Podem ser adicionadas funções como `markVideoApproved(versionId)` ou `resolveComment(commentId)` para manipular status, mas isso foge ao escopo atual.
+
+Abaixo um exemplo de como ficaria a implementação relevante na store:
+
+```ts
+// store/useProjectsStore.ts
+import { create } from "zustand";
+
+// Reuso das interfaces definidas acima (Project, VideoDeliverable, VideoVersion, Phase)
+interface ProjectsState {
+  projects: Project[];
+  currentProject: Project | null;
+  createProject: (data: Omit<Project, "id">) => void;
+  addVideoVersion: (file: File, deliverableId?: string) => void;
+  // Poderíamos ter outras ações: e.g. selectProject(id), markPhaseComplete, etc.
+}
+
+export const useProjectsStore = create<ProjectsState>((set) => ({
+  projects: [],
+  currentProject: null,
+
+  createProject: (data) => set((state) => {
+    const newId = Date.now().toString(); // gera um ID simples (ex: timestamp)
+    // Se não veio nenhum vídeo no data.videos, inicializa com um deliverable padrão
+    const initialVideos: VideoDeliverable[] = data.videos && data.videos.length > 0 
+      ? data.videos 
+      : [{ id: `${newId}-vid1`, title: "Vídeo 1", versions: [] }];
+    const newProject: Project = {
+      id: newId,
+      name: data.name,
+      eventDate: data.eventDate,
+      finalDueDate: data.finalDueDate,
+      timeline: data.timeline,
+      videos: initialVideos
+    };
+    return {
+      projects: [...state.projects, newProject],
+      currentProject: newProject
+    };
+  }),
+
+  addVideoVersion: (file, deliverableId) => set((state) => {
+    if (!state.currentProject) return {};
+    // Identifica qual deliverable adicionar (usa o primeiro se não especificado)
+    const deliverables = state.currentProject.videos;
+    const deliverableIndex = deliverableId 
+      ? deliverables.findIndex(d => d.id === deliverableId) 
+      : 0;
+    if (deliverableIndex < 0) return {};
+    const deliverable = deliverables[deliverableIndex];
+
+    // Gera objeto da nova versão
+    const newVersionNumber = deliverable.versions.length + 1;
+    const versionName = `v${newVersionNumber}`;
+    const newVersion: VideoVersion = {
+      id: `${deliverable.id}-v${newVersionNumber}`,
+      name: versionName,
+      url: URL.createObjectURL(file),  // cria URL blob local para visualizar o vídeo
+      uploadedAt: new Date()
+    };
+    // (Obs: Em produção, aqui faríamos upload para um servidor e usaríamos a URL retornada)
+
+    // Atualiza a lista de versões do deliverable
+    const updatedDeliverable: VideoDeliverable = {
+      ...deliverable,
+      versions: [...deliverable.versions, newVersion]
+    };
+    // Atualiza o projeto atual com o deliverable modificado
+    const updatedProject: Project = {
+      ...state.currentProject,
+      videos: state.currentProject.videos.map((d, idx) => idx === deliverableIndex ? updatedDeliverable : d)
+    };
+
+    // Atualiza estado global (projects list e currentProject)
+    return {
+      projects: state.projects.map(p => p.id === updatedProject.id ? updatedProject : p),
+      currentProject: updatedProject
+    };
+  }),
+
+  // ... outras ações (selecionar projeto, atualizar timeline etc.) ...
+}));
+```
+
+No código do *store* acima, ao chamar `addVideoVersion(file)`, usamos `URL.createObjectURL` para gerar um URL local para o arquivo de vídeo selecionado, permitindo exibir no vídeo player sem upload real. Isso **simula o upload** – em uma aplicação real, você enviaria o arquivo para o servidor ou serviço (como AWS S3) e obteria a URL pública, então armazenaria essa URL. Incluímos um comentário indicando isso.
+
+Repare que o store presume que `currentProject` está definido (no nosso fluxo, isso acontece quando criamos ou selecionamos um projeto). Atualizamos tanto `currentProject` quanto a lista `projects` para manter consistência (assim, se há uma tela de dashboard listando projetos, ela poderia mostrar por exemplo a última versão ou status atualizado).
+
+Também definimos que se `deliverableId` não for passado, usamos o primeiro vídeo por padrão. Isso simplifica a interface do componente caso haja apenas um deliverable principal. Se no futuro o projeto tiver múltiplos vídeos, podemos estender para escolher para qual vídeo adicionar a versão (ex.: passando o id específico, ou tendo um UI onde o usuário seleciona o vídeo alvo).
+
+### Componentes de UI para Versões de Vídeo
+
+Vamos criar dois componentes React principais:
+
+* **Lista de Versões & Upload (VersionList)** – exibe as versões existentes de um vídeo e contém o input para fazer upload de uma nova versão.
+* **Comparativo de Versões (VersionCompare)** – mostra dois players de vídeo, permitindo comparar visualmente duas versões (por padrão, a versão atual e a anterior).
+
+Vamos colocá-los em `components/video/` conforme a estrutura. Eles consumirão o estado do `useProjectsStore`.
+
+#### Componente VersionList (`components/video/VersionList.tsx`)
+
+Este componente lista as versões de um deliverable e permite adicionar novas. Ele utiliza o Zustand para obter as versões atuais e a ação de adicionar versão. Para simplificar, tratamos o primeiro deliverable do projeto atual.
+
+```tsx
+"use client";
+
+import React from "react";
+import { useProjectsStore } from "@/store/useProjectsStore";
+
+const VersionList: React.FC = () => {
+  const versions = useProjectsStore((state) => state.currentProject?.videos[0]?.versions) || [];
+  const addVideoVersion = useProjectsStore((state) => state.addVideoVersion);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      addVideoVersion(file);  // adiciona ao primeiro vídeo por default
+      e.target.value = ""; // reset input para permitir re-upload do mesmo nome se preciso
+    }
+  };
+
+  return (
+    <div className="mb-6">
+      <h2 className="text-lg font-semibold mb-2">Versões do Vídeo</h2>
+      {versions.length === 0 && <p className="text-sm text-gray-300">Nenhuma versão enviada ainda.</p>}
+      {versions.length > 0 && (
+        <ul className="text-sm mb-3">
+          {versions.map((v) => (
+            <li key={v.id}>
+              <span>{v.name}</span>
+              {" - "}
+              <span className="text-gray-400">{v.uploadedAt.toLocaleDateString()}</span>
+              {v.name.toLowerCase().includes("final") && <strong className="text-green-500 ml-1">(Final)</strong>}
+            </li>
+          ))}
+        </ul>
+      )}
+      {/* Input para upload de nova versão */}
+      <label className="block text-sm font-medium mb-1">Upload de nova versão:</label>
+      <input 
+        type="file" 
+        accept="video/*" 
+        onChange={handleFileChange} 
+        className="text-sm file:mr-3 file:py-2 file:px-4 file:rounded file:border-0 
+                   file:text-sm file:bg-purple-600 file:text-white hover:file:bg-purple-700"
+      />
+      <p className="text-xs text-gray-400 mt-1">Selecione um arquivo de vídeo para enviar como próxima versão.</p>
+    </div>
+  );
+};
+
+export default VersionList;
+```
+
+**Explicação:** Listamos cada versão pelo nome (v1, v2, ...) e data de upload. Se alguma versão tiver "Final" no nome, destacamos em verde (mas no nosso código o nome é gerado como v1, v2... podemos imaginar que após aprovação, renomearíamos para "Final" ou adicionaríamos uma flag). Ao final da lista, um input file estilizado permite escolher um vídeo para upload. Ao selecionar um arquivo, chamamos `addVideoVersion(file)` da store, que adiciona a versão e atualiza o estado global. Isso fará com que tanto a lista quanto outros componentes (como o comparativo) atualizem automaticamente via Zustand. **Observação:** Usamos um truque de `<input type="file" className="file:...">` para estilizar o botão do input file com classes Tailwind (utilizando as pseudo-classes fornecidas pelo Tailwind para input file styling).
+
+#### Componente VersionCompare (`components/video/VersionCompare.tsx`)
+
+Este componente renderiza o comparativo visual de duas versões de vídeo, colocadas lado a lado. Vamos sempre comparar a última versão enviada com a versão imediatamente anterior, pois esse é o caso de uso mais comum (ver o que mudou de v2 para v3, por exemplo). Poderíamos permitir o usuário selecionar quais versões comparar, mas manteremos simples e deixaremos essa melhoria anotada.
+
+Também, em um caso ideal, sincronizaríamos a reprodução dos dois vídeos (para que "play" em um inicie o outro, e mantenha o tempo relativo igual). Isso é uma melhoria interessante, mas para não complicar demais o código, adicionaremos um botão para dar play simultâneo nos dois como demonstração.
+
+Além disso, vamos mostrar comentários associados a cada versão separadamente abaixo de cada player, se existirem. Supondo que já exista um sistema de comentários no projeto, precisaríamos filtrar por `versionId`. Aqui colocaremos apenas a estrutura para indicar onde comentários iriam.
+
+```tsx
+"use client";
+
+import React, { useRef } from "react";
+import { useProjectsStore } from "@/store/useProjectsStore";
+
+const VersionCompare: React.FC = () => {
+  const versions = useProjectsStore((state) => state.currentProject?.videos[0]?.versions) || [];
+  if (versions.length < 2) return null; // precisa de pelo menos duas versões para comparar
+
+  const latestVersion = versions[versions.length - 1];
+  const prevVersion = versions[versions.length - 2];
+
+  const videoRef1 = useRef<HTMLVideoElement>(null);
+  const videoRef2 = useRef<HTMLVideoElement>(null);
+
+  // Handler para dar play simultâneo
+  const handlePlayBoth = () => {
+    if (videoRef1.current && videoRef2.current) {
+      // Inicia ambos do início (poderia iniciar do mesmo timestamp atual se quisermos comparar um ponto específico)
+      videoRef1.current.currentTime = 0;
+      videoRef2.current.currentTime = 0;
+      videoRef1.current.play();
+      videoRef2.current.play();
+    }
+  };
+
+  return (
+    <div className="mb-6">
+      <h2 className="text-lg font-semibold mb-3">Comparativo de Versões</h2>
+      <div className="flex gap-4">
+        {/* Versão anterior */}
+        <div className="flex-1">
+          <h3 className="text-base font-medium mb-1">Versão: {prevVersion.name}</h3>
+          <video ref={videoRef1} src={prevVersion.url} controls className="w-full rounded border border-gray-600" />
+          {/* Comentários da versão anterior (exemplo) */}
+          {/* <CommentsList versionId={prevVersion.id} /> */}
+        </div>
+        {/* Versão atual */}
+        <div className="flex-1">
+          <h3 className="text-base font-medium mb-1">Versão: {latestVersion.name} (Atual)</h3>
+          <video ref={videoRef2} src={latestVersion.url} controls className="w-full rounded border border-gray-600" />
+          {/* Comentários da versão atual (exemplo) */}
+          {/* <CommentsList versionId={latestVersion.id} /> */}
+        </div>
+      </div>
+      {/* Botão para reproduzir os dois vídeos simultaneamente */}
+      <button 
+        type="button" 
+        onClick={handlePlayBoth} 
+        className="mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm"
+      >
+        Reproduzir ambos do início
+      </button>
+      <p className="text-xs text-gray-400 mt-1">*Dê play nos dois vídeos para observar diferenças; use o botão acima para iniciá-los juntos.</p>
+    </div>
+  );
+};
+
+export default VersionCompare;
+```
+
+**Detalhes da implementação:** mostramos o vídeo anterior e o último lado a lado usando flexbox (`flex gap-4`). Cada lado tem um título indicando a versão (marcamos a última como "(Atual)" para clareza). Usamos o elemento HTML5 `<video>` com `controls` para ter controles de reprodução nativos. Adicionamos referências (`useRef`) para cada video player, o que nos permite implementar o botão "Reproduzir ambos do início" que seta ambos os vídeos ao segundo 0 e dá play simultaneamente – isso ajuda o usuário a ver frame a frame em paralelo. (Em uma versão futura, poderíamos sincronizar tempos continuamente, por exemplo, pausando ambos juntos, etc. Também poderíamos ter um slider único de tempo controlando os dois vídeos. Aqui simplificamos com um botão.)
+
+Nos comentários, indicamos onde integrar o componente de comentários existente filtrado por `versionId`. Por exemplo, se há um `<CommentsList>` ou similar no projeto, ele pode receber a prop `versionId` e exibir apenas os comentários daquela versão. Assim, o usuário poderia ver feedback específico de V2 ao lado esquerdo e de V3 ao lado direito. Isso ajuda a verificar se todos os pontos comentados em V2 foram tratados em V3 (neste caso, os comentários de V2 poderiam estar marcados como *resolvidos* ou riscados caso V3 já os tenha endereçado). Implementar essa lógica exige adaptação no sistema de comentários: adicionar campo de versão nos comentários e filtros – como mencionado, não fizemos o código completo aqui, mas essa seria a direção.
+
+### Integração dos Componentes de Versão na Página do Projeto
+
+Finalmente, vamos integrar `VersionList` e `VersionCompare` na página de detalhes do evento/projeto (`app/events/[eventId]/page.tsx`). Eles podem ficar abaixo do timeline, por exemplo, para que o usuário veja o progresso geral e depois as versões do vídeo:
+
+```tsx
+// Trecho adicional em app/events/[eventId]/page.tsx, continuação do exemplo anterior
+import VersionList from "@/components/video/VersionList";
+import VersionCompare from "@/components/video/VersionCompare";
+
+export default function EventDetailPage({ params }) {
+  const event = useProjectsStore((state) => state.currentProject);
+  if (!event) return <div>Carregando projeto...</div>;
+
+  return (
+    <div className="px-6 py-4">
+      <h1 className="text-2xl font-bold mb-4">{event.name}</h1>
+      <Timeline phases={event.timeline} finalDueDate={event.finalDueDate} />
+
+      {/* Seção de versões de vídeo */}
+      <div className="mt-6">
+        <VersionList />
+        <VersionCompare />
+      </div>
+
+      {/* ... eventualmente seção de comentários globais ou outras informações ... */}
+    </div>
+  );
+}
+```
+
+Com isso, ao acessar a página do projeto, veremos:
+
+* A timeline do projeto (implementada anteriormente).
+* A lista de versões e upload: inicialmente nenhuma versão, o usuário pode fazer upload da primeira (V1).
+* Após adicionar, V1 aparece listada. O usuário pode continuar o fluxo normal (por exemplo, enviar para o cliente revisar).
+* Quando fizer upload de outra versão (V2), agora a lista mostrará V1 e V2, e o componente de comparação aparecerá mostrando V1 vs V2 lado a lado.
+* O usuário pode dar play nos dois para observar mudanças. Os comentários (caso implementados) poderiam aparecer associados a cada versão, ajudando a verificar se as mudanças solicitadas em V1 foram atendidas em V2.
+* O processo se repete para V3, V4... Cada nova versão adicionada sempre compara última vs penúltima. Se quiser comparar versões não consecutivas, poderíamos melhorar a UI para escolher manualmente, mas isso fica como **melhoria futura** (ex: um dropdown para selecionar qualquer versão para cada player).
+
+> **Considerações Finais e Melhorias:**
+>
+> * *Status da versão:* Poderíamos indicar claramente qual versão é a atual aprovada ou final. Por exemplo, após o cliente aprovar V3, marcar essa versão como "Final" e talvez bloquear novos uploads. Isso envolvia talvez um campo `status` em `VideoVersion` (`"pending" | "approved" | "final"` etc.) e controles para o cliente aprovar. Deixamos como sugestão futura.
+> * *Destaque de mudanças por frame:* Identificar diferenças exatas entre frames de duas versões é complexo (requer processamento de vídeo). Porém, podemos auxiliar o processo de revisão destacando os pontos comentados. Ex: Se no V1 havia um comentário "remover esta cena", e no V2 essa cena foi removida, podemos marcar esse comentário como resolvido. Outra ideia é permitir tirar screenshots de frames e comparar imagens, ou usar técnicas de diff visual para evidenciar alterações (por exemplo, sobrepondo vídeos com transparência). Essas ideias vão além do escopo, mas vale mencionar para futuras iterações.
+> * *Sincronização de players:* Nosso comparativo exige que o usuário manualmente alinhe os vídeos no tempo (ou use o botão de play conjunto no início). Uma melhoria seria sincronizar os controles: quando um vídeo busca uma posição ou pausa, aplicar ao outro. Poderíamos usar eventos `onTimeUpdate` e `onPlay/onPause` para espelhar ações entre players.
+> * *Upload real:* A implementação atual usa `URL.createObjectURL` para exibir o vídeo local imediatamente. Em produção, o arquivo deveria ser enviado para o backend. Podemos integrar APIs de upload e, ao completar, usar a URL real do vídeo no `VideoVersion.url`. Durante upload poderíamos mostrar um progresso, etc. Isso exigiria configuração de API routes ou integração com serviços externos, mas a estrutura para adicionar versão na store permaneceria semelhante (só que esperando a resposta do upload).
+> * *Colaboração:* Assim como comentado no timeline, as versões de vídeo e comentários poderiam ser colaborativos em tempo real. Se várias pessoas estiverem na página do projeto, todos deveriam ver instantaneamente quando uma nova versão é enviada ou quando um comentário é marcado resolvido. Usar a store Zustand com contexto de sessão ou integrar com WebSocket seria o caminho para isso (por exemplo, emitir um evento "nova versão" via socket do servidor aos clientes conectados).
+
+## Integração e Testes (Passo a Passo)
+
+Para integrar as funcionalidades acima no projeto existente, siga estes passos no VSCode ou seu ambiente de desenvolvimento:
+
+1. **Atualizar/Adicionar o Zustand Store de Projetos:** Abra o arquivo de store de projetos (por exemplo, `store/useProjectsStore.ts`) e adicione os novos campos e funções. Especificamente:
+
+   * Defina as interfaces `VideoVersion`, `VideoDeliverable` e ajuste a interface do `Project` para incluir `eventDate`, `finalDueDate`, `timeline: Phase[]` e `videos: VideoDeliverable[]`.
+   * Implemente (ou atualize) a função `createProject` para inicializar `videos` e `timeline` conforme mostrado. Isso permite salvar o cronograma gerado e preparar a estrutura de versões.
+   * Adicione a função `addVideoVersion` conforme o código acima, garantindo que ela atualize o projeto atual com a nova versão. (*Obs:* Caso seu projeto use uma abordagem diferente – por exemplo, manter *currentProjectId* em vez do objeto – adapte a lógica para buscar e atualizar o projeto correto na lista).
+   * Verifique se já existe alguma store para projetos; se sim, incorpore essas mudanças nela em vez de criar uma nova store separada, para manter a arquitetura por domínio.
+
+2. **Criar o componente Timeline:** No diretório `components/widgets/`, crie o arquivo `Timeline.tsx` e cole o código fornecido para o componente Timeline. Certifique-se de ajustar importações (por exemplo, se não usar `date-fns`, remova o `format` ou importe uma função similar do projeto). Marque o componente com `"use client"` no topo se for usá-lo em um contexto server (no nosso código já está marcado). Esse componente não adiciona novas dependências além do possível uso de `date-fns` (que provavelmente já existe no projeto, dado seu uso comum; se não, você pode instalar ou simplesmente remover a formatação e mostrar datas brutas ou formatar manualmente).
+
+3. **Criar a função de geração de cronograma:** Crie o arquivo `lib/scheduleGenerator.ts` (ou, se preferir seguir a modularização, poderia ser `features/briefing/scheduleGenerator.ts`). Cole a função `generateScheduleFromBriefing`. Ajuste importações (`addDays`, `subDays` do date-fns foram usadas; substitua por lógica nativa se não quiser adicionar date-fns). Essa função não depende de React, então não precisa de `"use client"`.
+
+4. **Criar tela de Briefing (Novo Projeto):** Se ainda não existir, crie a página `app/events/new/page.tsx` com o formulário de briefing conforme o código. Caso já exista uma página de criação de projeto, incorpore os campos adicionais (número de vídeos, datas) e especialmente a integração para gerar cronograma:
+
+   * Importe e use `generateScheduleFromBriefing` para montar o cronograma.
+   * Mostre o cronograma sugerido (pode ser com o `<Timeline>` também, se quiser dar um visual preview além da lista de datas).
+   * Ao salvar, chame `createProject` do store e redirecione. Verifique como a navegação está estruturada no seu app; talvez você use um router diferente ou outra abordagem para selecionar o projeto atual. Ajuste o `router.push` conforme necessário (por exemplo, se o projeto recém-criado possuir um ID, navegue para `/events/${id}`).
+   * Teste preenchendo o formulário: se deixar o campo de data de evento vazio, o cronograma deve pular a fase de gravação; se colocar um prazo final muito curto, observe o aviso `(além do prazo)` nas fases listadas.
+
+5. **Criar componentes de Versão de Vídeo:**
+
+   * Crie `components/video/VersionList.tsx` e `components/video/VersionCompare.tsx` com os códigos fornecidos.
+   * Esses componentes usam o Zustand (`useProjectsStore`) para ler/escrever estado, então verifique se o caminho de import está correto (`@/store/useProjectsStore` ou relativo).
+   * No `VersionList`, não esqueça de testar o upload de arquivo: por ser local, ele deve mostrar o vídeo imediatamente na lista. Se quiser, substitua `URL.createObjectURL` por um upload real posteriormente.
+   * Em `VersionCompare`, nós acessamos diretamente `versions[versions.length-2]` e `versions[versions.length-1]`. Certifique-se de que sempre haja pelo menos 2 versões para renderizar este componente (no nosso código, retornamos `null` se `versions.length < 2`). Teste esse componente após fazer upload de duas versões para verificar a exibição lado a lado. Clique no botão "Reproduzir ambos do início" para ver se ambos tocam simultaneamente.
+
+6. **Integrar na página do Projeto:** Abra `app/events/[eventId]/page.tsx` (a página de detalhe do projeto). Importe os novos componentes `Timeline`, `VersionList`, `VersionCompare` e inclua-os na renderização conforme mostrado:
+
+   * Coloque `<Timeline>` passando `event.timeline` e `event.finalDueDate`.
+   * Em seguida, adicione `<VersionList />` e `<VersionCompare />`. Eles não requerem props no nosso design, pois internamente usam o estado global do projeto atual.
+   * Verifique se a página do projeto está obtendo o projeto atual corretamente. Nosso exemplo usa `useProjectsStore(state => state.currentProject)`. Caso sua lógica seja diferente (por ex., fetch por ID no server component), você pode precisar ajustar para passar os dados de versões/timeline como props a componentes clientes correspondentes.
+
+7. **Testar no navegador:**
+
+   * Inicie o servidor de dev (`npm run dev` ou `pnpm dev` conforme o setup do projeto).
+   * Navegue para a tela de criar novo projeto (Briefing). Preencha os campos:
+
+     * Nome, número de vídeos, data de evento (se aplicável), prazo final (se houver).
+     * Clique em **Gerar Cronograma**. Verifique no UI a lista de fases gerada. Se quiser, experimente diferentes inputs: sem data de evento, com muitos vídeos, com prazo final apertado, etc., e veja se a geração faz sentido (as durações devem aumentar com mais vídeos; prazo final apertado deve acionar o log de aviso no console e possivelmente reduzir tempos).
+     * Opcional: se integrou o componente `<Timeline>` na pré-visualização, verifique se a barra refletiu as fases corretamente (fases proporcionais, cores indicando status atual).
+   * Clique em **Salvar Projeto**. A aplicação deve redirecionar para a página de detalhes do projeto recém-criado.
+   * Na página do projeto, verifique:
+
+     * A timeline aparece com as fases e possivelmente já marcando "atrasado" se alguma fase estava planejada antes da data atual (por exemplo, se Planejamento começou ontem, ficará vermelho). Isso simula atrasos.
+     * A seção de versões de vídeo inicialmente mostra "Nenhuma versão enviada".
+     * Faça upload de um vídeo (pode ser um arquivo pequeno de teste) no campo "Upload de nova versão". Ao selecionar o arquivo, a lista deve atualizar mostrando "v1 - {data}". O vídeo V1 não será comparado pois só tem um.
+     * Agora faça upload de um segundo arquivo (V2). A lista deve mostrar v1 e v2. E o componente de comparação deve aparecer abaixo, com dois players lado a lado (v1 à esquerda, v2 à direita). Clique em play em ambos ou use o botão "Reproduzir ambos do início" para verificar se funcionam simultaneamente.
+     * Experimente pausar, mover o tempo de um vídeo e observar o outro (não sincroniza automaticamente nesta implementação, mas devem funcionar independentemente).
+     * Se tiver algum sistema de comentários já implementado, teste postar um comentário em um dos vídeos (dependendo de como a UI de comentários identifica o vídeo/versão – seria necessário estender para passar o `versionId` do contexto atual). Confira se conseguiria filtrar por versão (isso pode exigir código adicional não coberto aqui).
+   * Tente também casos de mais versões (V3, V4). A cada novo upload, verifique a comparação: sempre a última vs penúltima. Se quiser comparar V1 vs V4, por exemplo, atualmente precisaria baixar uma e outra manualmente; uma futura melhoria seria permitir escolher.
+
+8. **Ajustes de Estilo:** Revise o estilo visual na interface real. As classes Tailwind usadas seguem o tema escuro Dracula (tons de cinza, verde, roxo, etc.), mas ajuste conforme necessário:
+
+   * Verifique contraste das cores do timeline no fundo do seu app. Por exemplo, usamos `bg-green-600` para completos – se o tema Dracula tiver um verde diferente definido, poderia usar `text-green-500` ou custom.
+   * Ajuste textos muito claros ou muito escuros conforme necessário.
+   * O layout do comparativo (dois vídeos lado a lado) deve ser responsivo: em telas muito pequenas, talvez empilhar verticalmente seja melhor. Podemos melhorar adicionando classes responsivas (ex: em mobile, `.flex` poderia ser `.flex-col`). Fica como melhoria de UI.
+   * Adicione quaisquer ícones ou refinamentos visuais do design do projeto (por exemplo, usar ícones do shadcn/UI para indicar upload, check de aprovado, etc.).
+
+Após esses passos, as novas funcionalidades deverão estar integradas. Você terá uma timeline visual interativa no projeto, geração automática de cronogramas na criação, e um sistema de versionamento de vídeo para facilitar revisões. Cada parte foi construída seguindo a arquitetura modular (componentes isolados e estado global no store) para manter a manutenibilidade. Sinta-se à vontade para expandir essas implementações com as sugestões comentadas, conforme as necessidades do seu aplicativo. Boa codificação e testes!

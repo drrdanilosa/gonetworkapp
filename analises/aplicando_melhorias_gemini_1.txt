@@ -1,0 +1,219 @@
+Com certeza\! Fico feliz em ajudar a traduzir as sugestões estratégicas em prompts mais concretos que você pode usar com assistentes de IA como o GitHub Copilot no VSCode.
+
+É importante lembrar que esses prompts são pontos de partida. A IA pode gerar um código inicial excelente, mas a supervisão humana, os testes e os ajustes finos são cruciais para garantir que o código se integre perfeitamente à sua aplicação "MelhorApp", atenda a todos os requisitos de negócios e siga as melhores práticas de desenvolvimento. [1, 2]
+
+Aqui estão algumas sugestões de prompts para funcionalidades específicas, baseadas na estrutura da "MelhorApp" que você descreveu:
+
+-----
+
+### Funcionalidade 1: Análise Automatizada de Briefing e Extração de Informações (NLP)
+
+**Objetivo:** Extrair automaticamente informações chave (como objetivos, público-alvo, entregáveis) de um texto de briefing usando Processamento de Linguagem Natural (NLP).
+
+**Prompts para o VSCode (com GitHub Copilot ou similar):**
+
+1.  **Para a API Route (Backend Logic):**
+
+      * **Arquivo:** `app/api/briefing/analyze/route.ts`
+      * **Prompt:**
+        ```
+        // Neste arquivo (app/api/briefing/analyze/route.ts), crie uma API Route do Next.js para o App Router.
+        // Esta rota deve aceitar uma requisição POST com um corpo JSON contendo { text: string }.
+        // Ela deve chamar uma função assíncrona (simulada por enquanto) chamada `processBriefingWithNLP(textContent: string)`.
+        // A função `processBriefingWithNLP` deve simular uma chamada a um serviço de NLP e retornar um objeto com campos como:
+        // { objectives: string, targetAudience: string, deliverables: string, sentiment: 'positive' | 'neutral' | 'negative', keywords: string }.
+        // A rota deve retornar os resultados da análise em JSON com status 200, ou um erro com status 500 se algo falhar.
+        // Inclua tratamento básico de erros para o corpo da requisição.
+        ```
+
+2.  **Para a Camada de Serviço (Frontend-Backend Communication):**
+
+      * **Arquivo:** `services/briefing-service.ts`
+      * **Prompt:**
+        ```typescript
+        // No arquivo services/briefing-service.ts, adicione uma nova função assíncrona chamada `fetchBriefingAnalysis`.
+        // Esta função deve aceitar `briefingText: string` como argumento.
+        // Ela deve fazer uma requisição POST para a API route `/api/briefing/analyze` com `briefingText` no corpo.
+        // A função deve retornar a resposta JSON parseada da API.
+        // Adicione tratamento de erro para a requisição fetch (ex: try-catch, verificar response.ok).
+        // Defina um tipo para o retorno esperado da análise (ex: BriefingAnalysisResult).
+        ```
+
+3.  **Para o Zustand Store (State Management):**
+
+      * **Arquivo:** `store/useBriefingStore.ts` (ou crie um novo `store/useBriefingAnalysisStore.ts`)
+      * **Prompt:**
+        ```typescript
+        // No arquivo store/useBriefingStore.ts (ou crie um novo store para análise de briefing),
+        // adicione ao estado:
+        // `analysisResult: BriefingAnalysisResult | null`
+        // `isAnalyzingBriefing: boolean`
+        // `analysisError: string | null`
+        // Crie uma ação assíncrona `analyzeCurrentBriefing(briefingText: string)` que:
+        // 1. Define `isAnalyzingBriefing` para true e `analysisError` para null.
+        // 2. Chama `briefingService.fetchBriefingAnalysis(briefingText)`.
+        // 3. Em caso de sucesso, atualiza `analysisResult` com os dados e define `isAnalyzingBriefing` para false.
+        // 4. Em caso de erro, define `analysisError` com a mensagem de erro e `isAnalyzingBriefing` para false.
+        // (Assuma que `BriefingAnalysisResult` é o tipo retornado pelo serviço de análise).
+        ```
+
+4.  **Para o Componente React (UI Integration):**
+
+      * **Arquivo:** `features/briefing/GeneralInfoTab.tsx`
+      * **Prompt:**
+        ```typescript
+        // No componente features/briefing/GeneralInfoTab.tsx:
+        // 1. Importe e use o hook do store de análise de briefing (ex: `useBriefingStore`).
+        // 2. Adicione um botão com o texto "Analisar Briefing com IA".
+        // 3. Ao clicar no botão, chame a ação `analyzeCurrentBriefing` do store, passando o texto do briefing atual.
+        // 4. Mostre um indicador de carregamento (ex: "Analisando...") quando `isAnalyzingBriefing` for true.
+        // 5. Se `analysisResult` existir, exiba os campos principais (ex: Objetivos, Público-Alvo, Entregáveis) abaixo do botão.
+        // 6. Se `analysisError` existir, exiba a mensagem de erro.
+        // 7. Certifique-se de que o componente está marcado com "use client" se ainda não estiver.
+        ```
+
+-----
+
+### Funcionalidade 2: Sumarização de Feedback de Vídeo por IA
+
+**Objetivo:** Gerar um resumo conciso dos principais pontos de feedback deixados em um vídeo, utilizando IA.
+
+**Prompts para o VSCode:**
+
+1.  **Para a API Route (Backend Logic for Summarization):**
+
+      * **Arquivo:** `app/api/video/summarize-feedback/route.ts`
+      * **Prompt:**
+        ```
+        // Neste arquivo (app/api/video/summarize-feedback/route.ts), crie uma API Route do Next.js.
+        // Deve aceitar uma requisição POST com um corpo JSON contendo { comments: Array<{text: string, timestamp: number}> }.
+        // Chame uma função assíncrona (simulada) `generateFeedbackSummary(commentsList)` que recebe a lista de comentários.
+        // A `generateFeedbackSummary` deve simular o processamento por IA e retornar um objeto como { summary: string, keyThemes: string }.
+        // A rota deve retornar o resumo em JSON com status 200, ou um erro com status 500.
+        ```
+
+2.  **Para a Camada de Serviço (Frontend-Backend Communication):**
+
+      * **Arquivo:** `services/video-service.ts` (ou um novo `services/feedback-service.ts`)
+      * **Prompt:**
+        ```typescript
+        // No arquivo services/video-service.ts, adicione uma função `fetchFeedbackSummary(comments: Array<{text: string, timestamp: number}>)`.
+        // Esta função deve fazer uma requisição POST para `/api/video/summarize-feedback` com a lista de comentários.
+        // Deve retornar a resposta JSON parseada (ex: { summary: string, keyThemes: string }).
+        // Inclua tratamento de erros.
+        ```
+
+3.  **Para o Componente React (UI Integration no Editor de Vídeo):**
+
+      * **Arquivo:** `components/video/EditingWidgetContent.tsx` (ou onde a lista de comentários é gerenciada)
+      * **Prompt:**
+        ```typescript
+        // No componente components/video/EditingWidgetContent.tsx:
+        // 1. Adicione um estado local para `feedbackSummary: { summary: string, keyThemes: string } | null`, `isSummarizing: boolean`, e `summaryError: string | null`.
+        // 2. Adicione um botão "Sumarizar Feedback com IA" acima ou abaixo da lista de comentários.
+        // 3. Ao clicar, obtenha a lista atual de comentários (ex: do `useCollaborationStore` ou props).
+        // 4. Chame a função `videoService.fetchFeedbackSummary(currentComments)`.
+        // 5. Atualize o estado local com o resultado, o status de carregamento e possíveis erros.
+        // 6. Exiba o `feedbackSummary.summary` e `feedbackSummary.keyThemes` se disponíveis.
+        // 7. Mostre um indicador de carregamento enquanto `isSummarizing` for true.
+        // 8. Marque claramente o resumo como "Gerado por IA". [1, 3]
+        ```
+
+-----
+
+### Funcionalidade 3: Marcação e Categorização Automatizadas de Ativos por IA (Biblioteca Inteligente)
+
+**Objetivo:** Analisar ativos carregados (imagens, vídeos) e sugerir/aplicar tags e categorias relevantes automaticamente.
+
+**Prompts para o VSCode:**
+
+1.  **Para a API Route (Backend Logic for Asset Analysis):**
+
+      * **Arquivo:** `app/api/assets/analyze-metadata/route.ts`
+      * **Prompt:**
+        ```
+        // Crie uma API Route do Next.js em app/api/assets/analyze-metadata/route.ts.
+        // Deve aceitar POST com { assetUrl: string, assetType: 'image' | 'video' } no corpo.
+        // Simule uma chamada a um serviço de IA `analyzeAssetContent(url, type)` que retorna:
+        // { suggestedTags: string, suggestedCategories: string, dominantColors: string }.
+        // Retorne esses metadados sugeridos em JSON ou um erro.
+        ```
+
+2.  **Para a Camada de Serviço (Frontend-Backend Communication):**
+
+      * **Arquivo:** `services/asset-service.ts` (ou similar)
+      * **Prompt:**
+        ```typescript
+        // Em services/asset-service.ts, crie `fetchAssetMetadataSuggestions(assetUrl: string, assetType: 'image' | 'video')`.
+        // Esta função deve fazer POST para `/api/assets/analyze-metadata` com os dados do ativo.
+        // Deve retornar a resposta JSON (ex: { suggestedTags: string,... }).
+        // Inclua tratamento de erros.
+        ```
+
+3.  **Para o Componente React (UI na Biblioteca de Ativos ou Upload):**
+
+      * **Arquivo:** Um novo componente em `features/asset-library/AssetUploadWidget.tsx` ou similar.
+      * **Prompt:**
+        ```typescript
+        // Crie um novo componente React `AssetMetadataAISuggestions` em features/asset-library/.
+        // Este componente deve receber `assetUrl` e `assetType` como props.
+        // Ao montar, ou por um clique de botão "Sugerir Metadados com IA", ele deve:
+        // 1. Chamar `assetService.fetchAssetMetadataSuggestions(assetUrl, assetType)`.
+        // 2. Exibir um estado de carregamento.
+        // 3. Mostrar os `suggestedTags` e `suggestedCategories` retornados.
+        // 4. Permitir que o usuário selecione/desselecione as sugestões e as adicione aos metadados do ativo (simule a ação de salvar).
+        // 5. Indique que as sugestões são geradas por IA. [1, 3]
+        ```
+
+-----
+
+### Funcionalidade 4: Painel Inteligente de Desempenho (Análises Preditivas Básicas)
+
+**Objetivo:** Exibir um painel com KPIs e previsões iniciais sobre o andamento dos projetos.
+
+**Prompts para o VSCode:**
+
+1.  **Para a API Route (Backend Logic for Predictive Data):**
+
+      * **Arquivo:** `app/api/dashboard/predictive-insights/route.ts`
+      * **Prompt:**
+        ```
+        // Crie uma API Route do Next.js em app/api/dashboard/predictive-insights/route.ts.
+        // Deve aceitar GET e, opcionalmente, um `projectId` como query param.
+        // Simule uma função `getProjectPredictions(id?: string)` que retorna dados como:
+        // { predictedCompletionDate: string, riskLevel: 'low' | 'medium' | 'high', potentialBottlenecks: string }.
+        // Se nenhum `projectId` for fornecido, retorne dados agregados ou para um projeto padrão.
+        // Retorne os insights em JSON ou um erro.
+        ```
+
+2.  **Para a Camada de Serviço (Frontend-Backend Communication):**
+
+      * **Arquivo:** `services/dashboard-service.ts`
+      * **Prompt:**
+        ```typescript
+        // Em services/dashboard-service.ts, crie `fetchPredictiveInsights(projectId?: string)`.
+        // Esta função deve fazer GET para `/api/dashboard/predictive-insights`, passando `projectId` se fornecido.
+        // Deve retornar a resposta JSON (ex: { predictedCompletionDate: string,... }).
+        // Inclua tratamento de erros.
+        ```
+
+3.  **Para o Componente React (UI no Dashboard):**
+
+      * **Arquivo:** `features/dashboard/PredictiveInsightsWidget.tsx`
+      * **Prompt:**
+        ```typescript
+        // Crie um novo componente React `PredictiveInsightsWidget` em features/dashboard/.
+        // Este componente deve:
+        // 1. Usar `useEffect` para chamar `dashboardService.fetchPredictiveInsights()` ao montar (talvez para um projeto selecionado globalmente ou um default).
+        // 2. Gerenciar estados para `insightsData`, `isLoading`, e `error`.
+        // 3. Exibir os dados preditivos (Data de Conclusão Prevista, Nível de Risco, Gargalos Potenciais) de forma clara.
+        // 4. Usar ícones ou cores para indicar o nível de risco.
+        // 5. Mostrar um estado de carregamento e mensagens de erro apropriadas.
+        // 6. Lembre-se de que a clareza e a priorização das informações são chave em dashboards. [4, 5]
+        ```
+
+-----
+
+Lembre-se que a integração real com modelos de IA (NLP, sumarização, análise de imagem/vídeo, modelos preditivos) exigirá a configuração e chamada de APIs de serviços de IA externos (como OpenAI, Google AI, AWS AI, etc.) ou a implementação de seus próprios modelos, o que vai além do que o assistente de código pode gerar diretamente, mas ele pode ajudar a estruturar essas chamadas.
+
+Espero que estes prompts mais específicos sejam úteis para você começar a implementar essas funcionalidades inovadoras na "MelhorApp"\!

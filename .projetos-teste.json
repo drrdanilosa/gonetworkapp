@@ -1,0 +1,28 @@
+[
+  {
+    "id": "projeto-1",
+    "title": "Projeto de Teste 1",
+    "description": "Projeto para teste do watcher de vídeos",
+    "client": "Cliente Teste",
+    "status": "active",
+    "thumbnailUrl": "/placeholder.jpg",
+    "createdAt": "2025-05-22T06:13:14.841Z",
+    "updatedAt": "2025-05-22T06:13:14.843Z",
+    "dueDate": "2025-05-29T06:13:14.843Z",
+    "videos": [],
+    "tasks": []
+  },
+  {
+    "id": "projeto-2",
+    "title": "Projeto de Teste 2",
+    "description": "Segundo projeto para teste do watcher de vídeos",
+    "client": "Cliente Teste 2",
+    "status": "active",
+    "thumbnailUrl": "/placeholder.jpg",
+    "createdAt": "2025-05-22T06:13:14.843Z",
+    "updatedAt": "2025-05-22T06:13:14.843Z",
+    "dueDate": "2025-06-05T06:13:14.843Z",
+    "videos": [],
+    "tasks": []
+  }
+]

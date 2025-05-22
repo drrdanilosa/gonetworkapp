@@ -1,0 +1,954 @@
+Perfeito. Vou revisar a estrutura completa do seu projeto `melhorapp_final` e garantir que o fluxo descrito — da criação da conta até a entrega e organização de vídeos locais — esteja totalmente funcional localmente, sem necessidade de autenticação real ou banco de dados externo.
+
+Vou gerar todos os códigos, ajustes e instruções necessários para que o VS Code implemente corretamente o sistema, simulando todos os recursos descritos de forma coerente e demonstrável.
+
+Te aviso assim que tudo estiver pronto para você apresentar com confiança ao investidor.
+
+
+# Ajustes para Execução Local do MelhorApp
+
+Para que o sistema **MelhorApp** funcione totalmente em ambiente local simulando todo o fluxo descrito, vamos realizar modificações em várias partes do projeto. Usaremos **dados em memória** (via stores Zustand e rotas API do Next.js) para simular banco de dados e autenticação, garantindo uma experiência fluida sem dependências externas. A seguir estão os ajustes organizados por funcionalidade:
+
+## 1. Gerenciamento de Usuários e Autenticação (Mock)
+
+**Criação de conta (registro) e login** serão simulados localmente. Vamos ajustar o serviço de auth para reconhecer um usuário administrador e permitir registro de novos usuários em memória:
+
+* **Serviço de Autenticação:** No arquivo `services/auth-service.ts`, ajuste a função de login simulado para atribuir o papel `admin` quando o email contiver `"admin"`, e mantenha `editor` ou `client` conforme o e-mail. Também podemos definir IDs fixos para usuários de teste (por ex., admin, editor e client) para persistir a identidade entre logins. A função de registro simulado deve criar um usuário com papel baseado no email (ou permitir escolha manual do papel, se desejado).
+
+```typescript
+// services/auth-service.ts
+function simulateLogin(email: string): User {
+  // Login simulado: define papel com base no email
+  let role: User['role'] = 'client';
+  if (email.includes('admin')) {
+    role = 'admin';
+  } else if (email.includes('editor')) {
+    role = 'editor';
+  }
+  return {
+    id: email.includes('admin') ? 'user_admin_1'
+         : email.includes('editor') ? 'user_editor_1'
+         : 'user_client_1',
+    name: email.split('@')[0],
+    email,
+    role,
+    avatar: '/placeholder-user.jpg',
+    color: '#48BB78',
+  };
+}
+
+function simulateRegister(name: string, email: string): User {
+  // Registro simulado: similares regras de papel do login
+  let role: User['role'] = 'client';
+  if (email.includes('admin')) {
+    role = 'admin';
+  } else if (email.includes('editor')) {
+    role = 'editor';
+  }
+  return {
+    id: email.includes('admin') ? 'user_admin_1'
+         : email.includes('editor') ? 'user_editor_1'
+         : 'user_client_1',
+    name,
+    email,
+    role,
+    avatar: '/placeholder-user.jpg',
+    color: '#4299E1',
+  };
+}
+```
+
+> **Nota:** No código acima, usamos um esquema simples para gerar **IDs fixos** para os usuários de teste (por exemplo, `"user_admin_1"`, etc.), assim um mesmo email sempre resulta no mesmo ID. Isso garante que ao deslogar e logar novamente com o mesmo email, o usuário mantenha a mesma identidade (permitindo ver seus eventos persistidos no store). Os papéis são inferidos pelo email apenas para simplificar a simulação (ex.: emails contendo `"editor"` serão papel editor; contendo `"admin"` serão admin, demais serão cliente).
+
+* **Persistência de Sessão:** O store de autenticação (`store/useAuthStore.ts`) já usa `persist` para guardar o usuário logado em `localStorage`. Isso mantém o usuário autenticado entre reloads durante a demo local, dispensando um backend real. Não é necessário ajuste aqui, apenas tenha certeza de **limpar o storage** entre diferentes usuários de teste se for alternar manualmente (ou implemente logout).
+
+* **Página de Registro:** Para simular **criação de conta**, podemos criar uma página simples de registro que usa o serviço de auth. Por exemplo, crie `app/register/page.tsx` com um formulário parecido com o de login, chamando `registerUser(name, email, password)` e, em seguida, `useAuthStore.getState().login(novoUsuario)` para autenticar automaticamente:
+
+```tsx
+// app/register/page.tsx
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useAuthStore } from "@/store/useAuthStore";
+import { registerUser } from "@/services/auth-service";
+
+const registerSchema = z.object({
+  name: z.string().min(2, "Nome precisa ter pelo menos 2 caracteres"),
+  email: z.string().email("Email inválido"),
+  password: z.string().min(4, "Senha muito curta"),
+});
+
+export default function RegisterPage() {
+  const router = useRouter();
+  const registerFunc = useAuthStore(state => state.login);  // usaremos para salvar usuário logado
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const form = useForm({
+    resolver: zodResolver(registerSchema),
+    defaultValues: { name: "", email: "", password: "" }
+  });
+
+  const onSubmit = async (values: z.infer<typeof registerSchema>) => {
+    setError("");
+    setIsLoading(true);
+    try {
+      // Chama registro simulado e realiza login automático
+      const newUser = await registerUser(values.name, values.email, values.password);
+      registerFunc(newUser);
+      router.push("/events");  // vai para dashboard após cadastro
+    } catch (err: any) {
+      setError("Não foi possível registrar. Tente outro email.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <Card className="w-[400px]">
+        <CardHeader>
+          <CardTitle>Criar Conta</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {error && <p className="text-red-500 text-sm">{error}</p>}
+              <FormField 
+                name="name" control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome</FormLabel>
+                    <FormControl><Input placeholder="Seu nome" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField 
+                name="email" control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl><Input type="email" placeholder="seu@email.com" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField 
+                name="password" control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Senha</FormLabel>
+                    <FormControl><Input type="password" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Criando..." : "Criar Conta"}
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+```
+
+Com a página acima, o fluxo de **criação de conta** fica assim: o usuário acessa `/register`, preenche nome, email e senha, e ao submeter o formulário o sistema simula a criação do usuário (via `registerUser`) e já realiza login (armazenando no Zustand). Em seguida, redireciona para o dashboard (`/events`). Lembre-se de adicionar um link na tela de login para facilitar o acesso à página de registro (por exemplo, “Não possui conta? Cadastre-se”).
+
+## 2. Dashboard de Eventos e Controle de Acesso
+
+Após login, o usuário vai para a página **Dashboard** listando eventos. Vamos ajustar `app/events/page.tsx` para exibir eventos do store (em memória) conforme o perfil:
+
+* **Listagem de Eventos:** Remova os dados mock fixos e utilize o Zustand para obter os projetos criados. Vamos filtrar os eventos com base no usuário logado:
+
+  * **Admin:** vê todos os eventos.
+  * **Editor:** vê eventos em que faz parte da equipe (neste caso, onde seu ID coincide com `editorId` do projeto).
+  * **Cliente:** vê eventos onde é o cliente (`clientId` do projeto).
+
+Também incluiremos um botão **“Novo Evento”** para criar eventos e garantiremos que a UI mostre mensagem adequada se não houver eventos visíveis para aquele usuário.
+
+```tsx
+// app/events/page.tsx
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useProjectsStore } from "@/store/useProjectsStoreExtended";
+
+export default function EventsPage() {
+  const { user } = useAuthStore();
+  const projects = useProjectsStore(state => state.projects);
+  const [filteredEvents, setFilteredEvents] = useState<typeof projects>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    // Filtra projetos conforme papel do usuário
+    if (!user) return;
+    let events = projects;
+    if (user.role === "editor") {
+      events = projects.filter(p => p.editorId === user.id);
+    } else if (user.role === "client") {
+      events = projects.filter(p => p.clientId === user.id);
+    }
+    // Admin mantém todos os eventos
+    setFilteredEvents(events);
+  }, [projects, user]);
+
+  // Filtragem por termo de busca (nome do evento ou cliente)
+  const visibleEvents = filteredEvents.filter(event =>
+    event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (event.clientId === user?.id) ||  // permite buscar eventos do próprio cliente pelo id (opcional)
+    (event.title && event.title.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  return (
+    <div className="min-h-screen bg-[#282A36] text-[#F8F8F2] p-4 md:p-8">
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-[#8BE9FD]">Eventos</h1>
+          <p className="text-lg text-[#6272A4]">Gerencie seus eventos</p>
+        </div>
+        <Link href="/events/new">
+          <Button className="bg-[#50FA7B] text-[#282A36] hover:bg-[#43D669]">Novo Evento</Button>
+        </Link>
+      </div>
+
+      <div className="max-w-md mb-4">
+        <Input 
+          placeholder="Buscar eventos..." 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="bg-[#21222C] text-[#F8F8F2] border border-[#44475A]"
+        />
+      </div>
+
+      {visibleEvents.length === 0 ? (
+        <div className="py-10 text-center text-[#6272A4]">
+          {searchTerm ? (
+            <p className="text-xl">Nenhum evento encontrado para “{searchTerm}”.</p>
+          ) : (
+            <p className="text-xl">Você ainda não possui eventos.</p>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {visibleEvents.map(event => (
+            <Link href={`/events/${event.id}`} key={event.id}>
+              <Card className="bg-[#21222C] border-[#44475A] hover:border-[#BD93F9] transition-colors">
+                <CardHeader>
+                  <CardTitle className="text-[#F8F8F2]">{event.name}</CardTitle>
+                  <CardDescription className="text-[#6272A4]">
+                    {event.clientId === user?.id ? "Você (Cliente)" : (user?.role === "admin" ? `Cliente ID: ${event.clientId}` : "")}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-[#6272A4]">
+                    Data: <span className="text-[#F8F8F2]">
+                      {event.eventDate ? new Date(event.eventDate).toLocaleDateString('pt-BR') : "N/D"}
+                    </span>
+                  </p>
+                  <p className="text-sm text-[#6272A4]">
+                    Status: <span className="text-[#F8F8F2] capitalize">
+                      {event.status === "draft" ? "planejamento" 
+                        : event.status === "review" ? "em revisão" 
+                        : event.status === "approved" ? "aprovado"
+                        : event.status || "pendente"}
+                    </span>
+                  </p>
+                </CardContent>
+                <CardFooter>
+                  <Button variant="ghost" className="w-full text-[#BD93F9]">Ver Detalhes</Button>
+                </CardFooter>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+No código acima, `visibleEvents` é filtrado por nome do evento (`event.name` ou `event.title`) e por cliente (no exemplo, exibimos "Você (Cliente)" caso o ID do cliente do evento seja o mesmo do usuário logado – isso pressupõe que o **clientId** seja o próprio ID do usuário cliente; para um admin, mostramos o ID do cliente apenas para identificar). O status é traduzido para português conforme necessário (e `'draft'` interpretado como "planejamento", etc.). Assim, ao acessar o dashboard:
+
+* Um **admin** verá todos os eventos (inclusive os adicionados por mock ou criados na sessão).
+* Um **editor** verá apenas eventos onde ele foi designado como editor.
+* Um **cliente** verá apenas seus eventos.
+
+> **Observação:** Inicialmente, se nenhum evento foi criado e o usuário não for admin (que poderia ver eventos mock), a lista ficará vazia com a mensagem *"Você ainda não possui eventos."*. O admin, se desejar, pode ver também eventos de exemplo (caso tenhamos pré-carregado algum no estado para demonstração). Como estamos adicionando eventos via criação no passo seguinte, não usaremos mais o array estático de mockEvents.
+
+## 3. Criação de Evento (Evento X) e Atribuição de Equipe/Cliente
+
+Para criar novos eventos, usamos a página já existente `app/events/new/page.tsx`, fazendo alguns ajustes para atender aos requisitos:
+
+* **Formulário de Novo Projeto:** Já inclui campos de título, descrição, datas e quantidade de vídeos (**numVideos**). Adicionaremos campos para selecionar o cliente e o editor da equipe **somente se o usuário logado for admin**, permitindo atribuir outros usuários ao evento. Caso um editor esteja criando o evento (fluxo menos comum), podemos defaultar o cliente como ele mesmo ou exigir um cliente; para simplificar, assumimos que criação de evento normalmente será feita pelo admin ou coordenador.
+
+* **Atribuição de IDs e Equipe:** Utilizaremos a função `createProject` do store para adicionar o projeto localmente. Essa função já foi estendida para gerar tarefas padrão e entregas automáticas. Precisamos fornecer os IDs de **clientId** e **editorId** corretos:
+
+  * Se o criador for admin e escolheu usuários específicos nos campos, usamos os IDs correspondentes.
+  * Se for um editor criando, poderíamos setar ele mesmo como `editorId` e talvez precisar de um cliente (nesse caso, poderíamos tratá-lo também como cliente para demo, ou ter um campo para cliente).
+  * Se for um cliente criando (pouco provável no nosso fluxo), setaremos ele mesmo como cliente e possivelmente ele mesmo ou nenhum editor (essa situação não foi contemplada originalmente, mas não é foco da demo).
+
+Vamos adicionar dois campos condicionais no formulário: **Email do Cliente** e **Email do Editor**, somente visíveis para admin. O admin poderá inserir (ou selecionar, caso haja uma lista) o email do cliente e do editor designados para o projeto. Usaremos esses emails para determinar os IDs/roles usando a mesma lógica do auth (simulateLogin) – ou seja, assumindo que esses usuários já “existem” no sistema. Em um cenário real, faríamos uma busca no backend ou já teríamos uma lista de usuários para selecionar.
+
+```tsx
+// app/events/new/page.tsx (principais alterações dentro do form)
+import { useAuthStore } from "@/store/useAuthStore";
+import { useProjectsStore } from "@/store/useProjectsStoreExtended";
+// ... demais imports
+
+const projectSchema = z.object({
+  title: z.string().min(3, "O título precisa ter pelo menos 3 caracteres"),
+  description: z.string().optional(),
+  eventDate: z.string().optional(),
+  finalDueDate: z.string().optional(),
+  numVideos: z.coerce.number().min(1).max(20),
+  clientEmail: z.string().email("Email inválido").optional(),
+  editorEmail: z.string().email("Email inválido").optional(),
+});
+
+type ProjectFormValues = z.infer<typeof projectSchema>;
+
+export default function NewProjectPage() {
+  const router = useRouter();
+  const { user } = useAuthStore();
+  const { createProject } = useProjectsStore();
+  // ... states omitidos
+
+  const form = useForm<ProjectFormValues>({
+    resolver: zodResolver(projectSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      numVideos: 1,
+      clientEmail: "",
+      editorEmail: "",
+    }
+  });
+
+  // Gerar cronograma (timeline) a partir dos dados
+  const handleGenerateTimeline = () => {
+    const data = form.getValues();
+    // calcula datas e gera fases (Planejamento, Gravação, etc.) baseado em data do evento e prazo final
+    const eventDate = data.eventDate ? new Date(data.eventDate) : undefined;
+    const dueDate = data.finalDueDate ? new Date(data.finalDueDate) : undefined;
+    const timeline = generateScheduleFromBriefing(data.title, data.numVideos || 1, eventDate, dueDate);
+    setGeneratedTimeline(timeline);
+    setPreviewVisible(true);
+    toast({ title: "Cronograma gerado", description: "Revise o cronograma antes de criar o projeto." });
+  };
+
+  const onSubmit = async (data: ProjectFormValues) => {
+    if (!user) {
+      toast({ title: "Erro", description: "Você precisa estar logado para criar um projeto", variant: "destructive" });
+      return;
+    }
+    try {
+      // Define cliente e editor do projeto
+      let clientId = user.id;
+      let editorId = user.id;
+      if (user.role === "admin") {
+        if (data.clientEmail) {
+          const clientUser = await loginUser(data.clientEmail, "");  // simula obter user pelo email
+          clientId = clientUser.id;
+        }
+        if (data.editorEmail) {
+          const editorUser = await loginUser(data.editorEmail, "");
+          editorId = editorUser.id;
+        }
+      } else if (user.role === "editor") {
+        editorId = user.id;
+        // Em um caso real, poderíamos exigir um cliente, mas aqui:
+        clientId = user.id;
+      } else if (user.role === "client") {
+        clientId = user.id;
+        editorId = user.id;
+      }
+      // Monta entregas (vídeos) vazias de acordo com numVideos
+      const numVideos = data.numVideos || 1;
+      const videoDeliverables = Array.from({ length: numVideos }, (_, i) => ({
+        id: `vid-${Date.now()}-${i+1}`,
+        title: `Vídeo ${i+1}`,
+        versions: [] as any[],
+        status: "editing",
+        comments: [] as any[],
+      }));
+      // Gera cronograma (fases) usando a função utilitária
+      const eventDate = data.eventDate ? new Date(data.eventDate) : undefined;
+      const dueDate = data.finalDueDate ? new Date(data.finalDueDate) : undefined;
+      const timeline = generateScheduleFromBriefing(data.title, numVideos, eventDate, dueDate);
+
+      // Cria o projeto no estado global
+      createProject({
+        title: data.title,
+        name: data.title,  // 'name' para compatibilidade
+        description: data.description || "",
+        clientId,
+        editorId,
+        eventDate: eventDate || undefined,
+        finalDueDate: dueDate || undefined,
+        timeline,
+        videos: videoDeliverables,
+        status: "draft",         // novo projeto começa em rascunho/planejamento
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+
+      toast({ title: "Projeto criado", description: "Evento cadastrado com sucesso!" });
+      // Redireciona para página de detalhes do evento recém-criado
+      const newProjectId = useProjectsStore.getState().currentProject?.id;
+      router.push(newProjectId ? `/events/${newProjectId}` : "/events");
+    } catch (error) {
+      console.error("Erro ao criar projeto:", error);
+      toast({ title: "Erro", description: "Não foi possível criar o projeto", variant: "destructive" });
+    }
+  };
+
+  // JSX do form (dentro de <CardContent><Form> ...):
+  {user?.role === "admin" && (
+    <>
+      <FormField name="clientEmail" control={form.control}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Email do Cliente</FormLabel>
+            <FormControl><Input placeholder="cliente@empresa.com" {...field} /></FormControl>
+            <FormDescription>Informe o email do cliente responsável pelo evento.</FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField name="editorEmail" control={form.control}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Email do Editor</FormLabel>
+            <FormControl><Input placeholder="editor@empresa.com" {...field} /></FormControl>
+            <FormDescription>Informe o email do editor (equipe) para este evento.</FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </>
+  )}
+  {/* Botão de gerar timeline e preview do cronograma */}
+  <Button type="button" variant="outline" onClick={handleGenerateTimeline}>Gerar Cronograma</Button>
+  {previewVisible && (
+    <div className="mt-4 p-4 border rounded bg-[#21222C]">
+      <h2 className="text-lg font-bold mb-2 text-[#8BE9FD]">Cronograma Previsto:</h2>
+      {generatedTimeline.map((phase, idx) => (
+        <p key={idx} className="text-sm text-[#F8F8F2]">
+          <strong>{phase.name}:</strong> {new Date(phase.plannedStart).toLocaleDateString()} - {new Date(phase.plannedEnd).toLocaleDateString()}
+        </p>
+      ))}
+    </div>
+  )}
+  <Button type="submit" className="w-full">{isLoading ? "Criando..." : "Criar Projeto"}</Button>
+```
+
+**Explicação dos ajustes:** No trecho acima, antes de chamar `createProject`, determinamos `clientId` e `editorId`:
+
+* Se o usuário atual for admin, usamos os campos do formulário `clientEmail` e `editorEmail` para buscar (simular) os usuários correspondentes. Aproveitamos a função `loginUser(email, "")` (passando senha vazia só para aproveitar a lógica) para obter um objeto de usuário simulado a partir do email – isso nos dá o `id` e `role` corretos desses usuários, que utilizamos como IDs.
+* Se o criador for um editor, definimos o **editorId** como ele mesmo e, na ausência de especificação de cliente, atribuimos o próprio editor como cliente também (isto é apenas uma simplificação para não deixar vazio; em cenários reais, talvez um editor criando evento criaria já vinculado a um cliente fixo).
+* Se o criador for um cliente, definimos ambos `clientId` e `editorId` como ele mesmo (ou seja, ele inicia um projeto do qual ele é cliente, sem equipe definida – também simplificado para demo).
+
+As **entregas (vídeos)** são geradas automaticamente de acordo com `numVideos`: criamos um array `videoDeliverables` com objetos iniciais de entregável para cada vídeo (com `id`, título “Vídeo 1”, “Vídeo 2”, etc., status `'editing'` e arrays vazios de versões e comentários). Essas entregas aparecerão no fluxo de trabalho do evento. As **tarefas padrão** e o **timeline** são gerados:
+
+* `timeline` recebe o resultado de `generateScheduleFromBriefing` (que calcula fases de planejamento, gravação, edição, etc., possivelmente com datas se fornecidas). Isso simula a **geração automática da timeline baseada no briefing** (aqui usamos datas do formulário, mas caso não haja, assume durações padrão).
+* `tasks` são geradas automaticamente dentro de `createProject` usando as fases padrão definidas (`defaultTaskTitles` no store).
+
+Após criar o projeto no store, definimos um toast de sucesso e redirecionamos o usuário para a página de detalhes do evento recém-criado. Observação: usamos `useProjectsStore.getState().currentProject` para pegar o ID do projeto recém-criado (o store `createProject` define `currentProject` como o projeto adicionado). Em seguida, fazemos `router.push("/events/[id]")`. Caso não consigamos o ID, caímos de volta para `/events`.
+
+## 4. Página de Detalhes do Evento – Briefing e Workflow
+
+Com o evento criado, temos duas áreas principais a simular:
+
+* **Briefing do Evento:** formulário onde preencheremos informações detalhadas (dados do evento, requisitos, etc.).
+* **Workflow de Produção e Aprovação:** painel com timeline de tarefas, entregas de vídeo, versões, comentários e ações de aprovação/solicitação.
+
+### 4.1 Briefing do Evento
+
+O projeto já possui um componente de briefing (`features/briefing/components/GeneralInfoTab.tsx`) e rotas API para briefing. Precisamos integrá-los:
+
+* Crie uma rota de página para o briefing, por exemplo em `app/events/[eventId]/briefing/page.tsx`, que renderiza o componente `GeneralInfoTab` passando o `eventId` como prop.
+* As rotas **API** `/api/briefings/[eventId]` (GET) e `/api/briefings` (POST) já estão implementadas para guardar os briefings em memória (veja `app/api/briefings/[eventId]/route.ts` e `app/api/briefings/route.ts`). O GET retorna um exemplo para `eventId: "123"` e erro 404 para outros; o POST salva em um objeto `briefingData` em memória. Podemos estender o GET para ler também de `briefingData` (se quisermos que depois de salvar possamos obter), mas não é essencial para a demonstração básica.
+* Também há tentativa de buscar `/api/events/[eventId]` e `/api/events/[eventId]/team` no componente briefing. Podemos implementar respostas simples para essas:
+
+  * `GET /api/events/[eventId]`: retornar dados básicos do evento (por ex., nome, data) – ou simplesmente retornar 204 se não usado ativamente.
+  * `GET /api/events/[eventId]/team`: retornar uma lista de membros da equipe. Para simulação, podemos retornar apenas o editor atribuído e talvez o admin.
+
+Por simplicidade, vamos retornar o editor e o cliente como "membros da equipe" no endpoint de equipe, para popular o select de "Responsável pelo credenciamento". Assim, se o briefing perguntar quem é responsável pelo credenciamento, poderá escolher o editor ou cliente. Implementamos esses endpoints em memória:
+
+```typescript
+// app/api/events/[eventId]/route.ts (dados básicos do evento)
+import { NextRequest, NextResponse } from 'next/server';
+export async function GET(request: NextRequest, { params }: { params: { eventId: string } }) {
+  try {
+    const { eventId } = params;
+    // Para demo, retornamos dados mínimos do evento (no futuro, buscar do store ou BD)
+    const eventData = { id: eventId, name: `Evento ${eventId}` };
+    return NextResponse.json(eventData, { status: 200 });
+  } catch (err) {
+    return NextResponse.json({ error: 'Erro obtendo evento' }, { status: 500 });
+  }
+}
+```
+
+```typescript
+// app/api/events/[eventId]/team/route.ts (membros da equipe do evento)
+import { NextRequest, NextResponse } from 'next/server';
+export async function GET(request: NextRequest, { params }: { params: { eventId: string } }) {
+  try {
+    const { eventId } = params;
+    // Simulação: retorna editor e cliente como membros da equipe
+    return NextResponse.json([
+      { id: 'editor_team_1', name: 'Editor do Evento', role: 'editor' },
+      { id: 'client_team_1', name: 'Cliente do Evento', role: 'client' }
+    ], { status: 200 });
+  } catch (err) {
+    return NextResponse.json({ error: 'Erro obtendo equipe' }, { status: 500 });
+  }
+}
+```
+
+Agora, a página de briefing utilizando o componente:
+
+```tsx
+// app/events/[eventId]/briefing/page.tsx
+"use client";
+import { useParams } from "next/navigation";
+import GeneralInfoTab from "@/features/briefing/components/GeneralInfoTab";
+
+export default function BriefingPage() {
+  const { eventId } = useParams();  // obtém eventId da URL
+  if (!eventId) return <div>Evento não especificado</div>;
+  return <GeneralInfoTab eventId={eventId} />;
+}
+```
+
+Com isso, ao clicar em "Briefing" na página do evento (vamos adicionar esse botão em breve), o usuário verá o formulário de informações gerais:
+
+* Campos como data do evento, local, opções de "credenciamento (sim/não)" e etc., conforme definidos em `GeneralInfoTab`.
+* Se o usuário logado **pode editar** (no componente `GeneralInfoTab`, `canEdit` é true para admin ou “coordenador”), ele poderá preencher e salvar. Caso contrário, os campos ficam desabilitados (visualização somente).
+* Para a simulação, consideramos que o **admin** ou o usuário que criou (admin) consegue editar. Se quisermos permitir que o **cliente** edite o briefing (o que faria sentido no mundo real, já que o cliente poderia preencher requisitos), poderíamos ajustar a lógica de `canEdit` para incluir `userRole === "client"`. *Fica a seu critério permitir ou não; por padrão, o código fornecido só permite admin (e papel "coordenador" se existisse).*
+* Ao salvar, o briefing é armazenado no objeto em memória via API (toast de sucesso aparece). Esse briefing preenchido não interfere automaticamente no restante do sistema, mas serve para demonstrar a coleta de informações.
+
+> **Resumo do fluxo de briefing na demo:** O usuário (admin, por exemplo) clica em *Briefing*, preenche os campos (como data, local, etc. do evento) e clica em **Salvar Informações**. Aparece "Informações gerais salvas com sucesso". Esses dados agora estão guardados localmente (se precisarmos, poderíamos recuperar via API GET). A interface de briefing mostra apenas a aba "Informações Gerais" nesta implementação; abas adicionais podem ser adicionadas (a documentação sugere futuras abas de Requisitos Técnicos, Cronograma, Equipe, etc.).
+
+### 4.2 Painel de Edição e Aprovação (Workflow)
+
+Esta é a parte central da colaboração **equipe ↔ cliente**:
+Inclui:
+
+* **Timeline de Tarefas:** lista de tarefas padrão (planejamento, edição, revisão, etc.) com status que atualizam conforme as ações.
+* **Entregas de Vídeo:** cada entrega (Reel, Story, etc. representados como "Vídeo 1", "Vídeo 2", ...) com suas versões de arquivo, status atual, e controles para marcar como pronto, aprovar ou solicitar alteração.
+* **Comentários:** lista de comentários do cliente sobre o vídeo, com opção do editor marcar como resolvido.
+* **Controle de Versões:** quando o editor envia uma nova versão do vídeo, fica registrado (v1, v2, ...) e o histórico é mantido.
+
+Vamos construir a página de detalhes do evento (`app/events/[eventId]/page.tsx`) usando componentes modulares já preparados no projeto: `<TaskList>`, `<DeliverableActions>`, `<CommentItem>`. Também adicionaremos botões e inputs para funcionalidades faltantes (upload de vídeo e adicionar comentário livre).
+
+**Componentes prontos no projeto:**
+
+* `TaskList` – exibe as tarefas do projeto com checkbox para marcar como concluída (habilitado apenas para editores). Já mostra progresso e lida com cliques via `toggleTaskCompletion` do store.
+* `DeliverableActions` – mostra o status da entrega (pendente, aguardando aprovação, etc.) e, de acordo com o papel do usuário, os botões adequados:
+
+  * Editor: botão **"Marcar como pronto para revisão"** (ativa quando status é *editing* ou *changes\_requested*).
+  * Cliente: botões **"Aprovar"** e **"Solicitar alterações"** (visíveis quando status é *ready\_for\_review*).
+  * Após ações:
+
+    * Editor clica "pronto para revisão": status muda para *ready\_for\_review*, adiciona tarefa "Revisão do vídeo pelo cliente" e notificação.
+    * Cliente clica "Aprovar": status vira *approved*, tarefa de revisão marcada como concluída, notificação de sucesso.
+    * Cliente clica "Solicitar alterações": status vira *changes\_requested*, adiciona tarefa "Implementar alterações solicitadas", notificação de aviso. Cliente pode inserir um comentário descritivo ao solicitar alteração (campo aparece ao clicar).
+    * Esses comportamentos estão implementados nas funções `markVideoReady`, `approveDeliverable`, `requestChanges` do store e refletem automaticamente na UI.
+* `CommentItem` – renderiza um comentário individual (autor, data, conteúdo, selo "Resolvido" se for o caso). Se o usuário atual for editor, ele vê um botão de *Marcar como resolvido* em comentários não resolvidos.
+
+Com base nisso, montamos a página:
+
+```tsx
+// app/events/[eventId]/page.tsx
+"use client";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useProjectsStore } from "@/store/useProjectsStoreExtended";
+import { TaskList } from "@/components/widgets/TaskList";
+import { DeliverableActions } from "@/components/video/DeliverableActions";
+import { CommentItem } from "@/components/video/CommentItem";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Upload } from "lucide-react";
+
+export default function EventDetailPage() {
+  const { eventId } = useParams();
+  const router = useRouter();
+  const { user } = useAuthStore();
+  const { projects, addVideoVersion, addProject, updateProject } = useProjectsStore();
+  const [selectedDeliverableId, setSelectedDeliverableId] = useState<string | null>(null);
+  const [newComment, setNewComment] = useState("");
+  const [uploading, setUploading] = useState(false);
+
+  // Busca o projeto atual pelo ID da URL
+  const project = projects.find(p => p.id === eventId);
+  useEffect(() => {
+    // Se a página for acessada direto e o projeto não está no estado, redireciona ou tenta carregar (para demo, redireciona)
+    if (!project) {
+      router.push("/events");
+    } else {
+      // Seleciona automaticamente a primeira entrega se ainda não selecionada
+      if (!selectedDeliverableId && project.videos.length > 0) {
+        setSelectedDeliverableId(project.videos[0].id);
+      }
+    }
+  }, [project, selectedDeliverableId, router]);
+
+  if (!project) {
+    return <div className="p-4 text-center text-[#F8F8F2]">Carregando evento...</div>;
+  }
+
+  const isEditor = user?.role === "editor";
+  const isClient = user?.role === "client";
+  const currentDeliverable = project.videos.find(v => v.id === selectedDeliverableId);
+
+  // Handler de upload de vídeo (versão nova)
+  const handleUploadVideo = async (file: File) => {
+    if (!currentDeliverable) return;
+    setUploading(true);
+    try {
+      await addVideoVersion(file, currentDeliverable.id);
+      // Opcional: notificar sucesso
+    } catch (err) {
+      console.error("Erro ao adicionar vídeo:", err);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Handler de adicionar comentário (geral, não necessariamente em pedido de alteração)
+  const handleAddComment = () => {
+    if (!newComment.trim() || !currentDeliverable) return;
+    const commentId = Date.now().toString();
+    const comment = {
+      id: commentId,
+      projectId: project.id,
+      userId: user?.id || "anon",
+      content: newComment.trim(),
+      timestamp: 0,
+      createdAt: new Date().toISOString(),
+      resolved: false,
+      authorName: user?.name || "",
+    };
+    // Adiciona o comentário na entrega selecionada
+    const updatedVideos = project.videos.map(v => {
+      if (v.id === currentDeliverable.id) {
+        return { ...v, comments: [...(v.comments || []), comment] };
+      }
+      return v;
+    });
+    updateProject(project.id, { videos: updatedVideos });
+    setNewComment("");
+  };
+
+  return (
+    <div className="p-4 md:p-8 text-[#F8F8F2]">
+      {/* Cabeçalho do Evento */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">{project.name}</h1>
+          <p className="text-sm text-[#6272A4]">
+            Cliente: {project.clientId} – Editor: {project.editorId}
+          </p>
+        </div>
+        <Button onClick={() => router.push(`/events/${project.id}/briefing`)} variant="outline">
+          Abrir Briefing
+        </Button>
+      </div>
+
+      {/* Timeline de Tarefas */}
+      <TaskList projectId={project.id} />
+
+      {/* Entregas de Vídeo */}
+      <div className="mt-6">
+        <h2 className="text-xl font-semibold mb-4">Entregas de Vídeo</h2>
+        {project.videos.length === 0 ? (
+          <p>Nenhuma entrega registrada.</p>
+        ) : (
+          project.videos.map(deliverable => (
+            <div key={deliverable.id} className="mb-6 p-4 bg-[#21222C] rounded-lg border border-[#44475A]">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-medium">
+                  {deliverable.title} {deliverable.status === "approved" && <span className="text-green-500">(Aprovado)</span>}
+                </h3>
+                {/* Botão de upload (somente editor) */}
+                {isEditor && deliverable.status !== "approved" && (
+                  <label className="flex items-center cursor-pointer text-sm text-[#8BE9FD]">
+                    <Upload className="mr-1" size={16} />
+                    <span>{uploading ? "Enviando..." : "Enviar Vídeo"}</span>
+                    <input 
+                      type="file" 
+                      accept="video/*" 
+                      onChange={e => { if(e.target.files?.[0]) handleUploadVideo(e.target.files[0]); }}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+              </div>
+              {/* Vídeo ou mensagem */}
+              <div className="mt-3">
+                {deliverable.versions && deliverable.versions.length > 0 ? (
+                  <video 
+                    src={deliverable.versions[deliverable.versions.length - 1].url} 
+                    controls 
+                    className="w-full max-w-md mb-2"
+                  />
+                ) : (
+                  <p className="text-sm text-[#6272A4]">Nenhum vídeo enviado ainda.</p>
+                )}
+              </div>
+              {/* Ações (Marcar pronto, Aprovar, Solicitar alteração) */}
+              <DeliverableActions projectId={project.id} deliverable={{ id: deliverable.id, title: deliverable.title, status: deliverable.status }} />
+
+              {/* Comentários sobre esta entrega */}
+              <div className="mt-4">
+                <h4 className="font-medium mb-2">Comentários:</h4>
+                {deliverable.comments && deliverable.comments.length > 0 ? (
+                  deliverable.comments.map(comment => (
+                    <CommentItem 
+                      key={comment.id} 
+                      projectId={project.id} 
+                      deliverableId={deliverable.id} 
+                      comment={comment} 
+                    />
+                  ))
+                ) : (
+                  <p className="text-sm text-[#6272A4]">Nenhum comentário.</p>
+                )}
+                {/* Input para novo comentário (cliente pode adicionar comentários livremente) */}
+                {isClient && (
+                  <div className="mt-2">
+                    <Textarea 
+                      placeholder="Escreva um comentário..." 
+                      value={newComment} 
+                      onChange={e => setNewComment(e.target.value)} 
+                      className="mb-2"
+                    />
+                    <Button onClick={handleAddComment} disabled={!newComment.trim()}>
+                      Enviar Comentário
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+```
+
+**Detalhes importantes do código acima:**
+
+* O cabeçalho mostra o nome do evento e IDs do cliente e editor (na ausência de um sistema de nomes de usuário compartilhado globalmente, exibimos os IDs para referência; em um refinamento, poderíamos mapear esses IDs para nomes conhecidos via simulateLogin ou armazenar nomes no projeto).
+* Botão **"Abrir Briefing"**: leva à página de briefing do evento, onde o usuário pode ver/editar as informações gerais do evento.
+* **TaskList**: insere a lista de tarefas do projeto com checkboxes. Apenas editores (e possivelmente admin, se quisermos) conseguem clicar para alternar status. A cada tarefa concluída, é marcada com texto tachado e contadores de progresso são atualizados. Quando todas tarefas são concluídas, existe até uma notificação de "Todas as tarefas concluídas!" no código do store (`toggleTaskCompletion` exibe um toast de sucesso ao completar 100% das tarefas).
+* **Entregas de Vídeo**: iteramos sobre `project.videos`:
+
+  * Para cada entrega, mostramos título e status. Se a entrega foi aprovada, colocamos um indicador (texto verde "(Aprovado)").
+  * **Upload de vídeo:** Se o usuário for **editor** e a entrega ainda **não estiver aprovada**, exibimos um botão "*Enviar Vídeo*". Esse botão é um `<label>` estilizado contendo um ícone de upload e texto; dentro dele há um `<input type="file" hidden>` que, quando selecionado um arquivo, chama `handleUploadVideo`.
+
+    * `handleUploadVideo` usa a ação `addVideoVersion(file)` do store. Essa ação está implementada para criar uma URL temporária (com `URL.createObjectURL`) para simular um upload e adicionar uma nova versão no array `versions` da entrega. Assim que o editor selecionar um arquivo (por exemplo, `v1.mp4` do diretório `public/exports/projeto-1/v1.mp4` ou qualquer arquivo local), o vídeo aparece na interface. (No nosso código, após upload mostramos sempre a última versão adicionada.)
+    * O botão muda para "Enviando..." durante o upload (controlado pelo estado `uploading`).
+    * **Watcher local:** Caso quiséssemos simular um *watcher* monitorando automaticamente a pasta `public/exports` para novos vídeos, poderíamos em vez disso fazer um polling ou usar funcionalidades do Node para detectar arquivo e então chamar `addVideoVersion`. Isso é mais complexo e não necessário para demonstração – o fluxo manual de upload já cobre a funcionalidade.
+  * **Player de vídeo:** Se houver ao menos uma versão enviada (`deliverable.versions.length > 0`), renderizamos um elemento `<video controls>` com o `src` da última versão do vídeo. O vídeo pode ser reproduzido ali mesmo na página (por exemplo, o editor pode verificar o vídeo ou o cliente assistir para aprovar).
+  * **DeliverableActions:** este componente, conforme explicado, renderiza os botões corretos para o usuário atual interagir:
+
+    * Editor logado verá o status (“Em edição” ou “Alterações solicitadas”) e o botão **Marcar como pronto para revisão** (habilitado se está em edição ou após alterações).
+    * Cliente logado (com vídeo em revisão) verá o status “Aguardando aprovação” e os botões **Aprovar** e **Solicitar alterações** (ao clicar em solicitar, aparece um campo para escrever feedback e enviar).
+    * Os cliques nos botões chamam automaticamente as funções do store, atualizando:
+
+      * `project.videos[].status` (p.ex., para 'ready\_for\_review', 'approved', etc.),
+      * `project.tasks` (adicionando ou concluindo tarefas pertinentes),
+      * Notificações via `useUIStore.addNotification` (por exemplo, “Vídeo marcado como pronto...”, “Entrega aprovada...”, “Solicitação de alterações registrada”).
+    * Esses feedbacks aparecem como toasts no canto da tela, simulando notificações internas.
+    * **Status das entregas:** O componente já mostra visualmente:
+
+      * *Em edição* (pendente, cor neutra),
+      * *Aguardando aprovação* (ícone amarelo),
+      * *Alterações solicitadas* (ícone vermelho),
+      * *Aprovado* (ícone verde).
+        Além disso, no nosso layout, marcamos explicitamente "(Aprovado)" ao lado do título e desabilitamos upload se aprovado.
+        Não implementamos um estado *"atrasado"* explicitamente – caso desejado, poderíamos comparar a `finalDueDate` do projeto com a data atual e, se o status não for aprovado até passar do prazo, exibir algo como "atrasado" (essa lógica não estava no escopo imediato, mas fica como possível melhoria).
+  * **Comentários:** Para cada entrega, exibimos seus comentários (`deliverable.comments`). Esses comentários podem vir de duas fontes:
+
+    * Comentários adicionados manualmente pelo cliente através do input que colocamos.
+    * Comentários adicionados automaticamente quando o cliente solicita alterações via `requestChanges` (nessa função, lembramos que inserimos `commentText` do cliente como um novo comment no deliverable).
+    * Cada comentário é renderizado com `<CommentItem>`, que já formata a data, o autor, e coloca um selo "Resolvido" se `comment.resolved === true`. Para editores, cada CommentItem mostra um botão "Marcar como resolvido" se ainda não estiver resolvido. Ao clicar, a função `markCommentResolved` do store é chamada, atualizando o comment e removendo o botão (indicando ao cliente que aquela observação foi resolvida).
+  * **Adicionar novo comentário livre:** Permitimos que **clientes** adicionem comentários em qualquer momento (por exemplo, apontar feedbacks específicos enquanto o vídeo está em revisão, sem necessariamente clicar em "solicitar alterações" formal). A caixa de texto e botão "Enviar Comentário" aparecem somente para usuários cliente (`isClient`). Quando o cliente envia, chamamos `handleAddComment` que cria um objeto de comentário e o insere no array de `deliverable.comments` via `updateProject`. Assim, ele aparece imediatamente na lista. (O editor também verá esse comentário quando acessar o evento, e poderá marcá-lo como resolvido após tratar).
+
+**Comportamento esperado do workflow durante a demonstração:**
+
+1. **Editor envia vídeo para revisão:** O editor logado acessa o evento, clica em *Enviar Vídeo* e seleciona um arquivo local (por exemplo, `v1.mp4`). O vídeo aparece na tela e ele então clica **"Marcar como pronto para revisão"**. Imediatamente:
+
+   * O status da entrega muda para **`ready_for_review`**, a badge “Aguardando aprovação” aparece.
+   * Uma nova tarefa "*Revisão do vídeo pelo cliente*" é adicionada na lista de tarefas (pendente).
+   * Um toast notifica "*Vídeo marcado como pronto para revisão*".
+   * (No mundo real, isso também notificaria o cliente via email ou tempo real).
+   * A interface do editor agora mostra o status aguardando e nenhum botão de upload (ele ainda poderia enviar outra versão se precisasse, mas geralmente aguardará).
+2. **Cliente revisa e comenta:** O cliente loga e acessa o evento (ele só verá eventos dele na lista). Na aba de *Edição/Aprovação* do evento, ele vê o vídeo enviado (pode dar play), vê o status "*Aguardando aprovação*". Ele pode:
+
+   * Escrever comentários no campo e enviar (esses aparecem listados abaixo do vídeo). O editor também verá esses comentários quando entrar.
+   * Clicar **"Solicitar alterações"** se encontrou algum problema. Ao clicar:
+
+     * Aparece um campo para escrever o feedback; ele escreve e clica em **Enviar feedback**.
+     * O status muda para **`changes_requested`** (“Alterações solicitadas”).
+     * Os botões de aprovar/alterar somem (pois agora aguarda nova versão do editor).
+     * Uma mensagem “🔄 Alterações solicitadas. Aguardando nova versão.” aparece no lugar dos botões (no código do DeliverableActions).
+     * Uma tarefa "*Implementar alterações solicitadas*" é adicionada nas tarefas do projeto (enquanto a de revisão permanece pendente, pois será necessária nova rodada de aprovação).
+     * O comentário do feedback enviado é adicionado à lista de comentários da entrega.
+     * Um toast "*Solicitação de alterações registrada*" aparece.
+     * (Realisticamente, o editor receberia uma notificação agora).
+   * Caso em vez disso o cliente estivesse satisfeito, ele clicaria **"Aprovar"**:
+
+     * Status vira **`approved`** (“Aprovado”), badge verde.
+     * A tarefa de revisão é marcada como concluída (riscada na TaskList).
+     * Botões somem e é exibido “✅ Você já aprovou esta entrega.” no lugar.
+     * Toast "*Entrega aprovada com sucesso!*".
+     * (Editor seria notificado da aprovação em cenário real).
+3. **Editor envia nova versão:** Supondo o cenário de alterações solicitadas:
+
+   * O editor loga novamente e vê que o status da entrega está "Alterações solicitadas" e há um novo comentário do cliente com feedback, marcado como não resolvido.
+   * Na lista de tarefas, há uma nova tarefa pendente "Implementar alterações solicitadas".
+   * O editor pode marcar comentários como resolvidos conforme faz as correções: clica em *Marcar como resolvido* nos comentários correspondentes após tratar cada ponto. Assim:
+
+     * O comentário exibe "Resolvido" em verde e o ícone de check.
+     * O cliente, ao voltar, verá esses marcados como resolvidos, indicando que o editor já cuidou daquele feedback.
+   * O editor então prepara uma nova versão do vídeo e faz upload clicando novamente em *Enviar Vídeo* (agora isso adicionará, por exemplo, v2 no array de versões). O vídeo player passa a mostrar a nova versão.
+   * O editor clica **"Marcar como pronto para revisão"** de novo:
+
+     * Status volta a `ready_for_review`.
+     * Tarefa "Revisão do vídeo pelo cliente" já existia mas estava pendente (não concluímos da primeira vez), então o código verifica e não duplica uma igual pendente.
+     * (Caso tivesse sido concluída – se o cliente tivesse aprovado antes – ele adicionaria de novo, mas nesse nosso fluxo ela estava pendente ainda da rodada anterior).
+     * A tarefa "Implementar alterações solicitadas" pode ser marcada como concluída automaticamente ou manualmente. Atualmente, o código `requestChanges` adiciona a tarefa mas não há automação para completá-la; poderíamos marcar ela como concluída quando o editor marca vídeo pronto novamente, mas isso não foi implementado. O editor manualmente pode marcar o checkbox dessa tarefa como concluída para fins de demonstração.
+     * Toast de vídeo enviado para revisão aparece de novo.
+   * O cliente então pode aprovar na segunda vez, completando o ciclo.
+4. **Concluindo o projeto:** Quando o cliente aprova:
+
+   * Status do entregável fica *approved*.
+   * Todas as tarefas do projeto agora possivelmente estão concluídas (Planejamento, Gravação, Edição, Revisão e Aprovação final). Quando o último checkbox for marcado, o store dispara uma notificação "*Todas as tarefas do projeto foram concluídas!*". Isso marca o fim do fluxo de trabalho daquele evento.
+
+## 5. Compartilhamento de Assets do Evento
+
+Implementamos também a seção de **Assets** para simular compartilhamento de arquivos do evento entre todos os membros:
+
+* Cada evento pode ter materiais brutos, logos, documentos, etc., que qualquer membro (equipe ou cliente) pode enviar e consultar.
+* Já havia um componente `AssetsWidget` no projeto com dados fictícios. Vamos fazer uma integração simplificada na página de detalhes do evento:
+
+  * Usaremos o estado global de assets no `useProjectsStore` (há `assets: Asset[]` e métodos `addAsset`, etc.).
+  * No nosso `EventDetailPage`, poderíamos adicionar uma lista de assets pertencentes ao `eventId` atual e um campo de upload.
+  * Para não estender demais, podemos imaginar que o botão de upload de vídeo pode ser reutilizado para outros tipos de arquivo, ou criar outro botão **Upload Asset**.
+
+Como implementação básica, poderíamos acrescentar ao final de `EventDetailPage` algo como:
+
+```tsx
+// ... dentro do EventDetailPage return JSX
+<div className="mt-8">
+  <h2 className="text-xl font-semibold mb-4">Assets do Evento</h2>
+  <ul className="mb-4">
+    {useProjectsStore.getState().assets
+      .filter(asset => asset.projectId === project.id)
+      .map(asset => (
+        <li key={asset.id} className="flex items-center justify-between bg-[#21222C] p-2 mb-2 rounded">
+          <div className="flex items-center gap-2">
+            {asset.type === 'image' && <ImageIcon size={16} />}
+            {asset.type === 'video' && <Video size={16} />}
+            {asset.type === 'document' && <FileText size={16} />}
+            <span>{asset.name}</span>
+          </div>
+          <a href={asset.url} download className="text-sm text-[#8BE9FD] flex items-center gap-1">
+            <Download size={14} /> Baixar
+          </a>
+        </li>
+    ))}
+  </ul>
+  <label className="flex items-center cursor-pointer text-sm text-[#8BE9FD]">
+    <Upload className="mr-1" size={16} />
+    <span>Upload Asset</span>
+    <input 
+      type="file" 
+      onChange={e => {
+        const file = e.target.files?.[0];
+        if (file) {
+          const url = URL.createObjectURL(file);
+          const newAsset = {
+            id: Date.now().toString(),
+            projectId: project.id,
+            name: file.name,
+            type: file.type.startsWith('image') ? 'image'
+                 : file.type.startsWith('video') ? 'video'
+                 : 'document',
+            url,
+            thumbnailUrl: undefined,
+            uploadedBy: user?.name || user?.id || 'anon',
+            createdAt: new Date().toISOString(),
+          };
+          useProjectsStore.getState().addAsset(newAsset);
+        }
+      }}
+      className="hidden"
+    />
+  </label>
+</div>
+```
+
+Isso listaria todos os assets daquele projeto (com ícones diferenciando tipos básicos) e permitiria upload de um arquivo qualquer, adicionando ao store e mostrando na lista. Todos os usuários que acessarem o evento veriam os mesmos assets (pois está em estado global filtrado por projectId). O botão *Download* ao lado de cada arquivo permite baixar o arquivo (no caso, nosso URL object simulado; para demonstração serve, embora não persista ao reiniciar a página).
+
+*(Observação: O código acima usa ícones `ImageIcon`, `Video` e `FileText` do lucide-react para ilustrar tipos, e um link de download. Certifique-se de importar os ícones correspondentes no topo, ex: `import { Image as ImageIcon, Video, FileText, Download } from "lucide-react"`.)*
+
+## 6. Revisão e Verossimilhança da Interface
+
+Com todas as partes implementadas, o sistema local atenderá aos pontos pedidos:
+
+1. **Criação de conta e acesso ao dashboard:** realizado via página de registro e login simulado, levando ao dashboard `/events`.
+2. **Criação de evento (Evento X):** formulário de novo projeto, com timeline gerada automaticamente e entregas configuradas de acordo com o briefing (número de vídeos).
+3. **Atribuição de equipe e clientes:** para demo, o admin escolhe emails de cliente e editor ao criar o evento, o que vincula os IDs no projeto. (Esses usuários podem depois logar com aqueles emails para participar).
+4. **Preenchimento do briefing:** página de briefing acessível pelo botão no evento, onde admin (ou cliente, se ajustado) insere dados do evento. Uso de dados em memória via API local.
+5. **Geração automática da timeline baseada no briefing:** ao criar o evento, o cronograma (fases) é calculado. Além disso, tarefas padrão são adicionadas no projeto para acompanhar o andamento.
+6. **Entregas criadas automaticamente:** o número de entregas (ex.: Reels, Stories) é configurado no formulário. Cada entrega inicia no estado "Em edição", esperando uploads.
+7. **Editor importa vídeo local/manual:** implementado com input file no painel do evento. Opcionalmente poderia ser complementado por um watcher de pasta, mas manual cobre o fluxo.
+8. **Vídeos na aba Edição/Aprovação com controle de versões, comentários, botões de aprovação/alterações:** conforme detalhado, todas essas funcionalidades estão cobertas pelos componentes integrados e lógica do store (versões via `versions[]`, comentários via `comments[]`, actions condicionadas ao papel).
+9. **Status das entregas (pendente/edição, aguardando aprovação, em alteração, aprovado, atrasado):** exibidos pelo componente de ações e nosso layout. (O status "atrasado" não foi explicitamente implementado, mas poderia ser deduzido se ultrapassado o `finalDueDate` sem aprovação – não essencial para a demo, já que podemos definir prazos curtos e aprovar para não simular atraso).
+10. **Assets do evento para todos os membros:** seção de assets com upload e download disponível, visível a todos que acessam o evento.
+11. **Controle de acesso por perfil:** assegurado no dashboard (filtro de eventos) e em permissões nas páginas:
+
+    * Admin pode ver todos os eventos e editar briefing.
+    * Editor vê apenas seus eventos, pode marcar tarefas, enviar vídeos, marcar comentários resolvidos.
+    * Cliente vê apenas seus eventos, pode comentar e aprovar/solicitar mudanças nos vídeos.
+    * Nenhum usuário consegue executar ações que não deveriam (os componentes checam `role` antes de exibir botões/permitir interações).
+
+## 7. Considerações Finais para Demonstração Local
+
+* **Inicialização dos Dados:** Como tudo está em memória, ao recarregar a página os dados persistem apenas se estiverem nos stores com `persist`. No nosso caso, usamos persist para auth e projetos, então os projetos criados e usuário logado devem permanecer enquanto durar a sessão (ou até limpar storage). Os vídeos carregados usam URLs temporárias válidas durante a sessão (se fechar o navegador, precisará reenviar se quiser ver de novo).
+* **Visual e UX:** A interface utiliza componentes UI consistentes (botões, inputs) e estilização do tema (Dracula). Tudo foi mantido em português para uma experiência mais verossímil ao usuário final. As mensagens de feedback (toasts e textos de status) também estão em português.
+* **Execução no VS Code:** Para testar, rode o projeto (`npm run dev`). Crie contas de teste:
+
+  * ex.: admin ([admin@gonetwork.ai](mailto:admin@gonetwork.ai) / admin), editor ([editor@teste.com](mailto:editor@teste.com) / qualquer senha), cliente ([cliente@teste.com](mailto:cliente@teste.com) / qualquer senha).
+  * Faça login com admin, crie um evento atribuindo o editor e cliente pelos emails usados.
+  * Deslogue e logue como editor para fazer upload e marcar pronto.
+  * Deslogue e logue como cliente para comentar/solicitar alteração/aprovar.
+  * Navegue pelo fluxo conforme descrito. Todos os dados ficam localmente e a UI responde em tempo real às ações.
+
+Com esses ajustes, o **MelhorApp** funcionará totalmente local, simulando o fluxo completo de produção e aprovação audiovisual de um evento, de forma **fluida e convincente** para demonstração. Todos os elementos – do cadastro inicial até a conclusão do projeto – estarão funcionando de ponta a ponta usando mocks em memória, permitindo mostrar o valor da aplicação mesmo sem backend real ou integrações externas. Boa demonstração! 🚀

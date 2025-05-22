@@ -1,0 +1,1770 @@
+Perfeito, Danilo. Vou analisar profundamente a versão web do seu projeto de gerenciamento de entregas audiovisuais em eventos, com foco total no repositório GitHub e os links fornecidos. A análise será técnica, rígida e detalhada, cobrindo toda a estrutura do Next.js, fluxo de trabalho da aba de edições, interação com cliente, sugestões de melhorias e funcionalidades como: comentários com timestamp, status de aprovação, integração com redes sociais, legendas automáticas, adaptação mobile, e conexão possível com o Premiere.
+
+Também gerarei comandos/códigos/instruções necessários para aplicar as melhorias e escreverei um documento organizado e objetivo para envio à Vercel, com avisos explícitos para que não alterem a lógica principal da ferramenta.
+
+Já inicio essa tarefa e te aviso assim que estiver pronta.
+
+
+# Análise Técnica Completa do Projeto de Gerenciamento de Entregas Audiovisuais
+
+## Visão Geral da Estrutura do Projeto
+
+O projeto está estruturado como uma aplicação web **Next.js** (utilizando o App Router) com componentes React e estilização via Tailwind CSS (incluindo biblioteca de componentes *shadcn/UI*). No repositório, observa-se a seguinte estrutura de pastas principais:
+
+* **`app/`** – Contém as páginas da aplicação. Existe um `app/layout.tsx` que define o HTML base (incluindo `<ThemeProvider>` para temas claro/escuro) e um `app/page.tsx` que implementa a página inicial e controla a lógica de login e entrada no app.
+* **`components/`** – Inclui componentes React reutilizáveis. Destacam-se:
+
+  * **Componentes de UI genéricos** (em `components/ui/`), como Avatar, Tooltip, Tabs etc., provenientes do kit de componentes (provavelmente shadcn/UI).
+  * **Componentes da aplicação**: por exemplo, `login-widget.tsx` (formulário de login), `splash-screen.tsx` (tela de splash), `main-window.tsx` (janela principal após login) e vários **“widgets”** de funcionalidade (como `assets-widget.tsx`, `editing-widget.tsx`, `delivery-widget.tsx`, etc., organizados possivelmente em subpasta `components/widgets/`).
+  * **Componentes de colaboração** (em `components/collaboration/`): ex. `active-users-display.tsx` (exibe usuários ativos), `remote-annotations.tsx` e `remote-cursors.tsx` (provavelmente para mostrar anotações e cursores de outros usuários em tempo real), etc.
+  * **Componentes de vídeo e comentários** (em `components/video/`): incluindo `video-player.tsx` (player de vídeo), `annotation-canvas.tsx` e `annotation-toolbar.tsx` (ferramentas de anotação no vídeo), `annotation-list.tsx` (lista de anotações), `comment-item.tsx` (item de comentário textual), `comment-marker.tsx` e `comment-markers-timeline.tsx` (marcadores de comentários na linha do tempo do vídeo).
+* **`contexts/`** – Define contextos React para gerenciar estado global. Em especial, há `collaboration-context.tsx`, que centraliza o estado da colaboração em tempo real (lista de usuários ativos, quem está digitando/anotando, etc.) e fornece hooks como `useCollaboration()` para os componentes consumirem esses dados.
+* **`hooks/`** – Hooks customizados, por exemplo `use-mobile.tsx` (para detectar se o acesso é mobile e possivelmente ajustar a UI) e `use-toast.ts` (para notificações do tipo *toast*).
+* **`lib/`** – Código utilitário e serviços. Há `socket-service.ts` (possível configuração para WebSocket ou *mock* de comunicação em tempo real), `export-utils.ts` (funções para exportar dados, possivelmente gerar relatórios ou arquivos), e `utils.ts` (funções utilitárias diversas).
+* **Outros**: configuração do Next.js (`next.config.mjs`), Tailwind (`tailwind.config.ts`), etc., além de assets públicos em `public/` (logos placeholder, imagem de usuário genérica, etc.) e estilos globais em `styles/globals.css`.
+
+**Fluxo geral da aplicação:** Ao carregar a aplicação, exibe-se primeiro uma **Splash Screen** de apresentação (simulada por 3 segundos com um `setTimeout` no `app/page.tsx`). Em seguida, o usuário é direcionado para o **LoginWidget** caso não esteja autenticado. Atualmente, o login parece ser conceitual/simplificado – não há integração com backend de autenticação, mas sim um componente que provavelmente coleta um nome ou e-mail e simula a criação de um usuário (definindo um objeto `currentUser` no estado global). Após o “login”, a aplicação instancia o componente **MainWindow**, passando as props `currentUser` (usuário logado) e funções de logout.
+
+A **MainWindow** funciona como o contêiner principal da interface após login. Dentro dela, há uma organização em **abas ou seções funcionais** (denominadas “widgets”). Com base nos arquivos, podemos inferir que a MainWindow exibe um **menu de navegação** (talvez abas ou botões laterais) correspondendo a diferentes áreas: “Dashboard”, “Edições” (edição de vídeo), “Entrega” (delivery), “Briefing”, “Equipe/Team”, “Assets”, “Timeline”, “Configurações”, etc. Cada área é implementada por um componente *widget* específico (ex.: `dashboard-widget.tsx`, `editing-widget.tsx`, `delivery-widget.tsx`, etc.). Provavelmente a MainWindow utiliza um sistema de abas (potencialmente o componente Tabs da biblioteca UI) para alternar entre esses widgets, ou gerencia um estado interno indicando qual seção está ativa. Assim, toda a navegação dentro do app após login é **cliente-side**, sem recarga de página, trocando apenas o conteúdo mostrado dentro da janela principal.
+
+Em resumo, a estrutura Next.js + React está bem organizada em componentes modulares. Não há páginas múltiplas além da root (tudo acontece em `app/page.tsx` depois do login), indicando que a interface foi concebida como uma **SPA (Single Page Application)** dentro do container principal.
+
+## Funcionamento Geral e Fluxos de Trabalho
+
+Após o login, o usuário (editor ou cliente) entra na janela principal (**MainWindow**). O aplicativo foi concebido para facilitar a interação entre **editores de vídeo** e **clientes** em torno de entregas audiovisuais de eventos. O fluxo de trabalho básico esperado é:
+
+1. **Criação da Edição/Projeto:** Um editor inicia uma nova edição de vídeo para um evento (por exemplo, um projeto de vídeo a ser entregue ao cliente). O app não detalha explicitamente a criação de projetos no código visível, mas pelos componentes, imagina-se que haja algum lugar (talvez no Dashboard ou Briefing) onde as informações iniciais do projeto são exibidas (ex.: nome do evento, descrição/briefing do cliente, prazos etc.).
+2. **Upload/Disponibilização do Vídeo para Revisão:** O editor disponibiliza um vídeo para o cliente revisar. Isso provavelmente acontece na aba **“Entrega”** ou **“Edições”**. Pode ser via upload do arquivo ou embeddando um link; o código contém um `delivery-widget` e possivelmente um `assets-widget` (biblioteca de mídia) que poderiam ser usados para esse fim.
+3. **Revisão pelo Cliente:** O cliente acessa o vídeo disponibilizado através da aba **“Edições”** (ou “Entrega”, dependendo de como nomearam internamente). Nesta interface, o cliente consegue assistir ao vídeo usando o **player de vídeo** (`video-player.tsx`), e pode fazer comentários e anotações diretamente ligados ao vídeo (marcando pontos no tempo exato do vídeo). Esse é o cerne do fluxo de comunicação.
+4. **Comunicação Editor–Cliente:** Enquanto o cliente revisa, ele pode adicionar **comentários temporais** (ex.: “Este trecho está muito escuro” aos 00:45) ou possivelmente desenhar anotações no quadro de vídeo (ex.: destacar um objeto no vídeo). O editor, por sua vez, ao acessar o mesmo projeto/edição, consegue ver esses comentários e anotações exibidos no contexto do vídeo (na linha do tempo ou sobrepostos ao vídeo) e pode respondê-los ou resolver as questões. Esse intercâmbio constitui o **fluxo de feedback** entre cliente e editor.
+5. **Iterações e Versões:** Após receber feedback, o editor pode produzir uma nova versão do vídeo. O sistema poderia permitir múltiplas versões de entrega, porém o estado atual do código não explicita controle de versões. Provavelmente, o editor substituiria o vídeo antigo ou faria upload na mesma interface de entrega novamente, e notificaria o cliente para nova rodada de revisão.
+6. **Aprovação Final:** Quando o cliente estiver satisfeito, ele dá aprovação final. Nesse ponto, o projeto/edição é marcado como **concluído/aprovado**. Atualmente, não há um mecanismo de status implementado (como “Aprovado” ou “Pendente”) visível no código, mas essa funcionalidade é requisitada (vamos propor adiante). Com a aprovação, o editor pode então fornecer o arquivo final para download ou iniciar postagens em redes sociais.
+
+**Funções específicas das abas (widgets):** Embora não tenhamos o design visual completo, a presença de vários widgets sugere a seguinte dinâmica:
+
+* **DashboardWidget:** Provavelmente um painel resumido com status geral – por exemplo, quantas edições em andamento, notificações de novos comentários, próximos prazos, etc.
+* **BriefingWidget:** Espaço para o **briefing** do projeto – aqui o editor ou cliente pode colocar informações iniciais do evento, estilo desejado do vídeo, lista de músicas, referências etc., de forma colaborativa.
+* **EditingWidget:** Seria a aba de **“Edições”**, concentrando o player de vídeo, timeline de comentários/anotações e ferramentas associadas. Aqui ocorre a interação direta sobre o vídeo.
+* **DeliveryWidget:** Possivelmente a aba de \*\*“Entrega” final – talvez onde o arquivo final é disponibilizado para o cliente baixar após aprovação, ou onde o editor vê se já foi aprovado. Pode conter detalhes da versão final entregue, links para download e um botão para o cliente “Aprovar entrega”.
+* **AssetsWidget:** Uma **biblioteca de assets compartilhados**, onde tanto editor quanto cliente podem enviar ou acessar arquivos relacionados ao projeto (imagens, logos, vídeos brutos do evento, etc.). Por exemplo, o cliente poderia enviar fotos ou logos para serem inseridos no vídeo, e o editor poderia disponibilizar thumbnails, trechos, etc., para aprovação.
+* **TeamWidget:** Informações da **equipe** envolvida – talvez lista de membros (editores, revisores, clientes) com quem está colaborando naquele projeto.
+* **TimelineWidget:** Pode se referir a uma **linha do tempo de produção** (não confundir com timeline do player de vídeo). Talvez um cronograma do projeto com marcos: data de filmagem, data de primeira versão, data de entrega final, etc.
+* **SettingsWidget:** Configurações diversas do projeto (ou da conta do usuário, se for global) – por exemplo, mudar tema claro/escuro, preferências de notificação, ou ajustes específicos do projeto.
+* **EventWidget:** Talvez detalhes do **evento** em si (nome, data, local), ou lista de eventos/projetos se o usuário tiver vários (não totalmente claro pelo nome).
+* **Outros**: Além dessas, a interface de *colaboração em tempo real* tem componentes como `ActiveUsersDisplay` que mostra quem está online no projeto e indica se estão “digitando” ou “anotando” no momento. Isso sugere que a aplicação suporta múltiplos usuários simultaneamente em um projeto, mostrando indicadores em tempo real (ex.: “Usuário X está fazendo uma anotação” com um ícone de lápis, ou “Usuário Y está digitando um comentário” com um ícone de balão).
+
+**Mecânica de colaboração em tempo real:** O contexto de colaboração (`collaboration-context.tsx`) provavelmente utiliza um estado interno e possivelmente um serviço de socket (via `socket-service.ts`). É provável que no estado atual isso esteja simulado (dado que não há evidência de configuração real de WebSocket no código). A lógica típica seria:
+
+* Quando um usuário faz login e entra em um projeto, ele é adicionado a `activeUsers` (com um nome e uma cor para exibir no avatar). O sistema gera iniciais e cores para cada usuário ativo. Vemos no componente **ActiveUsersDisplay** que ele pega de `useCollaboration()` a lista `activeUsers` e exibe um avatar para cada um, com cor e iniciais. Se um usuário está digitando um comentário (`typingUsers`) ou anotando (`activeAnnotators`), isso é indicado sobre seu avatar com pequenos *badges* ou ícones (o código cria um <Badge> sobreposto ao avatar se `isTyping(user.id)` for true, e possivelmente outro indicador se `isAnnotating(user.id)`).
+* Conforme um usuário começa a escrever um comentário, o contexto poderia acionar `typingUsers.add(currentUserId)` e os outros participantes veem em tempo real o indicador “Usuário X está digitando...”. Similarmente para anotações, se alguém abre a ferramenta de anotação e começa a desenhar no vídeo, o contexto marca `activeAnnotators[userId] = true` e todos veem um ícone (talvez um lápis) no avatar dessa pessoa.
+* A sincronização em tempo real dependeria de um backend (WebSocket ou serviço tipo Firebase). **Atualmente, parece não haver backend implementado**, então possivelmente essa colaboração em tempo real funciona apenas localmente (ex.: se 2 pessoas usassem a mesma instância do app isso não sincronizaria de verdade). A presença de `socket-service.ts` sugere que a intenção é plugar um serviço de WebSocket no futuro (por exemplo, Socket.IO ou similar), mas não temos detalhes da implementação (pode estar vazio ou com *TODO*).
+* Independentemente disso, o contexto de colaboração também pode gerenciar a coleção de **comentários** e **anotações** em si. Por exemplo, pode haver no contexto métodos do tipo `addComment(timestamp, text, author)` ou `addAnnotation(timestamp, data)` que notificariam todos os participantes (via socket) e atualizariam as estruturas locais.
+
+Resumindo, o funcionamento geral interliga:
+
+* **Login e sessão do usuário:** mantidos no estado React (não há autenticação real).
+* **Navegação interna entre áreas do projeto:** gerenciada por componentes (MainWindow e widgets).
+* **Revisão de vídeo com comentários/anotações:** realizada na aba de Edições, com interação do player de vídeo e componentes de comentário.
+* **Comunicação editor-cliente:** se dá principalmente através dos **comentários no vídeo** e possivelmente através de campos de texto no Briefing ou chat (não identificamos um chat separado, então assumimos que os comentários no vídeo servem como canal principal de discussão contextual).
+* **Entrega final e aprovação:** a aplicação foca em facilitar esse ciclo e levar a um ok final do cliente.
+
+A seguir, aprofundamos cada parte crítica (especialmente a aba **“Edições”** com o sistema de comentários em vídeo) e avaliamos problemas, seguidos de propostas de melhoria.
+
+## Detalhes da Aba “Edições” e Fluxo de Comunicação Editor–Cliente
+
+A aba **“Edições”** (implementada pelo `editing-widget.tsx`) é o coração colaborativo do aplicativo, onde editor e cliente interagem sobre o vídeo em produção. Embora não tenhamos o código fonte exato deste componente (devido ao repositório estar integrado via v0.dev com possíveis limitações de visualização), podemos deduzir seu comportamento combinando as peças relacionadas:
+
+* **Player de Vídeo:** O componente `VideoPlayer` encapsula um reprodutor de vídeo HTML5. Provavelmente ele aceita uma fonte de vídeo (URL do arquivo ou stream) e fornece controles de reprodução. Também é provável que o VideoPlayer dispare eventos de tempo (timeupdate) e permita controlá-lo via referência (e.g., método `seekTo(time)`).
+* **Timeline com Marcadores:** Arquivos como `comment-markers-timeline.tsx` indicam que há uma representação visual da timeline (barra de progresso do vídeo) contendo marcadores indicando pontos onde há comentários. Assim, se há um comentário aos 45 segundos, o usuário verá um **pontinho ou marca** na timeline nessa posição. Isso facilita visualizar onde estão as observações do cliente.
+* **Lista de Comentários:** Cada comentário textual provavelmente é renderizado por `CommentItem` – incluindo o autor (cliente ou editor), o texto, e possivelmente o timestamp associado. A interface poderia exibir a lista de comentários ordenados por tempo ou agrupados por thread. Ainda, se for possível responder a comentários, o CommentItem pode também lidar com respostas (mas nada no código sugere threads explícitos, então talvez seja linear).
+* **Ferramentas de Anotação:** Elementos como `annotation-toolbar.tsx` e `annotation-canvas.tsx` sugerem que o cliente/editor pode desenhar retângulos, setas ou destacar regiões no vídeo em um dado instante. O `annotation-canvas` provavelmente é uma camada HTML Canvas sobreposta ao vídeo, que permite desenhar formas. A `annotation-toolbar` seria um conjunto de botões para selecionar ferramenta (p.ex. um ícone de lápis para desenhar livremente, um de quadrado para marcar área, talvez um marcador para colocar um pino numerado, etc.). As anotações criadas podem ser exibidas tanto sobre o vídeo (quando se navega no tempo, se existir anotação naquele frame) quanto listadas em alguma `annotation-list` (lista de todas as anotações feitas, possivelmente com thumbnails ou timestamps).
+* **Sincronização Comentário–Vídeo:** Espera-se que, ao clicar em um comentário ou anotação na lista, o vídeo pule para o tempo correspondente para o editor/cliente rever aquele ponto. Do mesmo modo, ao dar *play* no vídeo e atingir um ponto com comentário, pode haver destaque automático desse comentário (ex.: aparece um “card” sobreposto ou o item na lista pisca/realça). Isso torna a revisão **contextual e precisa**.
+* **Comunicação em Tempo Real:** Se editor e cliente estiverem simultaneamente na aba Edições, idealmente ambos veriam em tempo real as ações um do outro:
+
+  * Quando o cliente faz um novo comentário, o editor deveria vê-lo aparecer instantaneamente (via WebSocket).
+  * Se o editor responde ou resolve um comentário, o cliente veria o update sem precisar recarregar.
+  * Se alguém está desenhando uma anotação no vídeo, talvez o outro veja a forma sendo desenhada ao vivo (*essa seria uma funcionalidade avançada; pode não estar implementada no MVP atual*).
+
+Atualmente, analisando o código disponível, é provável que a implementação básica exista, mas com **limitações**:
+
+* Pode ser que os comentários e anotações *não* sejam realmente persistidos em servidor nenhum – possivelmente estão em estado React local ou contexto, o que significa que se recarregar a página eles somem. Isso configura um gargalo sério, pois em um cenário real seria necessário backend para salvar esses dados.
+* A interface de comentários possivelmente já marca o tempo automaticamente quando você adiciona (mas não está claro se o timestamp está sendo capturado – vamos supor que sim, dado a existência de markers).
+* Pode não haver ainda um **sistema de aprovação** integrado: ou seja, nenhuma marcação de “aprovado” ou fluxo formal para concluir a edição além de simplesmente informar via comentário. Isso foi solicitado como melhoria.
+* O **fluxo exato editor vs cliente** não diferencia papéis no front-end neste MVP: provavelmente qualquer usuário logado pode comentar e usar as ferramentas. Em um produto final, o *editor* talvez tenha botões extra (p.ex., um botão “Enviar para aprovação” que notifica o cliente quando uma versão está pronta) e o *cliente* teria um botão “Aprovar” ou “Pedir revisão” ao final.
+
+Apesar dessas prováveis lacunas, a estrutura básica para colaboração está montada e funcional localmente: o cliente pode comentar e anotar, e o editor pode ver essas marcações contextualizadas no vídeo, facilitando a comunicação direta sobre pontos específicos do material audiovisual.
+
+## Sistema de Comentários no Vídeo (Situação Atual)
+
+O sistema de comentários é um dos pontos centrais a avaliar. Com base nos componentes identificados:
+
+* **Adição de Comentário:** Deve haver uma interface (talvez um campo de texto abaixo ou ao lado do vídeo) para o usuário digitar um comentário. Ao enviar, o comentário se associa ao timestamp corrente do vídeo (é uma suposição – se ainda não faz isso, certamente é intenção do sistema). Esse comentário então:
+
+  * Aparece na lista de comentários, possivelmente com o tempo marcado (ex.: “00:45 – \[Cliente]: Este trecho está escuro.”).
+  * Gera um marcador visual na timeline (componentes `comment-marker` e `comment-markers-timeline` cuidam disso).
+  * É compartilhado via contexto/socket para que o outro usuário conectado receba em tempo real.
+
+* **Exibição dos Comentários:** A lista de comentários provavelmente mostra quem comentou (talvez com as iniciais ou avatar colorido igual ao mostrado em usuários ativos, para consistência), o texto, e possivelmente controles como *delete* (provavelmente só para o autor ou editor), ou *marcar como resolvido*. **Não há indicação no código de um atributo “resolvido/concluído” para comentários** – poderíamos sugerir isso como melhoria (ex.: um checkbox que o editor marca quando tratou aquele feedback).
+
+* **Marcadores na Timeline:** Cada comentário gera um pequeno *marker* na timeline que, ao passar o mouse, talvez exiba um tooltip com parte do texto, e ao clicar, salta para aquele ponto do vídeo. Isso ajuda na navegação pelos feedbacks de forma não-linear.
+
+* **Sobreposição de “cards” no vídeo:** Atualmente, pelo pedido do usuário, parece que **não há** uma funcionalidade de exibir o conteúdo do comentário no exato momento do vídeo (como um *popup* ou card). Eles solicitam *“melhorias com marcação temporal (cards durante o vídeo)”*. Isso implica que seria desejável mostrar os comentários como caixas de texto sobre o vídeo quando o playhead atinge o timestamp do comentário – similar a como o YouTube mostra comentários fixados em certo tempo ou sistemas profissionais de revisão (Frame.io, Wipster, etc.) fazem, aparecendo o comentário próximo do elemento citado. **Ou** pode querer dizer simplesmente as marcas visuais na timeline (que já parecem existir) – porém a palavra “cards durante o vídeo” sugere popups sobre o vídeo mesmo.
+
+* **Sistema de Anotações Desenhadas:** Este complementa os comentários de texto. Se implementado, quando o cliente escolhe uma ferramenta (por ex., um retângulo) e desenha no vídeo em pausa, a aplicação salva essa *anotação* (coordenadas, forma, cor, etc.) associada também a um tempo específico. Assim, ao chegar naquele frame, a forma desenhada aparece no `annotation-canvas` sobreposto. Esse recurso é muito útil para feedbacks visuais (ex.: “corte este objeto da cena”, marcando o objeto). No código, há `remote-annotations.tsx` e `remote-cursors.tsx` – isso sugere inclusive que se várias pessoas estiverem colaborando, podem ver as anotações umas das outras em tempo real, possivelmente até o cursor de cada colaborador no vídeo (um nível de sofisticacão semelhante ao Google Docs, mas aplicado ao vídeo). É provável que ainda seja rudimentar ou não totalmente funcional sem um servidor, mas a arquitetura está apontando para esse caminho.
+
+**Resumindo a situação atual dos comentários:**
+
+* Funcionalmente, o sistema de comentários já permite destacar pontos do vídeo e discutir melhorias. A base técnica (componentes de marker, timeline e item) está presente e, em testes locais, deve conectar esses elementos. O maior **ponto de melhoria** identificado é tornar essa experiência mais rica: atualmente os comentários podem não exibir diretamente *no player* quando ocorrem, e possivelmente o usuário precisa clicar no marker para ver o comentário no contexto. Também, a interface de adicionar comentário talvez seja simplória (pode não ter, por exemplo, um botão “+” flutuante no vídeo para adicionar comentário no ponto atual – seria interessante adicionar). Ademais, **falta a indicação de status de cada feedback** (ex.: resolvido ou não), e a possibilidade de aprovação final pelo cliente dentro desse fluxo (o editor talvez tenha que deduzir dos comentários que está tudo ok).
+
+Nos próximos tópicos, vamos listar os problemas e gargalos encontrados e, em seguida, propor melhorias detalhadas – incluindo exatamente essas evoluções do sistema de comentários, da experiência do usuário e novas funcionalidades (status de aprovação, biblioteca de mídia, integrações externas etc.). Cada melhoria virá acompanhada de justificativas técnicas e instruções de implementação passo a passo, conforme solicitado.
+
+## Problemas e Gargalos Identificados
+
+Durante a análise do código e do comportamento esperado, constatamos os seguintes problemas, limitações e possíveis gargalos na versão atual do projeto:
+
+* **Falta de Persistência e Backend:** Não há integração com banco de dados ou API para salvar dados (usuários, projetos, comentários, arquivos). Tudo indica que os comentários, anotações e status ficam apenas em memória (contexto React). Isso significa que, se recarregar a página ou se usuários diferentes acessarem de dispositivos distintos, as informações não são realmente compartilhadas. É um gargalo central – para uso real, seria necessário um backend (por ex., Firestore, Supabase, etc., ou uma API Node) para persistir e sincronizar dados entre editor e cliente.
+* **Colaboração em Tempo Real Limitada:** Relacionado ao ponto acima, a infraestrutura de colaboração (WebSockets) parece não estar completa. O `socket-service.ts` existe, mas não vimos no código evidências de conexão (ex.: `io.connect()`). Possivelmente ele está configurado para *futuro* ou simplesmente faz broadcast local. Isso implica que **dois usuários online simultaneamente não se “veem” de fato**, a menos que seja uma implementação local fake. É um problema, pois a promessa de mostrar usuários ativos e digitando dependeria de um serviço em tempo real não implementado. Em resumo, o front-end suporta, mas o backend não existe ainda.
+* **Ausência de Diferenciação de Papéis (Editor vs Cliente):** No app atual, não identificamos lógica que distingue um cliente de um editor. Provavelmente qualquer login simples leva ao mesmo interface. Em uso real, o **Editor** deveria ter permissões extras (subir videos, marcar comentário como resolvido, iniciar/fechar revisão, etc.) enquanto o **Cliente** talvez tenha funções restritas (apenas comentar/anotar e aprovar reprovar). Essa falta de distinção pode causar confusão – por exemplo, um cliente poderia acidentalmente ver opções de editor ou vice-versa. É importante introduzir no futuro uma forma de diferenciar papéis (seja via atributo no `currentUser` ou contexto de projeto).
+* **UX/UI a Melhorar:** Alguns aspectos da experiência do usuário parecem rudimentares ou podem causar fricção:
+
+  * **Navegação por Ícones vs Texto:** Se o MainWindow utiliza abas com ícones (por ex., usando ícones lucide-react como *Edit* para “Edições”, *File* para assets, *Users* para equipe, etc.), pode não estar claro para o usuário o que cada aba faz. Falta possivelmente rótulos ou *tooltips* claros. Melhorias de UX pedem ou adicionar texto aos botões ou pelo menos exibir o nome da seção ao passar o mouse.
+  * **Feedback de Ações:** Quando o usuário adiciona um comentário ou upload, há indicação de sucesso? Uso de toasts (eles têm um hook use-toast e possivelmente componentes de toast) deveria ser verificado – caso não esteja sendo usado, seria bom incluir notificações sutis (“Comentário adicionado!”).
+  * **Densidade de Informação:** É possível que na aba Edições haja muitas coisas juntas (player, timeline, lista de comentários, toolbar de anotação, lista de usuários ativos) e isso pode poluir visualmente, especialmente em telas menores. Não vimos condicional de layout para mobile exceto um hook, então **design responsivo** parece incompleto (comentado adiante).
+  * **Estética e Branding:** O app usa Tailwind default e shadcn, o que garante uma base consistente, porém pode carecer de identidade visual (cores, logo definitivo, etc.). O tema padrão parece ser escuro (no RootLayout defaultTheme="dark"). Pode ser escuro demais ou com contraste baixo em alguns pontos – não temos captura, mas é algo para revisar. Pequenos ajustes de UI, como tamanhos de fonte nos lugares certos, espaçamentos entre cards, etc., podem melhorar muito a legibilidade. Por exemplo, o `ActiveUsersDisplay` usa texto “Usuários Ativos (N)” em tamanho pequeno; poderia ser um pouco mais destacado.
+* **Sistema de Comentários Incompleto:** Embora haja marcadores de timeline, faltam funcionalidades para tornar comentários realmente eficazes:
+
+  * **Marcação Temporal Visível:** Atualmente, parece que os comentários só aparecem na lista e timeline. Não há *pop-up* sobre o vídeo no timestamp (o que o cliente requisitou como melhoria). Isso dificulta ver o comentário no contexto exato sem desviar o olhar para a lista. É um gargalo de UX – o revisor quer ver o comentário enquanto assiste.
+  * **Sem Indicação de Resolução:** Não há maneira de marcar um comentário como resolvido ou concluído. Em projetos de revisão é essencial distinguir itens pendentes dos já tratados. Sem isso, comentários podem ficar sem fechamento claro. O editor também não pode filtrar “o que já foi corrigido” facilmente.
+  * **Ordem e Agrupamento:** Se múltiplos comentários no mesmo timestamp ou muito próximos, há previsão de agrupá-los ou eles se sobrepõem na timeline? Pode ser um problema não tratado (ex.: dois markers colados). Talvez irrelevante em MVP, mas a considerar.
+  * **Nenhum Sistema de Notificações entre rodadas:** Se o editor faz upload de uma nova versão, como o cliente sabe? Não há e-mail ou notificação push integrados. O cliente teria que estar olhando o app. Isso é uma lacuna funcional (fora do front-end imediato, mas importante em conceito).
+* **Falta de Sistema de Status/Aprovação:** Atualmente, a plataforma não guia formalmente o **workflow de aprovação**. Idealmente, deveria haver estados como:
+
+  * “Em Edição” (editor trabalhando, ainda não enviado ao cliente),
+  * “Em Revisão” (cliente revisando versão X),
+  * “Revisão Concluída / Aprovado” (cliente deu ok),
+  * “Revisão Requerida” (cliente pediu mudanças).
+
+  Sem isso, editor e cliente precisam se comunicar via comentários ou fora da plataforma para deixar claro se o vídeo está aprovado. É fácil ocorrer desencontro (ex.: cliente esquece de dizer explicitamente que aprovou). Esse gargalo reduz a eficácia do app como gerenciador de entregas.
+* **Funcionalidades Pendentes Solicitadas:** Algumas melhorias não estão implementadas mas foram pedidas:
+
+  * **Biblioteca de Assets Compartilhados:** O `AssetsWidget` existe, mas provavelmente vazio ou mínimo. Não há interface de upload no front-end visível (buscamos “Upload” e nada). Portanto, os usuários ainda não conseguem compartilhar arquivos pela plataforma – isso deve estar no roadmap.
+  * **Integração com Adobe Premiere Pro:** Nada no código indica qualquer integração ou plugin com Premiere. Ou seja, no estado atual não há como, por exemplo, enviar os comentários para dentro do Premiere ou vice-versa. Considerando a utilidade (um editor no Premiere adoraria ver os comentários do cliente dentro da timeline do projeto, como marcadores), é uma ausência notável – porém compreensível, pois isso exige desenvolvimento separado (plugin/extensão).
+  * **Legendas Automáticas nos Vídeos Aprovados:** Também inexistente no MVP. Seria um recurso pós-aprovação gerar legendas, possivelmente usando um serviço de reconhecimento de fala. Implementar isso demandaria processamento pesado (AI), que não está presente agora.
+  * **Postagem Direta em Redes Sociais:** Igualmente, não implementado. Publicar direto no YouTube, Instagram etc. requer APIs específicas e autenticação, nada trivial de implementar sem planejamento. No presente, o editor deve baixar o vídeo aprovado e manualmente postar onde quiser – o app não ajuda nisso.
+  * **Experiência Mobile Insatisfatória:** Suspeitamos que o design atual não está totalmente adaptado a mobile. O hook `use-mobile.tsx` sugere que detecta se a pessoa está em mobile e possivelmente muda algo (talvez habilita controles simplificados?). Porém, a quantidade de informação na tela (player + sidebars) é difícil de portar para um celular pequeno sem ajustes significativos. Provavelmente, a interface simplesmente escala para o menor tamanho e pode ficar espremida ou com overflow horizontal. Sem layouts específicos para mobile (ex.: colunas que se transformam em linhas, elementos escondidos ou colapsados), a UX no celular fica comprometida – *gargalo* especialmente porque clientes podem querer aprovar vídeos pelo celular rapidamente.
+
+Em suma, o projeto é conceitualmente sólido e traz uma boa base, mas ainda se encontra num estágio de **MVP não refinado**, com várias funcionalidades incompletas ou ausentes que impedem o uso efetivo em produção. A seguir, apresentamos sugestões de melhorias que abordam esses problemas, **sem alterar a lógica original de forma drástica**, mas sim estendendo-a e refinando-a. Cada sugestão vem acompanhada de justificativa técnica e, sempre que possível, instruções de implementação (incluindo exemplos de código ou comandos necessários).
+
+## Sugestões de Melhorias (UX/UI e Funcionais) 🔧
+
+*(Observação: As melhorias propostas buscam não modificar a lógica existente de forma inesperada, e sim complementar ou refinar o app. Assim, evitamos alterar profundamente estruturas já implementadas, focando em adições ou ajustes seguros.)*
+
+### 1. Comentários com Marcação Temporal e “Cards” no Vídeo
+
+**Problema:** Os comentários atualmente são listados e marcados na timeline, mas não aparecem sobre o vídeo no momento em que se referem, dificultando correlacionar texto e imagem.
+
+**Melhoria proposta:** Implementar *cards de comentário temporais* – ou seja, enquanto o vídeo reproduz e atinge um timestamp com comentário, exibir sobre o player uma pequena caixa contendo o comentário (ou um resumo) naquele instante. Isso emula a experiência de revisão profissional, onde o feedback aparece no contexto exato.
+
+* **Como funcionaria:** quando o vídeo estiver a, digamos, 44s e houver um comentário marcado para 45s, o sistema pode exibir um pequeno indicador discreto “(1 comentário chegando)” e ao atingir 45s, mostrar uma caixa semi-transparente no canto do vídeo com o texto do comentário e quem fez (similar a uma legenda pop-up). Essa caixa some após alguns segundos ou quando o usuário dá ok.
+* **Justificativa UX:** O revisor não precisa tirar os olhos do vídeo para lembrar qual era o comentário daquele ponto, e o editor vendo o playback junto das notas entende claramente o contexto.
+
+**Técnica de implementação:** Podemos aproveitar o player de vídeo existente:
+
+* Adicionar um estado `currentTime` no VideoPlayer (via `useState` ou context compartilhado) que atualiza com `onTimeUpdate` do elemento `<video>`.
+* No componente do VideoPlayer ou em um componente pai que tenha acesso à lista de comentários, observar `currentTime`. Quando `currentTime` atinge (ou passa) o timestamp de algum comentário ainda não exibido, acionar a exibição do card. Poderíamos armazenar um estado dos comentários “já mostrados” para não repetir múltiplas vezes.
+* O card em si pode ser um simples elemento absolutamente posicionado sobre o vídeo. Por exemplo:
+
+  ```jsx
+  {showComment && (
+    <div className="absolute bottom-10 left-10 bg-black/75 text-white p-2 rounded">
+      <strong>{activeComment.author}:</strong> {activeComment.text}
+    </div>
+  )}
+  ```
+
+  Onde `activeComment` é o comentário atual a mostrar.
+* Para determinar *qual* comentário mostrar, pode-se manter um índice e pegar o próximo comentário cujo timestamp > currentTime atual, ou simplesmente verificar todos os comentários a cada atualização e pegar os que caem em um intervalo pequeno em torno do currentTime (por ex., <= 0.5s de diferença).
+* *Performance:* `onTimeUpdate` do vídeo dispara \~4 vezes por segundo em geral, isso é suficiente para precisão de 0.25s. Podemos verificar comentários nesse handler (a lista de comentários costuma ser pequena, então é ok).
+* Também adicionar uma opção de **pular diretamente para o próximo comentário**: por exemplo, um botão “▶️ Próximo Comentário” que pega o timestamp do próximo comentário e faz `video.currentTime = timestamp`. Isso complementa a navegação.
+
+**Exemplo de ajuste no código (simplificado):**
+
+```tsx
+// Dentro de VideoPlayer component (que recebe props comments):
+const [currentTime, setCurrentTime] = useState(0);
+const [activeComment, setActiveComment] = useState<Comment|null>(null);
+
+const onTimeUpdate = () => {
+  const t = videoRef.current?.currentTime || 0;
+  setCurrentTime(t);
+  // Verifica se algum comentário começa próximo do tempo atual
+  const upcoming = comments.find(c => !c.shown && Math.abs(c.time - t) < 0.3);
+  if(upcoming) {
+    setActiveComment(upcoming);
+    upcoming.shown = true; // marcar como exibido
+    setTimeout(() => setActiveComment(null), 4000); // esconder após 4s
+  }
+};
+...
+<video ref={videoRef} onTimeUpdate={onTimeUpdate} ... />
+
+{activeComment && (
+  <div className="absolute bottom-5 left-5 bg-black/80 text-white text-sm p-2 rounded">
+    <span className="font-bold">{activeComment.author}:</span> {activeComment.text}
+  </div>
+)}
+```
+
+*(Nota: Em produção, seria melhor controlar o estado de `shown` via React state ou context, aqui é ilustrativo.)*
+
+* **Não alterar lógica existente:** Essa adição consome a mesma lista de comentários existente, sem mudar como eles são armazenados. É um aprimoramento visual e de usabilidade por cima dos dados atuais.
+
+### 2. Destaque e Organização de Comentários/Anotações
+
+**Problema:** Não há maneira de marcar comentários como resolvidos, nem de filtrar/organizar por status ou autor.
+
+**Melhoria proposta:** Introduzir um **sistema de status de comentário** e melhorar a visibilidade:
+
+* Cada comentário pode ter um estado: *pendente* (aberto) ou *resolvido*. Visualmente, comentários resolvidos podem aparecer “ticados” ou com estilo diferente (ex.: texto cinza, tachado, ou um ícone de check). Os marcadores na timeline de comentários resolvidos poderiam ficar de cor diferente (ex.: verde claro) para indicar que aquele ponto já foi tratado.
+* Permitir ao **Editor** marcar um comentário como resolvido (talvez com um botão ✓ em cada CommentItem). O Cliente também poderia marcar caso considere resolvido, mas idealmente o editor faz isso ao corrigir o vídeo.
+* Opcional: permitir filtro “mostrar só pendentes” para facilitar o editor a navegar apenas pelos pontos que faltam resolver.
+
+**Justificativa técnica:** Isso não muda a lógica principal de entrega, apenas adiciona um campo a cada comentário e algumas funções. Pode ser implementado internamente no front-end (com contexto ou estado local), ou melhor ainda quando um backend existir, persistido no banco. No imediato, manter no contexto colaboração:
+
+* Extender o tipo de comentário, e.g. `{ id, author, text, time, resolved: false }`.
+* Adicionar uma função no `collaboration-context` ou onde os comentários são geridos, tipo `toggleCommentResolved(id)` que localiza o comentário pelo id e inverte seu estado `resolved`.
+* Atualizar o componente CommentItem para exibir diferente se `resolved`:
+
+  ```jsx
+  <div className={`comment-item ${comment.resolved ? 'opacity-50 line-through' : ''}`}>
+    <p>{comment.text}</p>
+    {!comment.resolved && isEditor && (
+       <button onClick={() => toggleCommentResolved(comment.id)}>✔️ Resolvido</button>
+    )}
+  </div>
+  ```
+* Para simplificar, podemos armazenar localmente sem backend, sabendo que isso se perderá ao recarregar – mas já melhora a dinâmica durante a sessão. Quando houver backend, essa flag seria salva por projeto/comentário.
+
+**Obs:** As anotações desenhadas também podem ter algo similar (marcar como resolvidas ou removê-las após uso). Entretanto, como anotações geralmente servem para indicar algo visual a ser corrigido, uma vez corrigido talvez a anotação nem seja mais relevante e poderia ser deletada. Podemos aplicar lógica semelhante: um botão de *trash* para o editor remover a anotação depois de tratar.
+
+Essa melhoria de destaque/resolução clarifica o fluxo: o cliente sabe que o editor viu e resolveu, e o editor tem controle do que falta fazer.
+
+### 3. Aprimoramentos de UX/UI Gerais
+
+Vários pequenos ajustes de UX/UI podem ser feitos sem alterar funcionalidade:
+
+* **Etiquetas nas Abas/Menu:** Adicionar texto aos botões de navegação ou pelo menos tooltips. Por exemplo, se o menu lateral tem apenas ícones, incluir prop `title="Briefing"` nos elementos, para que ao passar o mouse apareça o nome. Isso evita confusão inicial.
+* **Consistência Visual:** Utilizar cores e estilos consistentes para ações semelhantes. Ex.: usar uma cor de destaque para botões primários (salvar, enviar, aprovar) – talvez o laranja/vermelho do logo GoNetwork para chamar atenção – e outra cor neutra para ações secundárias. Garantir que todos os textos estejam legíveis com o tema escuro (contraste suficiente).
+* **Feedback ao Usuário:** Toda ação do usuário deveria ter algum feedback visual:
+
+  * Após adicionar comentário, limpar o campo e mostrar um pequeno *toast* “Comentário adicionado”. O hook `use-toast` e componentes associados (provavelmente já importados do shadcn UI) podem exibir um toast no canto. Por exemplo:
+
+    ```tsx
+    import { useToast } from "@/hooks/use-toast";
+    ...
+    const { toast } = useToast();
+    ...
+    toast({ description: "Comentário adicionado com sucesso!" });
+    ```
+  * Se houver erro (ex.: falha no upload de asset), também mostrar toast de erro.
+* **Estado de Carregamento:** Para operações que levam tempo (upload de vídeo ou asset), implementar indicadores de carregamento (spinners ou barras de progresso). Evita que o usuário ache que travou. Ex.: no AssetsWidget, ao subir um arquivo, mostrar “Uploading... 50%”.
+* **Melhorar Legibilidade da Lista de Comentários:** Se a lista for longa, agrupá-los por tempo ou autor, ou fornecer uma forma de contrair e expandir. Por exemplo, se um mesmo autor faz vários comentários em sequência, pode mostrar o avatar do autor apenas uma vez com vários balões de comentário abaixo, em vez de repetir nome/avatar em cada um – semelhante a um chat.
+* **Responsive design (mobile):** Mais detalhes adiante, mas em suma: ajustar CSS usando breakpoints do Tailwind. Exemplo: se a MainWindow tiver um layout de duas colunas (vídeo à esquerda, comentários à direita) no desktop, para mobile podemos mudar para uma coluna (vídeo em cima, comentários embaixo) usando classes `md:flex md:flex-row` e `flex-col` para default mobile. Isso pode ser feito adicionando classes condicionalmente ou diretamente se markup permitir. Também considerar usar o hook `useMobile` para, em certos componentes, escolher interfaces simplificadas (ex.: uma *modal* em tela cheia para escrever comentário, em vez de input pequeno).
+* **Elementos interativos touch-friendly:** Em mobile, aumentar o tamanho de botões/áreas de clique. Ex.: os marcadores na timeline podem ser difíceis de tocar com precisão – talvez providenciar uma lista suspensa dos tempos se detectar mobile, para o usuário selecionar o ponto de comentário sem ter que tocar exatamente o pontinho.
+* **Tema personalizável:** Já que foi usado ThemeProvider, permitir o usuário alternar claro/escuro (já que `enableSystem={false}`, atualmente trava no escuro). Poderia colocar um toggle em SettingsWidget para theme: `ThemeProvider` suporta toggling via attribute. Isso não afeta lógica, apenas satisfaz preferências.
+* **Validações e Limites:** Adicionar validações de formulário no login (por ex., não aceitar nome vazio). No upload de arquivos, checar tipo e tamanho antes de enviar para evitar erros. Isso tudo melhora robustez.
+* **Scroll e Overflow:** Assegurar que componentes como lista de comentários, lista de assets, etc., tenham scroll interno se excederem altura, mas que o player de vídeo permaneça visível. Provavelmente envolver uso de `overflow-auto` em containers adequados.
+
+Esses ajustes em conjunto elevarão a qualidade da interface percebida sem modificar estruturas de dados ou fluxos principais.
+
+### 4. Sistema de Status de Aprovação do Cliente
+
+**Motivação:** Formalizar o momento em que o cliente aprova o vídeo é crucial para concluir o ciclo de trabalho. Sem um status explícito, pode haver ambiguidades. Vamos sugerir um sistema simples de aprovação:
+
+* **Estados do Projeto:** Definir um atributo de status no projeto/edição, por exemplo: `"Em andamento"`, `"Em revisão"`, `"Aprovado"`, `"Revisão Solicitada"`.
+
+  * Início: “Em andamento” (editor editando, não enviado ao cliente ainda).
+  * Quando editor publica a versão para cliente revisar: muda para “Em revisão”.
+  * Se o cliente não gostar e quiser nova versão: marca “Revisão Solicitada” (ou simplesmente deixa comentários indicando mudanças – esse estado pode ser implícito pelos comentários não resolvidos).
+  * Quando o cliente estiver satisfeito: estado “Aprovado”.
+* **Implementação no front-end:** Sem backend, podemos armazenar esse status no contexto ou em um estado no DeliveryWidget:
+
+  * Criar um state `approvalStatus` (useState) inicializado como `"Em revisão"` assim que o editor envia algo.
+  * No **DeliveryWidget**, se `approvalStatus !== "Aprovado"`, exibir um botão para o cliente “✅ Aprovar Vídeo” (visível apenas se o usuário atual for do tipo cliente, se implementarmos papéis). Ao clicar, mudar estado para `"Aprovado"` e possivelmente mostrar um texto “✅ Aprovado pelo cliente em 20/05/2025”.
+  * Poderia também ter um botão “Rejeitar/Pedir Alterações” para formalizar um não-aprovo, mas os comentários já cumprem esse papel, então talvez não precisa complicar – basta não clicar em aprovar e deixar comentários do que mudar.
+  * O editor ao ver o estado “Aprovado” pode então liberar o download final (se já não o fez) ou considerar o projeto fechado.
+
+**No código (exemplo simplificado dentro de DeliveryWidget):**
+
+```jsx
+const [approvalStatus, setApprovalStatus] = useState("Em revisão"); 
+// ... assume prop currentUser.role exists 
+...
+{approvalStatus !== "Aprovado" ? (
+  currentUser.role === "cliente" ? 
+    <button className="btn btn-success" onClick={() => setApprovalStatus("Aprovado")}>
+      Aprovar Vídeo
+    </button>
+  : <span>Aguardando aprovação do cliente...</span>
+) : (
+  <div className="text-green-500 font-medium">
+    ✅ Vídeo aprovado pelo cliente!
+  </div>
+)}
+```
+
+*(Nota: Em implementação real, isso deveria também disparar um evento para notificar editor, e seria persistido no DB. Mas aqui mantemos simples.)*
+
+* **Ajustes decorrentes:** Uma vez em “Aprovado”, podemos:
+
+  * Desabilitar adição de novos comentários (opcional, se não quiser mais feedback após aprovado).
+  * Mostrar um indicador global na Dashboard ou lista de projetos que aquele projeto está concluído.
+  * Permitir ao editor um botão “Marcar como não aprovado” caso clique errado (mas cuidado para não confundir; talvez não expor isso facilmente para cliente).
+* **Justificativa:** Isso não interfere na lógica principal de edição de vídeo, apenas **adiciona um metadado** de controle. Deixa claro para ambos os lados o status final. E tecnicamente é fácil de adicionar.
+
+### 5. Sistema de Biblioteca de Assets Compartilhados
+
+**Motivação:** Facilitar troca de arquivos entre editor e cliente dentro da plataforma – atualmente ausente. O `AssetsWidget` sugere isso, mas precisamos especificar e tornar funcional.
+
+**Funcionalidade proposta:** No **AssetsWidget**, implementar:
+
+* **Upload de arquivos** (imagens, vídeos, áudios, documentos) por ambos os lados. Por exemplo, o cliente pode enviar uma música que quer no vídeo, ou o editor enviar um frame para o cliente aprovar.
+* **Lista de assets compartilhados:** mostrar todos os arquivos enviados, com identificação de quem enviou e quando, e botão para baixar/visualizar.
+* **Opção de organização:** talvez dividir por categorias (Vídeos, Imagens, Áudio) se houver muitos, ou simplesmente um ícone indicando o tipo.
+
+**Desafios técnicos:** Sem backend, não dá para realmente armazenar arquivos de forma persistente. Precisaríamos de um provedor de armazenamento integrado:
+
+* **Uso do Vercel Blob Storage:** A Vercel oferece o **Blob storage** para uploads diretos, ideal para este caso. Podemos utilizar uma rota API (Serverless Function) que gera uma URL pré-assinada para upload e depois usar fetch no front-end para enviar o arquivo. Os arquivos então ficam em um bucket gerenciado pela Vercel, com URLs de acesso público únicos.
+* **Uso de provedores terceiros:** Alternativamente, integrar Amazon S3 ou Google Cloud Storage, usando URLs pré-assinadas do mesmo jeito. Dado que a Vercel Blob existe e integra bem, pode ser a opção mais simples no contexto do projeto.
+
+**Implementação resumida com Vercel Blob:**
+
+1. Criar uma função serverless `/api/upload-url` que utiliza o SDK da Vercel Blob (ou REST API) para gerar uma URL de upload. Por exemplo, usando fetch:
+
+   ```ts
+   import { createPresignedPost } from '@vercel/blob';
+   export async function POST(req: NextRequest) {
+     const { fileName, fileType } = await req.json();
+     const { url, fields } = await createPresignedPost({
+       // optionally impose maxSize, allowed file types, etc.
+       expires: Date.now() + 15 * 60 * 1000, // 15 min
+       conditions: [{ "Content-Type": fileType }],
+     });
+     return NextResponse.json({ url, fields });
+   }
+   ```
+
+   (A função createPresignedPost simula o exemplo de presigned URL do S3, conforme documentação da Vercel.)
+
+2. No front-end (AssetsWidget):
+
+   * Adicionar um input `<input type="file" multiple onChange={handleFilesSelected} />`.
+   * No handler `handleFilesSelected`, para cada arquivo selecionado:
+
+     * Chamar nossa API: `const res = await fetch('/api/upload-url', { method:'POST', body: JSON.stringify({ fileName: file.name, fileType: file.type }) })` e obter `url` e `fields`.
+     * Realizar um POST do arquivo diretamente para o storage: isso requer construir um `FormData` com os `fields` retornados e o arquivo binário:
+
+       ```js
+       const formData = new FormData();
+       Object.entries(fields).forEach(([key, val]) => formData.append(key, val));
+       formData.append('file', file);
+       await fetch(url, { method: 'POST', body: formData });
+       ```
+     * Se sucesso (HTTP 204 do storage), construir um objeto asset no estado local: `{ name: file.name, url: <URL pública gerada> }`. A URL pública geralmente vem em `fields.key` concatenada com base URL. Pela Vercel Blob, eles costumam fornecer a URL de acesso no próprio retorno ou via um evento.
+     * Adicionar esse objeto à lista de assets no contexto ou estado do AssetsWidget. Então a UI atualizará listando o novo arquivo.
+
+3. Mostrar a lista de assets: iterar sobre o array de assets e renderizar links. Por exemplo:
+
+   ```jsx
+   assets.map(asset => (
+     <div key={asset.url} className="flex items-center gap-2">
+       <img src={getIconForType(asset.type)} alt="" />
+       <a href={asset.url} target="_blank" rel="noopener" className="underline">{asset.name}</a>
+       <span className="text-xs text-gray-500">({asset.uploader})</span>
+     </div>
+   ))
+   ```
+
+   Podemos incluir também o tamanho ou data se tiver.
+
+4. Permitir remoção de asset: O editor (ou quem enviou) pode deletar caso tenha enviado errado, etc. Na Vercel Blob, poderíamos guardar o `asset.id` ou key e fazer uma chamada DELETE (Vercel Blob API permite deletar via fetch também). Sem backend para controle de permissão, talvez não expor isso para cliente por enquanto.
+
+**Nota:** Como alternativa simples, se não quisesse implementar upload real agora, poderia-se simular: armazenar o arquivo em base64 ou link externo. Mas não é ideal para arquivos grandes. A abordagem de presigned URLs é mais escalável e segura (descarrega o serverless da carga do arquivo).
+
+Essa melhoria proporcionará um espaço central dentro do app para troca de materiais brutos e complementares, eliminando a necessidade de usar e-mails ou Google Drive externamente – o que alinha com a proposta de gerenciar toda a produção audiovisual na plataforma. Do ponto de vista técnico, introduz integração com um serviço de armazenamento (um passo em direção a robustez do produto).
+
+### 6. Integração com Adobe Premiere Pro (base técnica)
+
+**Objetivo:** Permitir que o editor, trabalhando no Adobe Premiere Pro, interaja com a plataforma de forma integrada – por exemplo, ver os comentários do cliente dentro do Premiere, ou enviar atualizações diretamente do Premiere para a plataforma. Essa integração melhora o fluxo do editor, evitando trocas manuais de contexto.
+
+**Abordagens possíveis:**
+
+* **Extensão Painel no Premiere:** Premiere Pro suporta extensões via HTML/JS (UXP, anteriormente CEP). É possível criar um **Painel personalizado** que rode dentro do Premiere e se comunique com nossa plataforma via APIs web. Esse painel poderia, por exemplo:
+
+  * Listar os projetos e edições do editor (após autenticar o editor na plataforma).
+  * Quando um projeto é selecionado, mostrar dentro do painel todos os comentários do cliente com seus timestamps. O painel pode usar a API de scripting do Premiere para ir para aquele tempo na sequência aberta e até criar **marcadores** na timeline do Premiere correspondentes aos comentários (Premiere permite via script inserir markers em pontos específicos com texto).
+  * Marcar comentários como resolvidos a partir do painel, sincronizando de volta para a plataforma.
+  * Fazer upload de uma nova versão do vídeo: o painel poderia ter um botão “Enviar nova versão”, que renderiza a sequência atual e faz upload (isso é mais complexo, envolveria automação de export dentro do Premiere – possível via ExtendScript, mas avançado).
+
+  Esta abordagem exige desenvolvimento separado (em JavaScript com a API do Premiere). O painel em si pode ser hospedado dentro do pacote da extensão, mas se ele precisa acessar nossa API, teremos que lidar com CORS/autenticação – ou usar um proxy. Em suma, é factível mas demanda tempo.
+
+* **Exportar/Importar Marcadores via Arquivo:** Uma solução mais simples inicialmente: permitir exportar os comentários da plataforma num formato que Premiere consiga ler. Premiere aceita importação de marcadores via arquivos CSV ou XML (EDL, FCP XML) contendo timecodes e notas. Podemos implementar na plataforma um botão “Exportar comentários para Premiere” que gera um arquivo .csv ou .xml listando cada comentário com seu timecode e texto. O editor então importaria esse arquivo como uma camada de marcadores na timeline do Premiere. **Exemplo:** gerar um CSV:
+
+  ```
+  Name,Start,Duration,Color,Description
+  Comment1,00:00:45:12,00:00:00:00,Red,Este trecho está muito escuro.
+  Comment2,00:01:10:00,00:00:00:00,Red,Destaque a logo aqui.
+  ```
+
+  O editor poderia abrir esse CSV via menu do Premiere (há plugins, mas talvez precise de um script). Alternativamente, um FCPXML que Premiere importa e coloca marcadores. Essa via não é instantânea ou bi-direcional, mas pelo menos injeta feedback no ambiente de edição.
+
+* **Sincronizar Via Cloud (futuro):** Se houvesse backend robusto, até se poderia pensar num plugin do Premiere que constantemente puxa via WebSocket ou polling os novos comentários para atualizar em tempo real. Seria top de linha, mas complexo.
+
+**Sugestão inicial:** Começar com a opção de **exportar comentários**. É relativamente fácil de implementar no front:
+
+* Criar função para formatar time (segundos) em timecode `HH:MM:SS:FF` (onde FF = frames, precisaríamos do FPS do vídeo – se assumirmos 30fps por exemplo).
+* Mapear cada comentário para linha CSV ou bloco XML.
+* Oferecer download (usando `URL.createObjectURL` Blob, etc.).
+
+Exemplo de geração CSV na plataforma:
+
+```jsx
+function exportCommentsToCSV(comments) {
+  const header = "Name,Start,Duration,Color,Description\n";
+  const lines = comments.map(c => {
+    const tc = secondsToTimecode(c.time); // e.g. "00:00:45:00"
+    const text = c.text.replace(/,/g, ";"); // evitar quebrar CSV
+    return `Comentário,${tc},00:00:00:00,Red,${text}`;
+  });
+  const csvContent = header + lines.join("\n");
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'comentarios.csv';
+  a.click();
+}
+```
+
+*(No UI, colocar um botão “Exportar para Premiere CSV”.)*
+
+**Justificativa:** Isso não toca na lógica interna, apenas fornece ao editor uma facilidade extra externa à aplicação. É simples e de alto benefício prático de curto prazo.
+
+**Para integração mais profunda (painel):** Demandaria:
+
+* Expor uma API na plataforma para listar comentários de um projeto (JSON).
+* Desenvolver a extensão usando Adobe Premiere SDK (UXP). Ela seria um projeto separado, mas poderíamos incluir em nosso repositório ou mantê-la separada no GitHub.
+* Essa extensão usaria `fetch` para pegar dados da plataforma e a API ExtendScript para manipular Premiere (por exemplo, createMarker).
+* Esse nível de detalhe foge do escopo da análise atual, mas deixaríamos a recomendação e base técnica documentada.
+
+**Referência:** A Adobe incentiva integrações via API – com HTML/JS é possível criar paineis para Premiere facilmente. Isso abre muitas possibilidades, como automações de workflow inteiras. Portanto, estruturar nossa plataforma para ter uma API REST (mesmo simples, apenas para comentários e status) seria o primeiro passo para integrá-la ao ecossistema do Premiere.
+
+### 7. Legendas Automáticas nos Vídeos Aprovados
+
+**Objetivo:** Ao término do projeto (vídeo aprovado), gerar automaticamente legendas para o vídeo, facilitando acessibilidade e possibilidade de publicar o vídeo com closed captions. Permitir controlar aspectos das legendas (tamanho, fonte, cor, posição, estilo) antes de fornecer o arquivo final.
+
+**Solução proposta:** Integrar um **serviço de transcrição de áudio** para obter o texto falado no vídeo, e então gerar um arquivo de legenda (formato SRT ou VTT). Em seguida, fornecer ferramentas para estilizar essas legendas ou queimá-las no vídeo caso desejado.
+
+**Etapas técnicas:**
+
+* **Transcrição do áudio do vídeo:** Poderíamos usar uma API de reconhecimento de voz. Opções:
+
+  * **OpenAI Whisper** (via API ou rodar local se tiver backend com recursos). Whisper é muito acurado e suporta PT-BR bem. Há serviços cloud ou podemos usar um worker serverless com tempo extendido (Whisper em arquivos grandes talvez precise de mais tempo do que o permitido pelo Vercel serverless padrão).
+  * **APIs cloud (Google Speech-to-Text, AWS Transcribe, Azure Cognitive)** – todas têm suporte a português e retornam transcrições com timestamp.
+  * Para simplificar, consideremos usar a **API do OpenAI Whisper** (disponível via OpenAI API) ou um serviço como AssemblyAI.
+* **Geração de arquivo de legenda:** Com o texto e timestamps em mãos, formatar em SRT:
+
+  ```
+  1
+  00:00:01,000 --> 00:00:04,000
+  [Texto falado de 1s a 4s]
+
+  2
+  00:00:04,500 --> 00:00:06,000
+  [Próximo trecho]
+  ```
+
+  Ou WebVTT. SRT é mais popular para embutir e para redes sociais (YouTube aceita SRT).
+* **Estilização:** As legendas, quando exibidas em players ou importadas em redes sociais, geralmente têm estilo padronizado (texto branco, outline). Se quisermos permitir personalizar estilo (tamanho, cor, fonte, posição):
+
+  * Para *closed captions* (se fornecermos .srt separado), o estilo é controlado pelo player ou pela plataforma de destino (YouTube permite mudar visual no próprio site do espectador). Mas não pelo arquivo em si – SRT não carrega estilo.
+  * Para aplicar estilo fixo, teríamos que **queimar as legendas no vídeo** (hardcode). Isso significa pegar o arquivo de vídeo e o arquivo de legenda e combinar, gerando um novo mp4. Essa operação pode ser feita com **FFmpeg** facilmente via filtro de subtitles. Exemplo comando:
+
+    ```
+    ffmpeg -i input.mp4 -vf "subtitles=legenda.srt:force_style='FontSize=24,PrimaryColour=&HFFFFFF&'" -c:a copy output.mp4
+    ```
+
+    (onde definimos cor branca e tamanho 24, etc.)
+  * O processo acima não pode rodar no front-end (FFmpeg no front seria pesado). Precisaria de um backend (serverless function com ffmpeg static, ou um job em cloud). Outra ideia: usar **FFmpeg WASM** no front – há projetos que rodam ffmpeg compilado em WebAssembly no navegador, mas para vídeos grandes não é muito viável (lentíssimo).
+  * Talvez mais simples: permitir o usuário escolher estilo e então fornecer para ele o **arquivo SRT** para ele usar conforme precisar, ou se ele marcar “quero legendas embutidas”, a plataforma poderia enfileirar um job offline (essa parte é mais complexa).
+
+**Implementação sugerida (mínima inicialmente):**
+
+* Adicionar um botão “Gerar Legendas Automáticas” na interface do DeliveryWidget, visível se o vídeo está aprovado e se ainda não foram geradas. Ao clicar:
+
+  * Desabilitar botão e mostrar “Gerando, aguarde...”.
+  * Chamar uma API route `/api/generate-subtitle` que:
+
+    1. Faz download do arquivo de vídeo (precisamos de seu URL; se estiver no Vercel Blob ou em algum storage público, temos URL. Ou se for em Cloudinary/YouTube, etc., usar link).
+    2. Extrai áudio e manda para um serviço de transcrição. Ex: OpenAI Whisper API (endpoint `transcriptions`), enviando o arquivo de áudio, recebe JSON com texto e timestamps.
+    3. Formata a resposta em SRT. Talvez usar a própria resposta do Whisper (que pode vir como vtt) e converter.
+    4. Salva o SRT em algum storage (ou pode retornar o conteúdo diretamente para o front-end baixar).
+    5. (Opcional: devolver também um WebVTT for player preview.)
+  * A função pode demorar alguns minutos em vídeos longos. Precisamos considerar limites de execução: Vercel serverless padrão é curto (10s), então talvez usar **background function** ou um job externo. Aqui podemos apenas guiar a proposta técnica.
+  * Após gerado, habilitar um link “Baixar Legenda (.srt)” e talvez uma pré-visualização no player (poderíamos carregar a legenda no video-player via `<track src="...srt" kind="subtitles" default />` para o usuário ver como ficou).
+  * Permitir ao usuário ajustar estilo visual no player (pelo próprio player HTML5 com CSS, ou se quiser algo custom: implementar uma camada de subtitle rendering). HTML5 track tags infelizmente não permitem customizar muito via JS (é basicamente definido pelo sistema do navegador). Poderíamos, como hack, gerar WebVTT e usar JavaScript para renderizar nossas legendas com estilo custom – mas isso duplicaria o trabalho do player nativo.
+  * Uma interface de **controle de estilo** pode incluir: seleção de cor (um input color), tamanho da fonte (slider), posição (drop-down: base da tela, topo, etc.), fonte (lista de fontes comuns ou permitir CSS custom?). Ao alterar essas opções, se estamos usando o player nativo, não teríamos efeito (pois estilo nativo não muda via CSS simples). Uma solução: renderizar manualmente legendas at timeupdate (similar ao card de comentário, mas para todo áudio) – isso seria reimplementar um subtitle renderer simples.
+
+    * Como é complexo, talvez a melhor abordagem é oferecer opções básicas e, se optarem por legendar embutido, usar essas escolhas quando rodar o FFmpeg server-side para queimar. Exemplo: se escolher cor amarela e fonte Arial 18px, na chamada FFmpeg usar `force_style='Fontname=Arial,PrimaryColour=&H00FFFF00&,FontSize=18'` equivalente.
+  * Dado a complexidade para um front sem backend robusto, uma solução pragmática: **usar um serviço externo ou desktop** – ou seja, por enquanto, fornecer a legenda transcrita (SRT) e explicar “você pode estilizar e embutir esta legenda usando ferramentas como Aegisub ou ffmpeg”. Mas vamos focar em fornecer pelo menos a legenda.
+
+**Justificativa:** Implementar essa funcionalidade incrementa muito o valor do produto, pois economiza tempo do editor em criar legendas e torna o material final mais acessível (Libras/ClosedCaption). Mesmo que inicialmente seja algo “offline” (editor baixa SRT e decide como usar), já é uma ajuda.
+
+Tecnicamente, teremos que usar APIs de terceiros, o que não quebra a lógica original do app – apenas acrescenta uma nova rota e alguns controles. Precisamos planejar custo (APIs de voz podem cobrar por minuto). Talvez oferecer para vídeos curtos grátis e para longos, pensar em custo adicional, mas isso foge do escopo do dev imediato.
+
+**Referência:** Conforme um tutorial da DigitalOcean, é viável combinar Whisper e FFmpeg para gerar e embutir legendas automaticamente. Podemos nos inspirar nessa abordagem para uma implementação futura robusta (com a transcrição possivelmente rodando num servidor ou usando funções edge se suportarem carga).
+
+### 8. Integração com Redes Sociais para Postagem Direta
+
+**Objetivo:** Após o vídeo aprovado, permitir ao editor ou ao cliente publicar o vídeo diretamente em plataformas como **YouTube, Instagram, Facebook** etc., sem precisar baixar e enviar manualmente. Isso agrega conveniência – por exemplo, um cliente pode querer que o vídeo final seja postado no YouTube da empresa dele imediatamente.
+
+**Estratégia:** Implementar conexões via APIs oficiais das plataformas:
+
+* **YouTube:** Possui a **YouTube Data API v3** que permite upload de vídeos para um canal, definindo título, descrição, tags, privacidade etc.. Requer OAuth 2.0 do usuário (para postar no canal deles) e usar a operação `videos.insert` da API. Existe client library JS, mas pode ser feito via fetch HTTP com o token.
+* **Instagram/Facebook:** Via **Meta Graph API**, é possível postar vídeos no IGTV ou como posts (Instagram Graph API tem endpoints for IG Media upload, mas restrito a contas business e vídeos curtos, e requer obter um token do usuário via Facebook Login).
+* **TikTok:** TikTok tem API de upload via kits específicos, porém menos acessível aos devs independentes (um pouco complexa e exige aprovação).
+* **Vimeo:** Vimeo possui API também, e por ser plataforma de vídeo profissional, talvez relevante para alguns editores.
+
+**Implementação técnica simplificada (ex.: YouTube):**
+
+* Adicionar no app a possibilidade de o usuário conectar suas contas. Por exemplo, em Configurações ou na tela de entrega final: botões “Conectar YouTube”, “Conectar Instagram”.
+* Ao clicar em “Conectar YouTube”, redirecionar o usuário para o fluxo OAuth do Google, solicitando escopo de YouTube upload (`https://www.googleapis.com/auth/youtube.upload`). Após o consentimento, Google redireciona de volta com um `code`. Teríamos que ter uma rota API para trocar o code por `access_token` (chamando Google OAuth token endpoint) e guardar esse token (idealmente criptografado e associado ao usuário).
+* Uma vez conectado, salvar no perfil do usuário algo como `youtubeAccessToken` (e refresh token, etc.). **(No MVP sem backend, guardar isso local storage ou context é volátil; seria melhor ter pelo menos um backend para tokens. Considerando que integrar rede social sem backend é inviável pela segurança, assumimos que para este recurso seria necessário introduzir um backend ou usar um serviço serverless que possa ocultar as keys)**.
+* Fornecer UI: no DeliveryWidget, depois de aprovado, aparecer um formulário **“Postar nas minhas redes”** com checkboxes para YouTube, Instagram, etc. O usuário escolhe onde quer publicar e preenche campos relevantes (título, descrição, hashtags). Para YouTube poderia até puxar do projeto (nome do evento => título sugerido).
+* Ao confirmar, chamar uma API route nossa `/api/publish` passando o ID do projeto e quais plataformas. Essa route então internamente:
+
+  * Recupera o vídeo final (saber o URL ou ter armazenado).
+  * Para cada plataforma, realiza a chamada apropriada:
+
+    * **YouTube:** uma requisição HTTP POST para `https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable` com metadata JSON (title, desc, tags) e depois enviar o arquivo binário no corpo (essa é uma subida resumable in one request). Ou utilizar a client library GoogleAPI se for mais fácil.
+    * **Instagram:** se for IGTV, a Graph API requer primeiro subir o vídeo em partes se > 25MB, ou se for reel curto, outro endpoint. Precisaria implementar conforme docs do Graph API. Isso envolve enviar o vídeo a um endpoint do Facebook Graph junto com parâmetros (caption, location etc.). O token necessário seria o do Instagram business integration.
+  * O API route então retorna sucesso ou falha por plataforma.
+* Informar o usuário via UI (toast ou mensagem) “Vídeo publicado com sucesso no YouTube!” ou exibir erros de autenticação (por ex., token expirado -> pedir reconectar).
+
+**Observações:**
+
+* Rate limits: O YouTube API tem quotas diárias, upload consome bastante quota. Precisaríamos talvez restringir ou monitorar.
+* Segurança: tokens OAuth devem ser bem guardados (em cookies HttpOnly ou DB). Em dev sem backend, talvez inviável gerenciar isso – poderia se pensar em usar serviços como Auth0 ou 3rd party integrators (ex.: Zapier webhooks) mas o melhor é eventualmente ter um backend do app.
+* Simplicidade: Talvez focar primeiro em **YouTube**, por ser mais direto e comum para vídeos longos. Instagram muitas vezes requer edições (corte em 1 minuto se feed normal) ou prefere vertical; não trivial automatizar adequação. YouTube comporta qualquer video <= 128GB via API.
+
+**Alternativa sem API complexa:** *Providenciar um link de preparação:*
+
+* Exemplo: gerar uma versão otimizada do vídeo final e fornecer um QR code ou link “Upload direto” que redireciona para YouTube with prefilled fields. Contudo, não existe link mágico para upload sem entrar na conta manualmente.
+* Ou permitir exportar vídeo final facilmente (um clique para baixar), e deixar rede social para o usuário manual. Isso já existe, mas incorporar no app seria melhor.
+
+**Justificativa:** Esse recurso, apesar de complexo, **não interfere na lógica de edição/revisão**, é executado pós-aprovação. Implementá-lo incrementa a utilidade da plataforma como uma solução completa (da edição à distribuição). Podemos modularizar bem – por exemplo, criar serviços separados para cada rede (YoutubeService.publish(video, metadata, token)) e chamá-los. Assim, se algo falhar ou não estiver configurado, não atrapalha o resto.
+
+**Referência:** A documentação oficial do YouTube API fornece exemplos de upload com títulos, descrições e etc. Citando: a aplicação precisará registrar-se para OAuth e enviar as credenciais do vídeo com metadata e binário. Esse seria o principal caso a seguir.
+
+Em resumo, nossa sugestão é: **priorizar YouTube** (onde se encaixa bem um vídeo de evento de vários minutos). Posteriormente, avaliar Instagram (talvez entregar um vídeo teaser curto para Instagram, e o longo no YouTube).
+
+### 9. Melhorias na Experiência Mobile Responsiva
+
+**Problema:** A interface rica em informações pode ficar confusa ou inutilizável em telas pequenas se não adaptada. Queremos que clientes possam, por exemplo, aprovar vídeos pelo celular facilmente, ou que editores chequem comentários no smartphone.
+
+**Soluções propostas:**
+
+* **Layout Single-Column no Mobile:** Reorganizar componentes em pilha vertical em vez de lado a lado. Por exemplo, na tela de Edições:
+
+  * Em desktop: poderia ter vídeo à esquerda e comentários/ativos à direita.
+  * Em mobile: vídeo ocupa largura total no topo; abaixo vem botões (briefing, assets, etc., talvez escondidos num menu de hambúrguer), e a lista de comentários abaixo do vídeo.
+  * O usuário pode tocar no vídeo para play/pause e rolar a página para ver comentários.
+
+* **Colapsar Menus e Paineis:** Barra lateral de navegação (se existente) deve se tornar um menu colapsável (hambúrguer) no mobile. Utilize o hook `useMobile()` para detectar mobile e então:
+
+  * Em MainWindow, se mobile, não renderizar a sidebar, mas sim um ícone de menu no topo que quando tocado, abre um `<div>` sobreposto com as opções de navegação.
+  * Ou usar um componente Drawer pronto (shadcn UI tem Drawer? Se não, usar HeadlessUI/Radix dialog para criar um menu lateral).
+
+* **Controles maiores e mais espaçados:** Aumentar o tamanho mínimo dos botões e inputs para \~48px (recomendação de usabilidade móvel). Ex.: o botão de adicionar comentário ou de enviar deve ser grande o suficiente para toque. Use classes Tailwind como `p-4` em vez de `p-2` no mobile via breakpoints (`sm:p-4`).
+
+* **Ocultar elementos não essenciais no mobile:** Por exemplo, o painel de usuários ativos (ActiveUsersDisplay) – em tela pequena, talvez mostrar “3 usuários online” em texto simples em vez de todos os avatares. Ou omitir os ícones de quem está digitando, para ganhar espaço.
+
+* **Ajustar player de vídeo:** O player HTML5 é responsivo por padrão se width:100%. Certifique-se de que o container permita aspect-ratio correto. Poderia usar `aspect-video` class do Tailwind (16:9) para manter formato. Em mobile, a pessoa talvez queira girar a tela; garantir que fullscreen do vídeo funcione (o elemento <video> com controls padrão já deve permitir fullscreen).
+
+* **Interações de anotação no touch:** Se o sistema de anotação (desenhar) for usado no mobile, isso é delicado pois toque arrastado já rola a página. Seria preciso interceptar eventos touch no canvas para desenhar. Talvez seja melhor **desabilitar desenho no mobile** ou mostrar aviso “Use um tablet ou desktop para fazer anotações visuais” para não atrapalhar.
+
+* **Testes reais em dispositivos:** Após implementar as classes responsivas, testar nas dimensões mais comuns (360px de largura para smartphones padrão). Ajustar qualquer overflow (scroll horizontal indesejado, que pode ocorrer se algum elemento tiver largura fixa maior que tela – ex.: tabelas, ou longas URLs). O CSS Tailwind provavelmente evita isso se usado corretamente (e.g., usar `max-w-full` em imagens e vídeos).
+
+* **Mobile-specific UI enhancements:** Poderíamos adicionar pequenos detalhes como:
+
+  * Botão flutuante “+” para adicionar comentário (mais visível do que um campo fixo talvez escondido).
+  * Se lista de comentários for muito longa, um botão flutuante “⬆️” para voltar ao topo ou ao vídeo.
+  * Tentar usar ícones reconhecíveis no lugar de texto extenso em rótulos, para poupar espaço, mas sempre com *tooltip/label acessível*.
+
+**Implementação prática:** Largamente no CSS/JSX:
+
+* Utilizar as classes de *breakpoints* do Tailwind (sm, md, lg correspondem a 640px, 768px, 1024px). Por exemplo, no container principal:
+
+  ```jsx
+  <div className="flex flex-row md:flex-col"> ... </div>
+  ```
+
+  Aqui, `flex-row md:flex-col` significa: por padrão (mobile-first) será coluna (flex-col), e em telas md (>=768px) será linha (colunas lado a lado).
+
+* Outro exemplo: no ActiveUsersDisplay, podemos envolver em
+
+  ```jsx
+  { !isMobile && <ActiveUsersDisplay /> }
+  ```
+
+  assim ele não aparece em mobile. O hook useMobile pode retornar true se `window.innerWidth < someThreshold` ou usar CSS media queries via useMediaQuery hook.
+
+* Navegação colapsável: podemos usar estado local `menuOpen` no MainWindow. Renderizar um hambúrguer:
+
+  ```jsx
+  {isMobile && 
+    <button onClick={() => setMenuOpen(true)}>☰ Menu</button>
+  }
+  {menuOpen && (
+    <div className="absolute top-0 left-0 w-full h-full bg-black/50" onClick={()=>setMenuOpen(false)}>
+      <nav className="bg-white w-3/4 h-full p-4"> ... lista de itens ... </nav>
+    </div>
+  )}
+  ```
+
+  Ou usar componentes ready-made se disponível.
+
+* **Não alterar lógica existente:** Todos esses são ajustes de apresentação. A lógica de adicionar comentário, etc., permanece igual – só mudamos quando e como mostrar componentes. Portanto o core do app fica intacto.
+
+**Resultado esperado:** Com essas melhorias, um cliente poderia:
+
+* Abrir o link do projeto no celular,
+* Clicar play para ver o vídeo (em tela cheia se preferir),
+* Pausar e adicionar um comentário com um botão claro,
+* Aprovar o vídeo tocando um botão de aprovação grande.
+  Tudo sem frustração de zoom ou elementos quebrados. Isso é fundamental hoje em dia, já que muitas interações rápidas ocorrem via smartphone.
+
+---
+
+Com as melhorias acima, cobrimos todos os pontos solicitados pelo usuário:
+
+* Aperfeiçoamos o sistema de **edições (revisão de vídeo)** e comunicação editor-cliente com comentários temporais e anotações bem integradas.
+* Propusemos **melhorias de UX/UI** abrangentes (navegação, feedback visual, design responsivo).
+* Sugerimos um **sistema de status de aprovação** para formalizar o aceite do cliente.
+* Detalhamos a **biblioteca de assets compartilhados** para troca de materiais.
+* Delineamos como poderia ser a **integração com Adobe Premiere Pro**, inclusive mencionando o uso de painéis ou exportação de marcadores, para conectar o ambiente de edição de vídeo com a plataforma web.
+* Explicamos como implementar **legendas automáticas** usando serviços de transcrição e possivelmente FFmpeg.
+* Abordamos a **integração com redes sociais** (especialmente YouTube) para postagem direta do vídeo final, com uso das respectivas APIs.
+* Finalizamos com ajustes para **experiência mobile**, garantindo que nada da lógica se perca ao adaptar para telas menores.
+
+A seguir, fornecemos **instruções passo a passo** mais detalhadas para implementar as principais melhorias acima, com indicação de comandos e trechos de código, a fim de auxiliar na aplicação prática dessas sugestões.
+
+## Instruções Passo a Passo para Aplicar as Melhorias
+
+Para facilitar, organizamos as instruções em seções correspondentes às melhorias propostas. Em cada seção, listamos os passos necessários para implementar a funcionalidade ou ajuste, incluindo comandos (quando aplicável) e exemplos de código. É importante seguir uma ordem lógica na aplicação dessas mudanças, priorizando primeiro as de arquitetura (ex.: preparar APIs para upload, transcrição, etc.) e depois as de UI, mas aqui as apresentaremos por funcionalidade para clareza.
+
+### A) Exibir Comentários como Cards Temporais no Vídeo
+
+1. **Adicionar estado de tempo corrente no VideoPlayer:** Edite o componente `video-player.tsx` para incluir um state `currentTime` e atualizá-lo no evento `onTimeUpdate` do elemento `<video>`. Por exemplo:
+
+   ```tsx
+   const [currentTime, setCurrentTime] = useState(0);
+   const handleTimeUpdate = () => {
+     if (videoRef.current) {
+       setCurrentTime(videoRef.current.currentTime);
+     }
+   };
+   ...
+   <video ref={videoRef} onTimeUpdate={handleTimeUpdate} ... />
+   ```
+
+   Isso captura o tempo atual em segundos continuamente.
+
+2. **Passar lista de comentários para VideoPlayer:** Certifique-se de que o VideoPlayer receba via props a lista de comentários do vídeo (talvez vinda do contexto de colaboração ou estado do EditingWidget). Exemplo:
+
+   ```jsx
+   <VideoPlayer videoSrc={videoUrl} comments={comments} ... />
+   ```
+
+   Se essa conexão não existe, ajuste o `editing-widget.tsx` para obter os comentários (ex.: `const { comments } = useCollaboration();`) e passá-los.
+
+3. **Determinar quando mostrar o card:** Dentro de `video-player.tsx`, usando `currentTime` e a prop `comments`, encontre se algum comentário deve aparecer. Uma abordagem simples é pegar o próximo comentário cujo timestamp é maior que `currentTime` e menor que `currentTime + δ` (δ um pequeno intervalo, tipo 0.5s), e que ainda não foi mostrado. Mantenha um estado `activeComment` inicial null.
+
+   ```tsx
+   useEffect(() => {
+     // Checa a cada mudança de currentTime
+     const upcoming = comments.find(c => !c.shown && c.time <= currentTime + 0.25 && c.time >= currentTime);
+     if (upcoming) {
+       setActiveComment(upcoming);
+       upcoming.shown = true;
+       // Oculta após 4s
+       const timer = setTimeout(() => setActiveComment(null), 4000);
+       return () => clearTimeout(timer);
+     }
+   }, [currentTime]);
+   ```
+
+   Aqui marcamos `c.shown` para não repetir (você pode gerenciar isso no estado de comentários global também). Em produção, idealmente não mutar props diretamente; você criaria um state local para isso. Mas para ideia, basta garantir que um comentário não dispare duas vezes.
+
+4. **Renderizar o card no JSX do VideoPlayer:** Abaixo do `<video>` element, adicione algo como:
+
+   ```jsx
+   {activeComment && (
+     <div className="absolute bottom-5 left-5 bg-black/80 text-white p-3 rounded-md max-w-xs">
+       <div className="text-sm"><strong>{activeComment.author} diz:</strong></div>
+       <div className="text-sm">{activeComment.text}</div>
+     </div>
+   )}
+   ```
+
+   Isso posiciona o card no canto inferior esquerdo do vídeo (ajuste CSS conforme preferência, usando classes Tailwind). Certifique-se que o container do VideoPlayer tem `position: relative;` (pode usar class `relative` no wrapper) para o `absolute` funcionar relativo ao player.
+
+5. **Teste o comportamento:** Execute o app, adicione um comentário e reproduza o vídeo. No momento do comentário, o card deve aparecer. Ajuste o tempo de exibição (4s ou mais) se necessário. Teste com múltiplos comentários próximos – se sobrepor, considere mostrar um de cada vez ou empilhar os cards verticalmente (pode modificar `bottom-5` para variar).
+
+6. **(Opcional) Botão “Próximo Comentário”:** No componente que controla o player (talvez no EditingWidget UI), adicione um botão que procura o próximo comentário cujo time > currentTime e faz `videoRef.current.currentTime = comment.time`. Exemplo:
+
+   ```jsx
+   <button onClick={() => {
+       const next = comments.find(c => c.time > currentTime);
+       if (next && videoRef.current) {
+         videoRef.current.currentTime = next.time;
+       }
+     }}>
+     Pular para próximo feedback
+   </button>
+   ```
+
+   Isso agiliza navegar entre pontos de interesse. Coloque esse botão perto do player ou lista de comentários.
+
+**Comandos relacionados:** Não há comandos de terminal específicos aqui, apenas edição de código React. Após alterar, faça o build/rodar (`npm run dev` ou `pnpm dev`) e verifique no navegador.
+
+### B) Marcação de Comentários como Resolvidos
+
+1. **Extender modelo de comentário:** Localize onde os comentários são definidos (pode ser no contexto colaboração ou estado do EditingWidget). Adicione um campo booleano `resolved` default false. Por exemplo, se houver uma interface TypeScript:
+
+   ```ts
+   interface Comment { id: string; author: string; text: string; time: number; resolved: boolean; }
+   ```
+
+   Atualize quaisquer instâncias de criação de comentário para incluir `resolved: false`. Ex.: na função que adiciona comentário, faça:
+
+   ```js
+   setComments([...comments, { id: generateId(), author: currentUser.name, text: newComment, time: videoRef.current.currentTime, resolved: false }]);
+   ```
+
+   (Use um ID único, ex: timestamp ou increment.)
+
+2. **Adicionar ação toggle no contexto:** No `collaboration-context.tsx` (ou onde for gerido), crie uma função `toggleCommentResolved(commentId: string)`. Internamente, ela localiza o comentário no array e inverte `comment.resolved`. Depois, se possível, faz update de estado para re-render:
+
+   ```tsx
+   function toggleCommentResolved(id: string) {
+     setComments(prevComments => prevComments.map(c => 
+       c.id === id ? { ...c, resolved: !c.resolved } : c
+     ));
+   }
+   ```
+
+   Exporte essa função via context para que componentes possam chamar.
+
+3. **Atualizar UI do CommentItem:** Abra `comment-item.tsx`. Aqui, além de mostrar texto, adicione um botão de marcar resolvido:
+
+   ```jsx
+   import { useCollaboration } from "@/contexts/collaboration-context";
+   ...
+   const { toggleCommentResolved, currentUser } = useCollaboration();
+   ...
+   return (
+     <div className={`p-2 border-b border-gray-700 ${comment.resolved ? 'opacity-50' : ''}`}>
+       <div className="text-sm">
+         <Avatar user={comment.author} /> <strong>{comment.author}</strong> <span className="text-xs text-gray-400">{formatTime(comment.time)}</span>
+       </div>
+       <div className="ml-6 text-sm">{comment.text}</div>
+       {!comment.resolved && currentUser.role === 'editor' && (
+         <button onClick={() => toggleCommentResolved(comment.id)} className="text-xs text-green-400 hover:text-green-300 ml-6">
+           Marcar como resolvido ✔️
+         </button>
+       )}
+       {comment.resolved && (
+         <span className="text-xs text-gray-500 ml-6">✔️ Resolvido</span>
+       )}
+     </div>
+   );
+   ```
+
+   Nesse código:
+
+   * Usamos um Avatar pequeno para autor (opcional).
+   * Exibimos tempo formatado (função formatTime deve converter segundos para mm\:ss).
+   * Se comentário não resolvido e usuário atual é editor, mostramos botão para resolver.
+   * Se já resolvido, mostramos um símbolo de check para todos verem.
+   * Aplicamos estilo `opacity-50` para um comentário resolvido para visualmente “apagar” um pouco.
+   * Ajuste classes conforme seu design (acima supusemos fundo escuro, bordas etc.).
+
+4. **Atualizar estilo no marcador timeline:** Para feedback visual completo, podemos também indicar no marker. Abra `comment-marker.tsx` (se existe, ou onde markers são pintados). Se ele recebe props do comentário, faça:
+
+   ```jsx
+   <div className={`marker ${comment.resolved ? 'bg-gray-500' : 'bg-red-500'}`} style={{ left: `${(comment.time/totalDuration)*100}%` }} />
+   ```
+
+   Ou seja, marcadores de comentários resolvidos ficam cinza, não vermelho (ou outra cor) – escolha cores adequadas para daltônicos também, se possível (forma diferente talvez).
+
+5. **Teste o fluxo:** Abra o app, adicione um comentário (como cliente), entre como editor (ou use função debug para marcar seu usuário como editor), clique “Marcar como resolvido”. O comentário deve mudar de aparência, e idealmente isso deveria refletir para o cliente também. Sem backend em tempo real, se ambos estiverem no mesmo app contexto React, veriam (por ser um estado global). Com socket, enviaria evento – essa parte pode ser implementada futuramente. Por agora, local sim.
+
+**Comandos:** Nenhum específico, apenas salvar mudanças e ver no app. Se for TypeScript, rodar `npm run build` para garantir tipos.
+
+### C) Melhorias de UX/UI (Diversos Pequenos Ajustes)
+
+Este item envolve múltiplos ajustes pontuais. Cada sub-passo é independente:
+
+1. **Tooltips nos botões de navegação:** Supondo que na MainWindow há um menu lateral com botões (por exemplo ícones lucide). Encontre o JSX desses botões, provavelmente algo como:
+
+   ```jsx
+   <button onClick={()=>setActiveTab('dashboard')}><HomeIcon /></button>
+   ```
+
+   Altere para:
+
+   ```jsx
+   <button onClick={()=>setActiveTab('dashboard')} title="Dashboard"><HomeIcon /></button>
+   ```
+
+   A propriedade `title` no elemento fornecerá um tooltip nativo do browser ao passar o mouse. Simples e eficaz sem lib extra. Faça o mesmo para “Edições”, “Entrega”, etc. Se quiser tooltips estilizados (bonitos), pode envolver com `Tooltip` componente do shadcn:
+
+   ```jsx
+   <TooltipProvider>
+     <Tooltip>
+       <TooltipTrigger asChild>
+         <button ...><EditIcon /></button>
+       </TooltipTrigger>
+       <TooltipContent>Editar Vídeo</TooltipContent>
+     </Tooltip>
+   </TooltipProvider>
+   ```
+
+   (Eles importaram Tooltip no ActiveUsers, então deve estar configurado).
+
+2. **Feedback de ações com Toasts:** Abra (ou crie) um hook `useToast` se não estiver pronto. (No código, havia `hooks/use-toast.ts` e possivelmente componentes UI correspondentes). Em `login-widget.tsx`, após login sucesso por exemplo, pode disparar:
+
+   ```jsx
+   const { toast } = useToast();
+   ...
+   onLoginSuccess={(user) => {
+       handleLogin(user);
+       toast({ description: `Bem-vindo, ${user.name}!` });
+   }}
+   ```
+
+   No envio de comentário: se comentários são adicionados via uma função `addComment`, dentro dela ou logo depois de setar estado, chame `toast({ description: "Comentário enviado." });`.
+   Após upload de asset: quando a promisse resolve, `toast({ description: "Arquivo carregado com sucesso." });` – no erro (catch), `toast({ variant: "destructive", description: "Falha no upload." });` (o shadcn UI toast tem variants).
+   Também, quando cliente clica “Aprovar”, faça aparecer um toast “✅ Você aprovou o vídeo. Obrigado!” e talvez outro toast do lado do editor (se real-time) “Cliente aprovou o vídeo!”.
+
+   Observação: Para toasts funcionarem, geralmente há um `<Toaster />` component colocado no root layout. Verifique se já existe algo assim. Se não, siga a doc do shadcn UI (provavelmente precisa envolver app com <ToastProvider> e ter <Toaster />).
+
+3. **Validar campos de formulário:** No LoginWidget, se existe um formulário de email/senha ou nome, adicione required nos inputs HTML:
+
+   ```jsx
+   <input type="text" required value={name} onChange={...} />
+   ```
+
+   E ao submeter, cheque se vazio:
+
+   ```jsx
+   if(!name.trim()){
+     toast({ variant: "destructive", description: "Por favor, insira seu nome." });
+     return;
+   }
+   ```
+
+   Assim não deixa prosseguir com nome vazio. (Similar para senha se houver, ou email regex).
+
+   Em upload de asset, antes de enviar file, cheque tamanho:
+
+   ```js
+   if(file.size > MAX_SIZE) { alert("Arquivo muito grande"); return; }
+   ```
+
+   ou use toast erro. E restrinja fileType se preciso (ex: aceitar `.mp4, .mov` para vídeos ou imagens).
+
+4. **Ajustes de estilo (CSS):** Abra `globals.css` ou tailwind config se quiser ajustar default. Por ex., aumentar `html { scroll-behavior: smooth; }` para suave scroll; definir `:focus { outline: none; }` se design custom, mas melhor manter acessibilidade outlines. Caso as fontes estejam muito pequenas, defina `body { font-size: 14px; }` ou use tailwind classes text-sm vs text-base adequadamente nos elementos.
+
+   Garanta que a cor de fundo do tema escuro e a cor do texto tenham contraste. O esquema shadcn default dark costuma ser ok (text-gray-100 sobre bg-gray-900, etc.). Se precisar, aumente contraste: por ex., use `text-white` em vez de `text-gray-300` para texto principal.
+
+   No ActiveUsers, se quiser evidenciar quem digita/anota, poderia mudar o badge:
+
+   ```jsx
+   {isTyping(user.id) && <Badge className="bg-blue-500" />} 
+   {isAnnotating(user.id) && <Edit className="absolute -bottom-1 -right-1 text-yellow-400" />} 
+   ```
+
+   (Por exemplo, mostrar um ícone de lápis amarelo sobre avatar se está anotando.)
+
+   Pequenos toques: Borda nos cards de comentário resolvido (ex: uma linha diagonal ou ícone de check d'água ao fundo). Tudo isso via CSS.
+
+5. **Testes e iteração:** Abra a aplicação no navegador e simule interações:
+
+   * Tente clicar nos ícones de menu – veja se o tooltip aparece.
+   * Envie um comentário – veja se toast aparece e desaparece (ajuste duração se preciso, shadcn toasts costumam sumir em 3-5s).
+   * Teste cenários inválidos (login sem nome, upload arquivo grande) – veja se mensagens aparecem.
+   * Verifique se design continua consistente. Se toasts aparecem no canto superior direito (padrão), isso está bom.
+
+**Comandos:** Nenhum especial além de rodar dev server. Talvez rodar `pnpm dlx tailwindcss -i` se precisasse adicionar classes ao safelist, mas aqui estamos dentro do React so no.
+
+### D) Implementar Sistema de Aprovação do Cliente
+
+1. **Definir role do usuário:** Para condicionalmente mostrar botões apenas para cliente ou editor, precisamos saber o papel. Se isso não estiver definido, podemos improvisar: por exemplo, quando o login ocorre, se o usuário escolhe “Entrar como Cliente” ou “Entrar como Editor”. Caso contrário, podemos assumir o primeiro login é cliente e o segundo é editor para teste, mas melhor ter escolha. Em `LoginWidget`, insira uma opção (um select ou dois botões):
+
+   ```jsx
+   const [role, setRole] = useState("cliente");
+   ...
+   <label>
+     <input type="radio" name="role" value="cliente" checked={role==="cliente"} onChange={()=>setRole("cliente")} />
+     Sou Cliente
+   </label>
+   <label>
+     <input type="radio" name="role" value="editor" checked={role==="editor"} onChange={()=>setRole("editor")} />
+     Sou Editor
+   </label>
+   ```
+
+   E ao criar o user (onLoginSuccess), passe esse role: `handleLogin({ name, role })`. No `app/page.tsx`, quando faz `setCurrentUser(user)`, agora user tem role. O context ou MainWindow deve propagar isso aos componentes (talvez via `currentUser` prop). Certifique que `useCollaboration` ou similar tenha currentUser com role agora.
+
+2. **Armazenar status de aprovação:** Onde armazenar? Uma opção: no `collaboration-context`, adicionar `approvalStatus` e `setApprovalStatus`. Mas esse status é mais do projeto do que colaboração multiusuário. Se houver um context de projeto, seria ideal. Como não, podemos colocá-lo no **DeliveryWidget** localmente:
+
+   ```jsx
+   const [approvalStatus, setApprovalStatus] = useState<"Pendente"|"Aprovado">("Pendente");
+   ```
+
+   (Pode usar strings ou enum com mais estados, mas vamos focar binário para simplicidade). Inicialmente “Pendente” (ou "Em revisão"). Quando editor marca vídeo disponível, poderíamos mudar para "Em revisão", mas isso complica; deixemos "Pendente" até cliente aprovar.
+
+3. **Botão de aprovação no UI:**
+
+   * Abra `delivery-widget.tsx` (ou onde entrega final é mostrado).
+   * Se usuário atual for cliente **e** status pendente: mostrar botão Aprovar.
+   * Se usuário atual for editor **e** status pendente: mostrar texto "Aguardando aprovação do cliente".
+   * Se status aprovado: mostrar mensagem de concluído, possivelmente data.
+   * Exemplo JSX:
+
+   ```jsx
+   {approvalStatus !== "Aprovado" ? (
+       currentUser.role === "cliente" ? 
+         <button className="bg-green-600 text-white px-4 py-2 rounded" onClick={() => setApprovalStatus("Aprovado")}>
+           ✔️ Aprovar Entrega
+         </button>
+       : <p className="text-yellow-500">Aguardando aprovação do cliente...</p>
+   ) : (
+       <div className="p-2 bg-green-800 text-green-200 rounded">
+         ✅ Vídeo aprovado! Não há pendências.
+       </div>
+   )}
+   ```
+
+   Estilize de acordo. O texto para editor aguardando pode ser outro estilo (amarelo de atenção).
+
+   Também, quando cliente clica Aprovar, além de setApprovalStatus, podemos:
+
+   * Enviar um toast "Vídeo aprovado. Obrigado pelo feedback!" no lado dele.
+   * Talvez notificar editor via context ou socket event. Simular via context: no `collaboration-context`, adicionar `approvalStatus` lá em vez de local, então qualquer um conectado veria a mudança. Para isso:
+
+     * Mova `approvalStatus` para context state, com `setApprovalStatus`.
+     * Editor e cliente ambos usam `const { approvalStatus, setApprovalStatus } = useCollaboration()`.
+     * Então o botão chama `setApprovalStatus("Aprovado")` globalmente. O context provider de colaboração deve englobar ambos no app, assim os dois veem a mudança simultaneamente (no contexto do React, se no mesmo browser até).
+     * Isso em real multiuser só funcionaria via WebSocket ou rechecagem no backend, mas estruturalmente está pronto.
+
+4. **Bloquear ações após aprovação:** Decida se, quando aprovado, deve impedir mais comentários ou uploads:
+
+   * Poderia colocar: `if(approvalStatus === "Aprovado") return null;` no editor de comentário para cliente não comentar mais depois de aprovar (pode confundir, pois aprovado supõe fim das revisões).
+   * Ou permitir, caso queiram comentar "valeu!" – mas isso é cosmético.
+   * Para segurança do fluxo, talvez travar: uma vez aprovado, somente editor poderia “reabrir” se necessário. Pode implementar isso se quiser:
+
+     * Editor vê um botão "Reabrir revisão" quando status Aprovado (caso clicado erroneamente ou surgem mudanças extras). Se clica, `setApprovalStatus("Pendente")` e notifica cliente. Porém, isso deve ser usado com parcimônia, pode ter implicações contratuais etc. Mas tecnicamente, simples de fazer se necessário.
+
+5. **Testar:**
+
+   * Faça login como cliente (em uma janela) e como editor (ou simule no mesmo if roles). Verifique:
+   * Editor deve ver "Aguardando aprovação".
+   * Cliente vê botão "Aprovar". Clica, some botão, aparece mensagem de aprovado.
+   * Editor agora deve ver o mensagem de aprovado também quase imediatamente (no contexto global scenario).
+   * Tente comentar após aprovado (se deixou liberado) – possivelmente não faz mal, mas se quiser que o sistema evite isso, implemente no addComment: `if(approvalStatus==="Aprovado"){ toast("Projeto já aprovado, comentários desabilitados."); return; }`.
+
+**Comandos:** Não há comandos específicos.
+
+### E) Implementar Biblioteca de Assets Compartilhados (Upload de Arquivos)
+
+1. **Configurar Storage (Vercel Blob ou outro):** Aqui focaremos no Vercel Blob que é integrado. Primeiramente, certifique-se que as variáveis de ambiente de autenticação do Blob estão configuradas se necessário (A Vercel Blob pode usar tokens específicos, ver doc). Nos guias Vercel, talvez não precise nada além de ter projeto ligado.
+
+   *Nota:* Se Blob demandasse credencial, seria via `VERCEL_BLOB_READ_WRITE_TOKEN` var, mas assumiremos que não é necessário no dev context ou está configurado via Vercel.
+
+2. **Criar API Route para Presigned URL:** Em `app/api/` (Next 13 App Router), crie uma pasta `upload-url/route.ts`. Dentro:
+
+   ```ts
+   import { createPresignedPost } from '@vercel/blob';
+   import { NextRequest, NextResponse } from 'next/server';
+   export async function POST(req: NextRequest) {
+     const { name, type } = await req.json();
+     try {
+       const post = await createPresignedPost({
+         // Optionally specify bucket or path
+         // Ex: path: `assets/${name}`,
+         expires: Date.now() + 15 * 60 * 1000, // 15 min
+         conditions: [
+           { "Content-Type": type },
+           ["content-length-range", 0, 100000000] // up to ~100MB
+         ]
+       });
+       return NextResponse.json(post);
+     } catch (err) {
+       console.error(err);
+       return NextResponse.json({ error: 'Blob presign failed' }, { status: 500 });
+     }
+   }
+   ```
+
+   Isso utiliza a função do SDK Vercel Blob para gerar URL e campos (similar a AWS S3 presign). O `post` retornado terá `url` (upload endpoint) e `fields` (form fields). (Certifique-se de instalar `@vercel/blob` via `npm i @vercel/blob` se ainda não está no package.json).
+
+   Adicione no `package.json` se não:
+
+   ```json
+   "dependencies": {
+     "@vercel/blob": "^0.2.0"
+   }
+   ```
+
+   E rode `npm install`. Isso é um **comando** necessário:
+
+   ```bash
+   npm install @vercel/blob
+   ```
+
+   ou `pnpm add @vercel/blob`.
+
+3. **Front-end: Componente de upload em AssetsWidget:** Abra `assets-widget.tsx`.
+
+   * Adicione um input file:
+
+     ```jsx
+     <input type="file" multiple onChange={handleFilesSelected} className="hidden" ref={fileInputRef} />
+     <button onClick={()=>fileInputRef.current?.click()} className="btn">📤 Enviar Arquivos</button>
+     ```
+
+     Aqui escondemos o input e simulamos clique via um botão estilizado.
+
+   * Implemente `handleFilesSelected`:
+
+     ```jsx
+     const handleFilesSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+       const files = e.target.files;
+       if (!files) return;
+       for (let file of files) {
+         // 1. Obter presigned URL do nosso backend
+         const res = await fetch('/api/upload-url', { 
+           method: 'POST', 
+           headers: { 'Content-Type': 'application/json' },
+           body: JSON.stringify({ name: file.name, type: file.type }) 
+         });
+         if (!res.ok) {
+           toast({ variant:'destructive', description: `Falha ao obter URL para ${file.name}` });
+           continue;
+         }
+         const { url, fields } = await res.json();
+         // 2. Fazer upload do arquivo para o URL fornecido
+         const formData = new FormData();
+         Object.entries(fields).forEach(([key, val]) => {
+           formData.append(key, val as string);
+         });
+         formData.append('file', file);
+         const uploadRes = await fetch(url, { method: 'POST', body: formData });
+         if (uploadRes.ok) {
+           // 3. Construir URL pública do arquivo e atualizar estado
+           const publicUrl = url + '/' + fields.key; 
+           // (fields.key geralmente contém o caminho gerado do arquivo)
+           setAssets(prev => [...prev, { name: file.name, url: publicUrl, type: file.type, uploadedBy: currentUser.name }]);
+           toast({ description: `${file.name} enviado com sucesso.` });
+         } else {
+           toast({ variant:'destructive', description: `Erro no upload de ${file.name}` });
+         }
+       }
+     };
+     ```
+
+     Algumas observações:
+
+     * A API createPresignedPost do Vercel Blob definirá `fields.key` com um nome único, e `url` deve ser base do bucket. A URL final de download do arquivo será combinando as duas. Por exemplo, se `url` = `https://upload-vercel-blobs.url/_/12345`, e `fields.key` = `assets/abc.jpg`, possivelmente a URL pública vai ser algo como `https://12345.blob.vercel-storage.com/assets/abc.jpg`. A doc não deixa claríssimo, mas o snippet acima (url + '/' + key) é palpite comum. Teste isso – após upload, a resposta de fetch talvez não forneça body, mas se status 204, use a concatenação. Ver doc:  sugere que com Blob, as requests retornam um URL no campo location ou utilize API de listing. Simplicidade: provavelmente url+key serve.
+     * Adicionamos ao estado `assets` um objeto. Você precisa ter no `AssetsWidget`:
+
+       ```jsx
+       const [assets, setAssets] = useState<{name:string, url:string, type:string, uploadedBy:string}[]>([]);
+       ```
+
+       E exibir abaixo.
+     * Use `useToast()` para feedback como mostrado.
+
+   * Mostrar lista de arquivos:
+     Abaixo do botão upload, liste:
+
+     ```jsx
+     <ul className="mt-4">
+       {assets.map(asset => (
+         <li key={asset.url} className="flex items-center gap-2 text-sm mb-2">
+           {/* ícone condicional por tipo */}
+           {asset.type.startsWith('image') && <ImageIcon className="text-blue-300" />}
+           {asset.type.startsWith('video') && <VideoIcon className="text-orange-300" />}
+           {asset.type.startsWith('audio') && <MusicIcon className="text-purple-300" />}
+           {/* default doc icon if none */}
+           {!asset.type.match(/image|video|audio/) && <FileIcon className="text-gray-300" />}
+           <a href={asset.url} target="_blank" rel="noopener" className="underline">{asset.name}</a>
+           <span className="text-xs text-gray-500">({asset.uploadedBy})</span>
+         </li>
+       ))}
+     </ul>
+     ```
+
+     Use ícones adequados (lucide-react tem icons: Image, Video, Music, File etc.). Importá-los no topo:
+
+     ```js
+     import { Image as ImageIcon, Video as VideoIcon, Music, File as FileIcon } from 'lucide-react';
+     ```
+
+   * (Optional) Estilize a listagem para ficar bonitinha. Já usamos underline e color. Poderia abrir imagens no Lightbox, mas não necessário agora.
+
+4. **Teste local do upload:**
+
+   * Inicie `npm run dev`. Abra a aba Assets.
+   * Clique "Enviar Arquivos" e escolha um pequeno arquivo (imagem por ex.).
+   * Verifique no Network se `/api/upload-url` retorna 200 com fields.
+   * Verifique se a `fetch(url, {method: 'POST', body: formData})` retorna 204 No Content (talvez apareça em rede ou no console log se you log uploadRes.status).
+   * Após isso, deve aparecer o item na lista com link. Clique no link para ver se abre o arquivo. Se funcionar, sucesso.
+   * Caso o link não abra (404), a montagem da URL pode estar errada. Tente inspecionar qual seria a URL pública. Às vezes `createPresignedPost` retorna um campo `blobUrl` ou similar. Cheque se `post` retornado tem algo além de fields e url. Se necessário, console.log ou use debug para ver. Ajuste a concatenação se diferente (ex.: talvez `url.replace('/_/','/') + fields.key`).
+   * Teste com vários arquivos de uma vez (segure Ctrl no file dialog). Devem todos aparecer.
+   * Teste com arquivo >100MB se quiser ver rejeição (difícil manual, mas definimos limite 100e6 \~ 100MB). Mude `content-length-range` se quiser maior.
+
+5. **Permitir remover asset (opcional):**
+
+   * Adicione um botão de delete em cada `<li>`:
+
+     ```jsx
+     {currentUser.role === 'editor' && (
+       <button onClick={() => deleteAsset(asset.url)} className="text-xs text-red-400 ml-auto">Remover</button>
+     )}
+     ```
+
+     (mostra apenas para editor, assumindo editor pode deletar qualquer).
+   * Implemente `deleteAsset(url)`:
+     If using Vercel Blob, deletion can be done via API call:
+
+     ```js
+     const deleteAsset = async (url) => {
+       // Vercel Blob deletion via fetch:
+       const res = await fetch(url, { method: 'DELETE' });
+       if (res.ok) {
+         setAssets(prev => prev.filter(a => a.url !== url));
+         toast({ description: "Asset removido."});
+       } else {
+         toast({ variant:'destructive', description: "Falha ao remover asset."});
+       }
+     };
+     ```
+
+     Experimente. Em dev local, a deletion request talvez não autentique se blob setar CORS ou exigir token. A doc do Vercel Blob indica que leitura e deleção também precisam de token a menos que anônimo. O `createPresignedPost` provavelmente já definem perms.
+     Se isso falhar por auth, poderíamos ignorar implementar remoção no MVP. Fica a cargo de futuras melhorias (talvez integrando com our own backend logic storing references and controlling token).
+
+6. **Integração com contexto (se multiusuário):**
+   Atualmente, esse assets state fica dentro do componente e não é compartilhado. Se quisermos que cliente e editor vejam os mesmos assets:
+
+   * Precisaríamos armazenar isso no contexto global de colaboração (ou outro context) e propagar via socket. Sem backend, podemos simular adicionando `assets` no CollaborationContext state e usar `useCollaboration` para obter em AssetsWidget ao invés de local state.
+   * Ex: in `collaboration-context.tsx`:
+
+     ```tsx
+     const [assets, setAssets] = useState<Asset[]>([]);
+     const value = { ..., assets, setAssets, ... };
+     ```
+
+     E no AssetsWidget:
+
+     ```jsx
+     const { assets, setAssets, currentUser } = useCollaboration();
+     ```
+   * Assim, se editor adicionar, e cliente estiver conectado no mesmo app context, verá a mudança de estado (React re-render). Em real scenario com separate sessions, sem backend isso não ocorre; com backend, um event "asset\_added" broadcast via WebSocket resolveria. Para agora, optamos ou por deixá-los recarregar para ver ou essa aproximação trivial.
+   * **Nota**: manter assets no contexto não persistirá refresh, mas se os assets residem de fato no Blob, poderíamos no futuro listar os arquivos do bucket ao abrir a aba. (Há um GET listing possivel mas deixemos quieto).
+   * Pelo escopo, esse detalhe de realtime/persistência assumimos out-of-scope, contanto que a funcionalidade básica de upload/download funciona dentro de uma sessão.
+
+**Comandos Recapitulando:**
+
+* Instalar SDK blob: `npm install @vercel/blob`.
+* Talvez configurar algum token env se doc pedir (cheque docs, mas se seu vercel project tem, etc).
+* Executar dev e teste. Para produção, logic amen.
+
+### F) Integração com Adobe Premiere Pro (Exportar Comentários)
+
+Dado que a integração completa com painéis do Premiere é extensa, vamos implementar a funcionalidade mais direta: **exportar comentários como CSV (ou outro formato) para importação manual no Premiere.**
+
+1. **Criar função de util para formatar timecode:** Premiere espera timecode com frames. Se não sabemos FPS, podemos assumir 30 ou 24. Para segurança, use 30 fps (com videos de eventos geralmente 30). Crie util em `lib/export-utils.ts`:
+
+   ```ts
+   export function secondsToTimecode(totalSeconds: number, fps: number = 30): string {
+     const hours = Math.floor(totalSeconds / 3600);
+     const minutes = Math.floor((totalSeconds % 3600) / 60);
+     const seconds = Math.floor(totalSeconds % 60);
+     const frames = Math.floor((totalSeconds % 1) * fps);
+     const pad = (num: number, size: number) => String(num).padStart(size, '0');
+     return `${pad(hours,2)}:${pad(minutes,2)}:${pad(seconds,2)}:${pad(frames,2)}`;
+   }
+   ```
+
+   Alternatively, could output time to milliseconds and let Premiere place marker (less precise). But let's stick to frames.
+
+2. **Criar função para gerar CSV content:** Também em `export-utils.ts`, algo como:
+
+   ```ts
+   import { secondsToTimecode } from './export-utils';
+   export function commentsToCSV(comments: Comment[]): string {
+     let csv = "Name,Start,Duration,Color,Description\n";
+     comments.forEach((c, i) => {
+       const tc = secondsToTimecode(c.time);
+       const text = c.text.replace(/(\r\n|\n|\r)/g, ' ').replace(/,/g, ';');
+       csv += `Comment ${i+1},${tc},00:00:00:00,Red,${text}\n`;
+     });
+     return csv;
+   }
+   ```
+
+   This will label each marker as "Comment 1,2,...", all with color Red and no duration (point markers). We replace newline in comments with space and commas with semicolon to not break CSV columns.
+
+3. **Botão Exportar na UI:** No componente onde faz sentido – poderia ser no EditingWidget (onde lista de comentários está), ou no DeliveryWidget quando aprovado (mas melhor antes de aprovação, durante revisão). Talvez no EditingWidget toolbar, colocar:
+
+   ```jsx
+   {currentUser.role === 'editor' && comments.length > 0 && (
+     <button onClick={exportCommentsCSV} className="btn-secondary">Exportar Comentários (CSV)</button>
+   )}
+   ```
+
+   Importar a função:
+
+   ```js
+   import { commentsToCSV } from '@/lib/export-utils';
+   ```
+
+   E implementar exportCommentsCSV:
+
+   ```jsx
+   const exportCommentsCSV = () => {
+     const csvContent = commentsToCSV(comments);
+     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+     const url = URL.createObjectURL(blob);
+     const link = document.createElement('a');
+     link.href = url;
+     link.setAttribute('download', `comentarios_${projectName || 'video'}.csv`);
+     document.body.appendChild(link);
+     link.click();
+     document.body.removeChild(link);
+   };
+   ```
+
+   Onde `projectName` pode ser substituído por algo do contexto (se tiver nome do projeto/evento; se não, só use 'video'). Isso inicia download de um arquivo CSV no computador do editor.
+
+4. **Instruções ao usuário:** Talvez colocar um pequeno texto ou tooltip no botão: "Exporte este CSV e importe no Adobe Premiere Pro (usando marcadores) para ver os comentários na timeline." Pode também documentar offline, mas legal se app dá dica. P.e., `<button title="Importe este CSV no Premiere usando a função de marcadores">...`.
+
+5. **Teste CSV:** Após gerar, abra o CSV num editor de texto e cheque formato. Exemplo esperado:
+
+   ```
+   Name,Start,Duration,Color,Description
+   Comment 1,00:00:12:15,00:00:00:00,Red,O trecho está escuro
+   Comment 2,00:00:45:00,00:00:00:00,Red,Adicionar logo aqui
+   ```
+
+   (Aqui 12:15 means 12 sec and 15 frames at 30fps = 12.5 sec).
+   Tente importar no Premiere:
+
+   * Em Premiere, tem que usar a extensão de marcadores CSV. Não nativamente via UI (Premiere Pro não importa CSV diretamente).
+   * Possível workaround: Tem um painel "Timeline -> Merge Captions/Comments", mas para markers talvez melhor converter CSV to Adobe Marker via third-party script. O editor talvez saiba ou um dev script do panel.
+   * No entanto, o CSV está lá. Documentar para usuário: ele pode usar algum script (existe um script "CSV Marker Import" na internet ou ele mesmo rodar script ExtendScript para ler CSV).
+   * Como essa é uma implementação auxiliar, daremos por entregue se CSV gera.
+
+6. **(Opcional) Implementar painel extension (Outline):** Não implementaremos completamente, mas podemos deixar pronto para um API endpoint:
+
+   * Poderia criar `app/api/comments/[projectId]/route.ts` com GET retornando JSON dos comments. Assim, um plugin externo poderia fazer GET para `.../api/comments/123` e obter {comments: \[...]}.
+   * Isso requer identificar projectId – se existe conceito de projetos. Talvez use eventId ou so one global project? Suponha no futuro multiple, mas agora skip.
+   * Se for trivial: if project = single, then GET /api/comments retorna nosso array de comments (no context). Sem DB, retorna contexto global, o que não funciona via serverless. Precisaria armazenar em alguma global (not recommended) ou read from file. Melhor não se complicar sem DB.
+   * Então plugin approach depende de se ter persisted data. Por ora, skip.
+
+**Comandos:** Adicionar util, no code as above, no Next environment.
+
+### G) Legendas Automáticas (Transcrição e Estilização Básica)
+
+Implementar completamente a geração de legenda pode ser complexo sem backend persistente. Mas vamos supor podemos usar a API do OpenAI Whisper or AssemblyAI.
+
+Um caminho mínimo: usar o OpenAI Whisper API via fetch (OpenAI has an endpoint `https://api.openai.com/v1/audio/transcriptions` that accepts file). Porém, **enviar o arquivo de vídeo bruto para OpenAI API não é ideal** (limites, e privacidade). Melhor extrair áudio e enviar audio only.
+
+Podemos tentar:
+
+1. **API route for transcription:** `app/api/transcribe/route.ts`:
+
+   ```ts
+   import { NextRequest, NextResponse } from 'next/server';
+   import fetch from 'node-fetch';
+   export async function POST(req: NextRequest) {
+     try {
+       const { videoUrl } = await req.json();
+       // Download video or audio
+       const res = await fetch(videoUrl);
+       if (!res.ok) throw new Error('Failed to fetch video');
+       const arrayBuffer = await res.arrayBuffer();
+       // Optionally, we could extract audio by using ffmpeg WASM here (heavy) or assume video file is small and API can handle it.
+       // For brevity, send whole file (OpenAI might accept mp4 video directly).
+       const formData = new FormData();
+       formData.append('file', new Blob([arrayBuffer], { type: 'video/mp4' }), 'audio.mp4');
+       formData.append('model', 'whisper-1');
+       formData.append('response_format', 'srt'); // get SRT directly
+       const openaiRes = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+         method: 'POST',
+         headers: { 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}` },
+         body: formData
+       });
+       if (!openaiRes.ok) {
+         const err = await openaiRes.text();
+         throw new Error(`OpenAI Error: ${err}`);
+       }
+       const srtText = await openaiRes.text();
+       return NextResponse.json({ srt: srtText });
+     } catch (e) {
+       console.error(e);
+       return NextResponse.json({ error: e.message }, { status: 500 });
+     }
+   }
+   ```
+
+   *Considerações:*
+
+   * Precisa `OPENAI_API_KEY` no .env. Você deve obter uma key do OpenAI. Para test, se não tem, use AssemblyAI etc. We'll proceed with OpenAI for accuracy (Whisper).
+   * Enviamos video as file. Whisper API can likely accept mp4 under 25MB or so (doc says up to \~25MB I think). If video bigger, might fail. Could instruct user to keep video short or degrade quality for transcribe.
+   * Setting `response_format: 'srt'` means API returns subtitles in SRT string format directly (OpenAI Whisper API supports `json`, `text`, `srt`, `verbose_json`).
+   * No styling here, just plain SRT with times. We'll handle styling in player or let user style offline.
+
+2. **Button in UI to generate subtitles:** Possibly in DeliveryWidget, once approved:
+
+   ```jsx
+   {currentUser.role === 'editor' && approvalStatus === 'Aprovado' && !subtitlesGenerated && (
+     <button onClick={handleGenerateSubtitles} className="btn-primary">Gerar Legendas Automáticas</button>
+   )}
+   { subtitlesGenerated && (
+     <div>
+       <p>Legendas geradas. <a href={subtitleUrl} download={`subtitles_${projectName}.srt`} className="underline">Baixar SRT</a></p>
+       <div className="flex items-center">
+         <label>Tamanho: <input type="number" value={captionStyle.size} onChange={...} className="w-16"/></label>
+         <label>Cor: <input type="color" value={captionStyle.color} onChange={...}/></label>
+         <button onClick={applyStylePreview} className="ml-2">Aplicar Estilo Prévia</button>
+       </div>
+     </div>
+   )}
+   ```
+
+   * `subtitlesGenerated` state boolean, `subtitleUrl` state for objectURL of the SRT file.
+   * `captionStyle` state for styling (size in px, color hex). If needed, also position.
+   * When clicking "Gerar Legendas", call our API:
+
+     ```jsx
+     const handleGenerateSubtitles = async () => {
+       setGenerating(true);
+       const res = await fetch('/api/transcribe', { 
+         method: 'POST', headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ videoUrl: deliveryVideoUrl })
+       });
+       setGenerating(false);
+       if (!res.ok) {
+         toast({ variant:'destructive', description: "Erro ao gerar legendas." });
+       } else {
+         const data = await res.json();
+         const srtContent = data.srt;
+         const blob = new Blob([srtContent], { type: 'text/srt;charset=utf-8;' });
+         const url = URL.createObjectURL(blob);
+         setSubtitleUrl(url);
+         setSubtitlesGenerated(true);
+         // Optionally, load into video player track:
+         const videoElem = document.querySelector('video');
+         if (videoElem) {
+           const track = document.createElement('track');
+           track.kind = "subtitles";
+           track.label = "Português";
+           track.srclang = "pt";
+           track.src = url;
+           track.default = true;
+           videoElem.appendChild(track);
+         }
+       }
+     };
+     ```
+
+     * `deliveryVideoUrl` must be known: presumably the final video file URL (maybe stored when delivered). If not, maybe use the one uploaded to Vercel Blob. Or if not using Blob for final, could use same URL as video player uses to stream. Should pick from state or context where video source is.
+     * After obtaining SRT, we attach it to video element as track for preview. This allows user to play video in platform and see subtitles (depending on browser, it might show them or need controls toggle CC).
+     * Provide download link for SRT as well (`subtitleUrl` used in anchor).
+
+3. **Style customization preview:**
+   This part is tricky because HTML5 video default subtitles style not easily changeable. We might do a hack:
+
+   * Insert a `<style>` for `::cue` pseudo-element to style track:
+
+     ```js
+     const applyStylePreview = () => {
+       const styleElem = document.getElementById('cue-style') || document.createElement('style');
+       styleElem.id = 'cue-style';
+       styleElem.innerHTML = `
+         video::cue {
+           font-size: ${captionStyle.size || 16}px;
+           color: ${captionStyle.color || '#FFFFFF'};
+         }`;
+       document.head.appendChild(styleElem);
+     };
+     ```
+
+     According to spec, we can use `video::cue { }` CSS to style WebVTT cues (works in some browsers). Chrome supports basic ones like color, font-size.
+   * When user changes inputs and hits "Aplicar", call `applyStylePreview()`. They should see the changes on subtitles in the player if track is showing. This is somewhat experimental, but widely should work for color and size.
+   * We can add more fields like background color, etc., but let's keep to color and size.
+
+4. **Burn-in vs external styling:**
+   For truly applying style to output video, we can't on front-end. That would require sending style choices to server and have ffmpeg do it.
+
+   * We can mention to the user: "Para aplicar estas legendas permanentemente no vídeo, baixe o SRT e use um programa (ou reenvie para o editor) para renderizar com estilização desejada."
+   * Or plan future serverless function that uses ffmpeg to burn (this likely beyond Vercel's normal execution due to time). Possibly an integration with something like AWS Lambda or an external video processing API if needed.
+
+5. **OpenAI API usage cost note:** The dev should be aware that using OpenAI Whisper via API costs (currently \~\$0.006/minute). For a 5-min video, negligible, but for 1h event, could be \~\$0.36. Not huge, but ensure have API Key and maybe allow only if key present in env to avoid failure.
+
+6. **Test (with a short video):**
+
+   * Provide a short video URL in code or test environment (maybe add a sample video in public to try).
+   * Click "Gerar Legendas".
+   * It may take some time (depending on length). Check logs to see if route calls and any error.
+   * If succeed, you should see SRT output (maybe log first few lines).
+   * The video element should now show CC option. Try playing and enabling CC if not auto.
+   * Adjust style: change size to 24, color to yellow (#ffff00), hit aplicar.
+   * See if cues text changes accordingly (should).
+   * Check the downloaded SRT by clicking link: open in text editor, see content. Possibly looks like:
+
+     ```
+     1
+     00:00:00,500 --> 00:00:02,000
+     [transcribed text...]
+     ...
+     ```
+   * If OpenAI didn't align times well, it's beyond our control for now.
+   * If any step fails (common: large file or any CORS on fetch video), to mitigate in dev: maybe place video in public and do fetch from local FS by reading file? But from Next API, reading a local file by path or using fetch('[http://localhost/video.mp4](http://localhost/video.mp4)'). Possibly allowed, should if accessible. Or require user to upload final video to blob and use that stable URL.
+   * In a pinch, could instruct user to drop video file directly to an <input type="file"> and then send it to API route (skip fetch video). That might be easier and more reliable:
+     Instead of `videoUrl`, do `file` in formData and send direct to OpenAI, circumvent uploading to our server (since openai call is from our server though, we either send them link or file).
+     We did in code: we downloaded and then reuploaded to OpenAI. The alternative:
+
+     * Let user select video file (like he has final file on disk), and send directly to openai from front using fetch to openai (but CORS and secret issues because need API key).
+     * Not safe to expose key on front.
+       So, our approach is fine if video is accessible via URL and small enough.
+
+**Comandos:**
+
+* Setup environment variable OPENAI\_API\_KEY in `.env.local`.
+* Possibly install `node-fetch` if using it (since Next 13 route might allow global fetch).
+  Actually, inside route we can use global fetch as we did (should work in Node because Next provides polyfill I think).
+  If needed: `npm install node-fetch` and `import fetch from 'node-fetch'`.
+  But next 13 should allow `import { createPresignedPost } from '@vercel/blob'` which uses global fetch under hood. Check if not needed.
+
+### H) Integração com Redes Sociais (YouTube upload)
+
+Implementing full upload in code might be lengthy. But outline with some code:
+
+1. **Google API Credentials:** Need to register app in Google Cloud, get client ID/secret, and define redirect. For dev, maybe skip actual OAuth but we can simulate or direct to a quick solution:
+   Possibly easier: If the user (editor) is fine linking their account, we'd do:
+
+   * Provide a link to initiate Google OAuth: e.g.
+
+     ```
+     https://accounts.google.com/o/oauth2/v2/auth?client_id=YOUR_CLIENT_ID&redirect_uri={our domain}/api/oauth2callback&response_type=code&scope=https://www.googleapis.com/auth/youtube.upload
+     ```
+
+   This requires a callback route to handle code.
+
+   * Implement `app/api/oauth2callback/route.ts` to catch `code` from query, then call Google token endpoint to get refresh and access token. Save these tokens maybe in a cookie or temp storage (lack DB is problematic).
+   * For demo, maybe simpler: If you as dev have a refresh token for your account, you could manually store it (but for multiple users no).
+   * Possibly skip interactive, instruct user to create a YouTube API key and use "OAuth installed app" flow outside, etc. Too complicated for user.
+
+   Considering, perhaps for now, we do not fully implement OAuth. We might simulate with a placeholder:
+
+   * Provide an input field "YouTube API Key or Access Token" for the user (not ideal, exposing access token is bad).
+   * But Google Data API doesn't allow direct API key for uploading content (must be OAuth).
+   * As an alternative plan: **Encourage user to download video and manually upload**. But that defeats feature. Alternatively, use a third-party integration like *Pipedream* or *Zapier* to handle it. Too external.
+
+   For the sake of demonstration, let's assume the editor is willing to provide an OAuth token manually (like a one-time token). Or better: we just implement the code to upload if we had a token, and note that the actual token retrieval should be done separately.
+
+2. **API route for posting to YouTube:** `app/api/publish/youtube/route.ts`:
+
+   ```ts
+   import { NextRequest, NextResponse } from 'next/server';
+   export async function POST(req: NextRequest) {
+     const { videoUrl, title, description, accessToken } = await req.json();
+     try {
+       // Download video file
+       const videoRes = await fetch(videoUrl);
+       if (!videoRes.ok) throw new Error('Video fetch failed');
+       const videoBuffer = Buffer.from(await videoRes.arrayBuffer());
+       // Initiate resumable upload
+       const apiUrl = 'https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status';
+       const initRes = await fetch(apiUrl, {
+         method: 'POST',
+         headers: {
+           'Authorization': `Bearer ${accessToken}`,
+           'Content-Type': 'application/json; charset=UTF-8',
+           'X-Upload-Content-Type': 'video/*'
+         },
+         body: JSON.stringify({
+           snippet: { title, description, categoryId: '22' },
+           status: { privacyStatus: 'unlisted' }
+         })
+       });
+       if (!initRes.ok) {
+         const err = await initRes.text();
+         throw new Error(`Init upload failed: ${err}`);
+       }
+       const uploadUrl = initRes.headers.get('location');
+       if (!uploadUrl) throw new Error('No upload URL returned');
+       // Upload binary
+       const uploadRes = await fetch(uploadUrl, {
+         method: 'PUT',
+         headers: {
+           'Content-Type': 'video/mp4', // assuming mp4
+           'Content-Length': videoBuffer.length.toString()
+         },
+         body: videoBuffer
+       });
+       if (!uploadRes.ok) {
+         const err = await uploadRes.text();
+         throw new Error(`Upload failed: ${err}`);
+       }
+       return NextResponse.json({ success: true });
+     } catch (err) {
+       console.error(err);
+       return NextResponse.json({ error: err.message }, { status: 500 });
+     }
+   }
+   ```
+
+   This approach:
+
+   * Uses the two-step resumable upload:
+
+     1. POST metadata to get an upload URL (with location header).
+     2. PUT video bytes to that URL.
+   * We set privacyStatus unlisted by default (could be option).
+   * We require `accessToken` that has YouTube scope (the user would have had to obtain it).
+   * We choose categoryId 22 (People & Blogs) as default (or allow as parameter).
+   * We do it synchronously in serverless function. If video is large, might exceed runtime 10s easily. Not great. Possibly chunking or background job is needed, but Vercel serverless might cut off. For small test (couple MB) it's okay, but for real videos dozens of MB or more, this might not finish in time or break. A better approach: have the front-end use the resumable endpoint directly in chunks (like they do in official docs using client libraries with chunk upload). But dealing with OAuth in front is even harder.
+   * So in real scenario, using something like GCP Cloud Function or an external worker to handle the upload might be necessary.
+   * For demonstration, maybe test with a very short small video <5MB to see success.
+
+3. **UI changes to incorporate posting:**
+
+   * Possibly on DeliveryWidget after approved, show:
+
+     ```jsx
+     {currentUser.role === 'editor' && approvalStatus==="Aprovado" && (
+       <div className="mt-4 p-2 border border-gray-600 rounded">
+         <h4 className="text-sm font-medium mb-2">Publicar Vídeo nas Redes Sociais</h4>
+         <div className="mb-2">
+           <label>Título: <input type="text" value={videoTitle} onChange={...} className="input" /></label>
+         </div>
+         <div className="mb-2">
+           <label>Descrição: <textarea value={videoDesc} onChange={...} className="textarea"></textarea></label>
+         </div>
+         <div className="mb-2">
+           {/* We assume for simplicity user has an accessToken somehow */}
+           <label>Token de Acesso YouTube: <input type="password" value={ytToken} onChange={...} className="input"/></label>
+         </div>
+         <button onClick={handlePublishYouTube} className="bg-red-600 text-white px-3 py-1 rounded">🚀 Publicar no YouTube</button>
+         {publishStatus && <p className="text-xs mt-1">{publishStatus}</p>}
+       </div>
+     )}
+     ```
+   * States: `videoTitle` default maybe project name, `videoDesc` maybe from briefing, `ytToken` if not integrated ideally ask them to paste an OAuth token (again, not user-friendly, but for a demonstration environment where editor is maybe just developer, could do).
+   * `handlePublishYouTube`:
+
+     ```jsx
+     const handlePublishYouTube = async () => {
+       setPublishStatus("Publicando no YouTube...");
+       const res = await fetch('/api/publish/youtube', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({
+           videoUrl: deliveryVideoUrl,
+           title: videoTitle,
+           description: videoDesc,
+           accessToken: ytToken
+         })
+       });
+       if(res.ok) {
+         setPublishStatus("Vídeo publicado com sucesso no YouTube! ✅");
+       } else {
+         const err = await res.json();
+         setPublishStatus("Falha: " + err.error);
+       }
+     };
+     ```
+
+     Use proper videoUrl (maybe the one on our Blob or stored after upload final).
+   * If we had the actual OAuth integration, we wouldn't ask for token here, but redirect user to connect etc. For now, if demonstration, developer can fetch an OAuth token manually via Google OAuth Playground and paste to test (which is not a real production flow, but okay for proof of concept).
+
+4. **Testing & Limitations:**
+
+   * As said, the serverless might timeout for bigger video. For a small 1MB sample video, likely fine. For a real 500MB, no way.
+   * One could try to circumvent by doing chunk upload on front using XHR in browser:
+     Actually, the official resumable upload flow can be done from the browser too by obtaining an OAuth token in browser. But that requires implementing the OAuth implicit flow or PKCE in JS. Possibly simpler to use Google API client library (gapi) in the front end. That might be a simpler alt: There's an older Google Javascript API library where user sign-in can be triggered and then `gapi.client.youtube.videos.insert(...)`. But mixing that in Next might be heavy; it is doable though. Given time, skip.
+   * If testing manually: get a short access token (1h) via Playground, fill fields, click upload, see in logs if upload route prints success. Then check your YouTube channel if video appears (should be unlisted).
+   * Clean up any tokens, don't commit them.
+
+5. **Integration for other networks (just theoretical):**
+
+   * For Instagram, the flow is different and can't easily be done by a generic approach. Might skip. Possibly mention to use Instagram's scheduling via Creator Studio or so.
+   * Or allow adding link to IG in description if manually uploading to YT, etc. But the requirement specifically said integration direct posting, which we tackled with YouTube example, the most feasible.
+
+**In summary**, the YouTube integration we add is more like a developer-targeted proof-of-concept due to complexity of proper OAuth. In documentation to user, we can mention "Integration with YouTube is possible but requires linking your account. In a full implementation, you would go through an OAuth consent to allow the app to upload on your behalf. Here we've demonstrated the capability using a provided access token for testing."
+
+### I) Melhorias Mobile Responsiva (CSS)
+
+Finally, implementing responsive adjustments:
+
+1. **Use Tailwind responsive classes:**
+
+   * Identify main layout containers. For example, if MainWindow currently does:
+
+     ```jsx
+     <div className="flex">
+       <aside className="w-64">...menu...</aside>
+       <div className="flex-1">...content...</div>
+     </div>
+     ```
+
+     Change to:
+
+     ```jsx
+     <div className="flex flex-col md:flex-row">
+       <aside className="md:w-64 w-full">...menu...</aside>
+       <div className="flex-1">...content...</div>
+     </div>
+     ```
+
+     This makes aside full width on mobile (stacked above content), and 64px width only on medium screens and up.
+   * If aside (menu) should be hidden entirely on mobile replaced by menu button:
+
+     * Use conditional rendering with `isMobile` (from hook or `window.innerWidth`).
+       In MainWindow:
+
+       ```jsx
+       const { isMobile } = useMobile();
+       return (
+         <div className="flex">
+           {!isMobile && <aside>...menu...</aside>}
+           <div className="flex-1"> 
+             {isMobile && <button onClick={()=>setMenuOpen(true)}>☰ Menu</button>}
+             ...content...
+           </div>
+         </div>
+         {isMobile && menuOpen && (
+           <div className="fixed inset-0 bg-black/60" onClick={()=>setMenuOpen(false)}>
+             <nav className="bg-gray-800 w-3/4 h-full p-4">
+                ... menu items (similar to aside content) ...
+             </nav>
+           </div>
+         )}
+       );
+       ```
+
+       Here, on mobile we hide the static aside, but provide a toggle button to show the nav as an overlay.
+       We also hide overlay on clicking outside or selecting an item. Ensure selecting an item closes menu (call setMenuOpen(false) on link click).
+     * Style the nav overlay (maybe slide in animation from left, but not required).
+   * If using tailwind, might not have out-of-box for overlay, but your code can do.
+
+2. **Flex directions for subcomponents:**
+
+   * In EditingWidget, if there's a horizontal split (player vs comments). Ensure to wrap in container:
+
+     ```jsx
+     <div className="flex flex-col lg:flex-row">
+       <div className="lg:w-2/3">...Video + toolbar...</div>
+       <div className="lg:w-1/3 lg:max-h-screen overflow-auto">...Comments...</div>
+     </div>
+     ```
+
+     This way: on small (<1024px), will be flex-col (video on top, comments below), on large, side by side with 2/3 1/3 width. Also gave comments container a max height (screen height) and scroll if overflow (so on desktop tall screen, comment list doesn't push beyond visible area).
+     Use `overflow-y-auto` to scroll inside.
+   * The timeline markers maybe in video player are fine, if too narrow might hide them in mobile (but probably okay).
+   * ActiveUsers: as decided, perhaps hide on mobile:
+     Wrap it in:
+
+     ```jsx
+     { !isMobile && <ActiveUsersDisplay /> }
+     ```
+
+     Or at least condense it: maybe show just count:
+
+     ```jsx
+     { isMobile && activeUsers.length > 0 && (
+         <p className="text-xs text-gray-400">Usuários ativos: {activeUsers.map(u=>u.name).join(', ')}</p>
+       )
+     }
+     ```
+
+     So instead of avatar list, just a line of text listing names or count.
+
+3. **Increase target sizes:**
+
+   * Buttons: ensure classes add padding on small screens:
+     For instance, in tailwind, define:
+
+     ```jsx
+     <button className="px-4 py-2 text-sm md:text-base">...</button>
+     ```
+
+     This way on small screens (no override) it uses text-sm which is slightly smaller (to maybe fit) but padding is fine. Or do `sm:px-2 px-4` depending on need (contrary, likely want bigger on mobile).
+   * Comment input: if currently small, perhaps on mobile make it full width:
+     e.g., if comment input is in a sidebar with fixed width, on mobile give it `w-full`.
+   * Check clickable icons (like small icons in timeline maybe okay).
+
+4. **Testing in dev tools:**
+
+   * Open devtools, toggle mobile view at different widths: 375px iPhone, etc.
+   * Check each page:
+
+     * Login page: should be fine, likely just a column of fields (maybe enlarge text fields if needed).
+     * MainWindow:
+       In mobile, see if menu is accessible (either as static top or hamburger). Try clicking to ensure overlay open/close works and all nav items reachable. If any overflow horizontally, fix by adding `overflow-x-hidden` on body or container.
+     * Edições page:
+       Video should resize to width. If tall aspect, you'll see perhaps letterboxing. That is fine. If too short, you can enforce an aspect ratio:
+       Add class `aspect-video` to video container to maintain a 16:9 area. Tailwind has `aspect-w-16 aspect-h-9` if older version, but now `aspect-video` covers it.
+       Comments below video in mobile: ensure scroll works if many comments. If not, maybe better to collapse video to small and allow scroll page, but let's see:
+       Possibly easier: allow whole page scroll (video, then comments naturally scroll).
+       If we constrained comment with internal scroll, it's not necessary on mobile (just let page scroll, which is easier to handle).
+       So, in mobile maybe remove fixed heights. In code above, gave comments max-h-screen for desktop to not overflow window, but on mobile, we might remove that:
+       Actually we had `lg:max-h-screen`. That means only large screens apply the max height. On mobile, no max height so comment list will just continue downwards, which is fine.
+       Try adding an extremely long comment text to see if it wraps or breaks layout. If overflows, add `break-words` class to the comment text container to force wrap long words/URLs.
+     * Briefing/Assets pages:
+       Likely these are simpler text lists or forms, likely fine. If assets list items are wide, they will wrap naturally line by line which is fine. Could also stack icon above filename on mobile if needed, but not necessary.
+     * Delivery page:
+       With all the new sections (social publish, etc.), ensure that on mobile they stack nicely and inputs are usable (maybe convert some to full width).
+       Possibly, for social share, on mobile the user likely wouldn't use that, it's more editor on desktop, so not critical but still should not break layout.
+     * Consider orientation changes: in landscape on a phone, maybe the desktop layout triggers (if width > 768). This could cause aside to show when maybe not needed. But if phone is rotated, probably user actively wants a wider view. It's fine if aside appears in landscape with enough width. If not, could raise the md breakpoint to something like 1024 for aside, but that's detail.
+
+5. **Other mobile-specific enhancements:**
+
+   * If you have the `use-mobile.tsx`, check what it does. Perhaps it uses a media query or user agent detection. Possibly it adds a class to HTML or similar. If it's not critical, our manual adjustments suffice.
+   * Possibly add meta viewport tag if not present (`<Head><meta name="viewport" content="width=device-width, initial-scale=1.0"></Head>`). Next might auto-add in Document if not.
+   * Test actual device if possible (open on phone via network or deploy preview).
+   * Performance: large videos might not play smoothly on low-end phones, but nothing we can do except maybe offer a download link for offline play in external player.
+
+**Recap:**
+These responsive changes mostly revolve around adding tailwind classes and some conditional rendering for sidebars and minor logic for menus. They do not interfere with app logic aside from layout.
+
+After completing all these steps, the application should be far more robust and feature-complete:
+
+* Comentários visíveis durante o vídeo,
+* Sistema de aprovação,
+* Troca de arquivos,
+* (Basic) Premiere integration via export,
+* Automatic subtitles generation,
+* Direct posting to YouTube (with caveats),
+* and a smoother experience on mobile devices.
+
+Todas as melhorias propostas respeitam a lógica original do app – não removemos funcionalidades existentes, apenas as expandimos ou as tornamos mais amigáveis. A Vercel (e a plataforma v0.dev) não precisará alterar nenhuma função central não solicitada; as adições são modulares e opcionais, podendo ser ativadas conforme necessidade.
+
+**Observação Final:** Antes de implantar em produção, é recomendável testar exaustivamente cada nova funcionalidade e possivelmente implementar proteções (ex.: limitar tamanho de uploads, ter fallback se APIs externas falharem). Porém, seguindo as instruções acima, o desenvolvedor deve conseguir evoluir o projeto significativamente, tornando-o mais completo e alinhado com fluxos profissionais de trabalho audiovisual.

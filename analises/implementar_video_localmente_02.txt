@@ -1,0 +1,686 @@
+Ótimo, vou iniciar uma auditoria completa no repositório `melhorapp_final` para implementar as melhorias descritas no seu plano — começando pela detecção de vídeos locais exportados e integração com o app para revisão. Em seguida, seguiremos com comentários temporais, assets compartilhados e aprovação final.
+
+Te aviso assim que a análise e os ajustes iniciais estiverem prontos.
+
+
+# Integração de Recursos de Vídeo e Feedback no Projeto
+
+## Detecção Automática de Novos Vídeos (Watcher Local)
+
+Para detectar exportações do Adobe Premiere em uma pasta local e registrar automaticamente no app, criamos um **script Node.js** externo e uma **rota de API interna** em Next.js:
+
+* **Watcher local (`video-watcher.js` na raiz do projeto):** Monitora recursivamente a pasta `public/exports/` por novos arquivos `.mp4`. Ao detectar um novo arquivo (evento de rename/criação), extrai o nome da subpasta (assumida como ID do evento/projeto) e o nome do arquivo de vídeo, então faz uma requisição `POST` para a API interna do Next (`/api/events/upload-from-watcher`) informando `eventId` (pasta) e detalhes do vídeo.
+
+```js
+// video-watcher.js (Executado fora do Next.js)
+const fs = require('fs');
+const path = require('path');
+const axios = require('axios');
+
+const EXPORTS_DIR = path.resolve(__dirname, 'public/exports');
+const SERVER_API = 'http://localhost:3000/api/events/upload-from-watcher';
+
+fs.watch(EXPORTS_DIR, { recursive: true }, async (eventType, filename) => {
+  // Monitora apenas novos arquivos de vídeo
+  if (eventType === 'rename' && filename.endsWith('.mp4')) {
+    const [eventFolder, file] = filename.split(path.sep);
+    const videoPath = `/exports/${eventFolder}/${file}`;  // URL relativa dentro de /public
+
+    console.log(`📹 Novo vídeo detectado: ${videoPath}`);
+
+    try {
+      // Envia os dados para a API interna do Next para registrar o vídeo
+      await axios.post(SERVER_API, {
+        eventId: eventFolder,
+        filename: file,
+        url: videoPath,
+      });
+      console.log('✅ Vídeo registrado via API:', file);
+    } catch (err) {
+      console.error('Erro ao chamar API interna:', err.message);
+    }
+  }
+});
+```
+
+**Como usar:** Execute o watcher em paralelo à aplicação (por exemplo, `node video-watcher.js`). Certifique-se de que a pasta `public/exports/` exista e seja organizada por evento/projeto conforme necessário (ex.: `public/exports/evento-001/v1.mp4`). Em ambiente de produção (como Vercel ou semelhante, que não permite scripts residentes), esse watcher deve rodar em uma máquina local ou servidor separado que tenha acesso ao sistema de arquivos de exportação, apontando a URL da API do servidor Next.
+
+* **API interna Next (`app/api/events/upload-from-watcher/route.ts`):** Recebe a chamada do watcher e integra o novo vídeo ao estado do aplicativo. Essa rota busca o projeto correspondente ao `eventId` fornecido e adiciona uma nova versão de vídeo. Como estamos usando Zustand no cliente, aqui simplificamos registrando na estrutura de dados mantida em memória. (Em um cenário real, poderíamos persistir em banco de dados e usar *revalidation* ou *WebSockets* para atualizar o client).
+
+```ts
+// app/api/events/upload-from-watcher/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { useProjectsStore } from '@/store/useProjectsStore';
+
+export async function POST(req: NextRequest) {
+  const { eventId, filename, url } = await req.json();
+  const store = useProjectsStore.getState();
+
+  // Procura o projeto pelo ID (eventId)
+  const project = store.projects.find(p => p.id === eventId);
+  if (!project) {
+    return NextResponse.json({ error: 'Projeto não encontrado' }, { status: 404 });
+  }
+
+  // Identifica (ou cria) o deliverable de vídeo principal para adicionar a versão
+  const deliverable = project.videos[0] ?? { 
+    id: 'main', 
+    title: 'Vídeo Principal', 
+    versions: [] 
+  };
+
+  // Cria nova versão de vídeo com dados fornecidos
+  const newVersionId = Date.now().toString();
+  const newVersion = {
+    id: newVersionId,
+    name: filename,           // usar nome do arquivo como nome da versão
+    url: url,                 // URL relativa para acessar em /public
+    uploadedAt: new Date().toISOString(),
+    active: false,
+    approved: false,
+    approvedBy: undefined,
+    approvalNotes: undefined,
+    approvedAt: undefined,
+  };
+
+  // Adiciona a versão e atualiza o projeto no store
+  deliverable.versions.push(newVersion);
+  const updatedProject = {
+    ...project,
+    videos: [ deliverable ],  // garante ao menos um deliverable
+  };
+  store.projects = store.projects.map(p => p.id === eventId ? updatedProject : p);
+  store.currentProject = updatedProject;
+
+  return NextResponse.json({ success: true, video: newVersion });
+}
+```
+
+**Configuração:** Coloque o arquivo acima em `app/api/events/upload-from-watcher/route.ts`. O watcher local enviará requisições para essa rota. Note que estamos armazenando os vídeos adicionados diretamente no estado Zustand do servidor Next.js – isso funciona apenas enquanto o servidor estiver em execução e *não persiste dados*. Para um ambiente real, seria necessário salvar em um banco de dados ou outra camada de persistência e notificar os clientes (via *subscribe* do Zustand com `persist` ou via WebSocket).
+
+**Importante:** Ao rodar localmente em modo de desenvolvimento (`npm run dev`), a API acima funcionará. Se estiver usando hot-reload do Next, o estado do store no servidor pode resetar em cada alteração de código. Para teste consistente, considere desabilitar auto-reload ou integrar persistência. Em produção serverless, essa abordagem não persistirá estado entre requisições – idealmente, utilize um backend persistente ou adapte para que o watcher faça requisição a um backend real. Aqui, serve como prova de conceito para automação do fluxo de trabalho.
+
+## Comentários Temporais Sincronizados com o Vídeo
+
+Para permitir comentários atrelados a pontos específicos do vídeo, implementaremos:
+
+1. **Overlay de comentários no player de vídeo:** exibe cartões sobre o vídeo no instante em que um comentário deve aparecer.
+2. **Marcadores clicáveis na timeline:** já temos `CommentMarkersTimeline` e `CommentMarker` exibindo marcadores na barra de progresso do vídeo. Precisamos assegurar que clicar neles ou em itens de comentário salta para o tempo correto no player.
+3. **Adicionar comentários com timestamp atual:** um botão de “+ Comentar” sobreposto ao player que, ao ser clicado, abre um campo de texto (ou utiliza o já existente) para adicionar um comentário no instante atual do vídeo.
+4. **Marcar comentários como resolvidos/reabertos:** integrando com status visual (por exemplo, marcador verde para resolvido).
+
+A seguir, apresentamos os componentes e ajustes necessários:
+
+* **Store de comentários (Zustand):** Vamos armazenar os comentários dentro do estado do projeto, associando-os a cada deliverable (vídeo) para evitar duplicidade de lógica. Primeiro, assegure que a interface `Comment` no projeto inclua os campos necessários (já definido em `types/project.ts`):
+
+  ```ts
+  // types/project.ts (trecho relevante)
+  export interface Comment {
+    id: string;
+    projectId: string;
+    userId: string;
+    timestamp: number;   // instante no vídeo em segundos
+    content: string;
+    createdAt: string;
+    resolved: boolean;
+    replies?: Comment[];
+  }
+  ```
+
+  Agora, no `useProjectsStore.ts`, substitua a implementação de `addComment` por uma versão que atualiza o projeto/deliverable correto em vez de usar um array global. Também adicionaremos um método para reabrir (marcar como não resolvido) se necessário. Por exemplo:
+
+  ```ts
+  // store/useProjectsStore.ts (adição/ajuste de métodos dentro do create({...}))
+  addComment: (projectId, deliverableId, content, timestamp) => set((state) => {
+    const projects = state.projects.map(project => {
+      if (project.id !== projectId) return project;
+      const updatedVideos = project.videos.map(video => {
+        if (video.id !== deliverableId) return video;
+        // Cria novo comentário com timestamp atual
+        const newComment: Comment = {
+          id: crypto.randomUUID(),
+          projectId,
+          userId: state.currentProject?.editorId || "user", // ou obter do contexto do usuário logado
+          timestamp,
+          content,
+          createdAt: new Date().toISOString(),
+          resolved: false,
+        };
+        const updatedComments = [...(video.comments || []), newComment];
+        return { ...video, comments: updatedComments };
+      });
+      return { ...project, videos: updatedVideos };
+    });
+    return { projects, currentProject: projects.find(p => p.id === projectId) || state.currentProject };
+  }),
+
+  resolveComment: (projectId, deliverableId, commentId, resolved) => set((state) => {
+    const projects = state.projects.map(project => {
+      if (project.id !== projectId) return project;
+      const updatedVideos = project.videos.map(video => {
+        if (video.id !== deliverableId) return video;
+        const updatedComments = (video.comments || []).map(comment =>
+          comment.id === commentId ? { ...comment, resolved } : comment
+        );
+        return { ...video, comments: updatedComments };
+      });
+      return { ...project, videos: updatedVideos };
+    });
+    return { projects, currentProject: projects.find(p => p.id === projectId) || state.currentProject };
+  }),
+  ```
+
+  *(Obs: Acima usamos `crypto.randomUUID()` para gerar IDs únicos dos comentários. Assegure-se que o ambiente suporta essa função ou use outro método de geração de ID (ex.: uuid).)*
+
+  Com isso, os comentários são armazenados dentro de `currentProject.videos[x].comments`. O método `markCommentResolved` já existente foi ajustado para usar `resolveComment` internamente, ou você pode mantê-lo semelhante ao mostrado acima definindo `resolved: true/false`. Assim evitamos redundância e utilizamos a estrutura existente de projetos.
+
+* **Componente de Overlay de Comentário:** Mostra os comentários *não resolvidos* cujo timestamp está próximo do tempo atual do vídeo (por ex., dentro de 1 segundo de diferença), em forma de balões sobre o player. Coloque este componente em `components/video/CommentOverlay.tsx`:
+
+  ```tsx
+  // components/video/CommentOverlay.tsx
+  'use client';
+  import { useProjectsStore } from '@/store/useProjectsStore';
+  import { useEffect, useState } from 'react';
+
+  interface CommentOverlayProps {
+    currentTime: number;
+    deliverableId: string;
+  }
+
+  export default function CommentOverlay({ currentTime, deliverableId }: CommentOverlayProps) {
+    const project = useProjectsStore(s => s.currentProject);
+    const [visibleComments, setVisibleComments] = useState<typeof project.videos[0].comments>([]);
+
+    useEffect(() => {
+      if (!project) return;
+      // Filtra comentários do deliverable atual que estejam no timestamp atual (±0.5s)
+      const deliverable = project.videos.find(v => v.id === deliverableId);
+      if (!deliverable) return;
+      const activeComments = (deliverable.comments || []).filter(
+        c => !c.resolved && Math.abs(c.timestamp - currentTime) < 0.5
+      );
+      setVisibleComments(activeComments);
+    }, [currentTime, project, deliverableId]);
+
+    if (!visibleComments.length) return null;
+
+    return (
+      <div className="absolute top-5 left-5 z-50 space-y-2">
+        {visibleComments.map(comment => (
+          <div key={comment.id} className="bg-black/70 text-white p-2 rounded max-w-md shadow">
+            <strong>Comentário</strong>: {comment.content}
+          </div>
+        ))}
+      </div>
+    );
+  }
+  ```
+
+  *Detalhes:* Posicionamos os comentários no canto superior esquerdo do vídeo (`top-5 left-5`). Cada comentário aparece como um card semi-transparente. Você pode melhorar exibindo o autor (se houver campo de nome) e estilizar conforme o design do projeto. A lógica utiliza uma margem de ±0.5s para considerar o comentário "ativo" naquele instante (isso lida com pequenos desvios de atualização de tempo).
+
+* **Botão de Adicionar Comentário:** Um botão flutuante **“+ Comentar”** no canto do player para facilitar criar um comentário no momento atual. Ao clicar, pode focar o campo de texto de comentário já existente (por exemplo, no painel lateral) ou abrir um pequeno formulário. Como exemplo, adicionaremos um componente simples `AddCommentButton` em `components/video/AddCommentButton.tsx`:
+
+  ```tsx
+  // components/video/AddCommentButton.tsx
+  'use client';
+  interface AddCommentButtonProps {
+    onClick: () => void;
+  }
+  export default function AddCommentButton({ onClick }: AddCommentButtonProps) {
+    return (
+      <button 
+        onClick={onClick} 
+        className="absolute top-4 right-4 bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 z-50"
+      >
+        + Comentar
+      </button>
+    );
+  }
+  ```
+
+  Esse botão deve ser posicionado dentro do container do vídeo (posicionado `absolute` relativo ao player). No exemplo, ele fica no canto superior direito do vídeo. Ao clicar, chamaremos uma função `onClick` fornecida pelo pai – por exemplo, para abrir o campo de comentário. Se já houver um campo sempre visível (como no `EditingWidget` original), você pode simplesmente fazer o botão dar foco nesse campo ou alternar uma flag `isAdding` para destacar a caixa de comentário.
+
+* **Lista de Comentários Clicável:** Já existe um componente `CommentItem` e um painel de comentários no `EditingWidget`. Podemos criar um componente independente para a lista de comentários caso seja útil em outras telas (por exemplo, em `EventDetailPage`). A lista exibe cada comentário com seu timestamp e texto, e permite clicar para navegar no vídeo:
+
+  ```tsx
+  // components/video/CommentList.tsx
+  'use client';
+  import { useProjectsStore } from '@/store/useProjectsStore';
+  import { format } from 'date-fns';  // para formatar timestamp se desejar
+  import { ptBR } from 'date-fns/locale';
+
+  interface CommentListProps {
+    deliverableId: string;
+    videoRef?: React.RefObject<HTMLVideoElement>;  // referência ao elemento de vídeo para controlar playback
+    onSeek?: (time: number) => void;               // fallback: função para seeking caso não passe videoRef
+  }
+
+  export default function CommentList({ deliverableId, videoRef, onSeek }: CommentListProps) {
+    const project = useProjectsStore(s => s.currentProject);
+    if (!project) return null;
+    const deliverable = project.videos.find(v => v.id === deliverableId);
+    if (!deliverable) return null;
+    const comments = deliverable.comments || [];
+
+    // Função para ir para o tempo do comentário
+    const seekTo = (seconds: number) => {
+      if (videoRef?.current) {
+        videoRef.current.currentTime = seconds;
+        videoRef.current.play();
+      } else if (onSeek) {
+        onSeek(seconds);
+      }
+    };
+
+    return (
+      <div className="space-y-2 mt-4">
+        <h3 className="text-lg font-bold">Comentários ({comments.length})</h3>
+        {comments.map(comment => (
+          <div 
+            key={comment.id} 
+            className={`p-2 rounded cursor-pointer ${comment.resolved ? 'bg-gray-100 text-gray-500' : 'bg-secondary text-secondary-foreground'}`}
+            onClick={() => seekTo(comment.timestamp)}
+          >
+            <p className="text-sm text-muted-foreground">
+              ⏱ {format(new Date(comment.createdAt), "Pp", { locale: ptBR })} – <strong>{formatTime(comment.timestamp)}</strong>
+            </p>
+            <p>{comment.content}</p>
+            {comment.resolved && <span className="text-xs text-green-600 font-medium">✔ Resolvido</span>}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Auxiliar para formatar segundos em MM:SS
+  function formatTime(totalSeconds: number): string {
+    const m = Math.floor(totalSeconds / 60);
+    const s = Math.floor(totalSeconds % 60);
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+  ```
+
+  Nesse componente, usamos `videoRef` para controlar diretamente o player (caso uma referência ao elemento `<video>` seja passada). Se o player estiver encapsulado (como em `VideoPlayer.tsx`), podemos fazer o seguinte ajuste: **permita que o `VideoPlayer` aceite uma ref externa para o `<video>` interno**. Por exemplo, no `VideoPlayerProps` adicionar `externalVideoRef?: RefObject<HTMLVideoElement>` e no JSX do vídeo:
+
+  ```tsx
+  <video ref={(el) => { 
+            videoRef.current = el; 
+            if (externalVideoRef) externalVideoRef.current = el;
+          }} ... />
+  ```
+
+  Assim, do lado de fora (por exemplo, no `EditingWidget` ou em `EventDetailPage`), você pode usar `const videoElementRef = useRef<HTMLVideoElement>(null)` e passar `externalVideoRef={videoElementRef}` para o `VideoPlayer`. Então forneça `videoRef={videoElementRef}` para o `CommentList`. Desse modo, o clique em um comentário ajusta o tempo do vídeo e dá play automaticamente. Caso não seja possível passar a ref, usamos `onSeek` como fallback: o `VideoPlayer` já suporta uma prop `onSeek`, então podemos chamá-la para sincronizar (lembrando de implementar logicamente que o player busque esse tempo, por exemplo, via contexto ou estado).
+
+* **Integração no Player de Vídeo/Interface:** No componente onde você exibe o vídeo para revisão (por exemplo, dentro do tab de “Edições” ou um painel de revisão), envolva o player e os novos componentes em um container posicionado. Exemplo de integração no `EditingWidget` (ou similar, caso reestruture a UI):
+
+  ```tsx
+  // Dentro do JSX onde o vídeo é exibido (e.g., EditingWidgetContent ou EventDetailPage)
+  <div className="relative"> 
+    {/* Container relativo para sobreposições */}
+    <VideoPlayer 
+      ref={videoPlayerRef} 
+      src={...} 
+      onTimeUpdate={(time, duration) => setCurrentTime(time)} 
+      onSeek={(time) => setCurrentTime(time)}
+      className="aspect-video"
+      {/* ...ou externalVideoRef=videoElementRef se implementado */}
+    />
+    {/* Botão de adicionar comentário */}
+    <AddCommentButton onClick={() => {
+        setActiveTab('comments');
+        // opcional: rolar para campo de texto ou focar input de comentário
+    }} />
+    {/* Overlay de comentários (passa tempo atual e ID do deliverable/vídeo) */}
+    <CommentOverlay currentTime={currentTime} deliverableId={selectedDeliverableId} />
+  </div>
+
+  {/* Timeline de marcadores de comentários */}
+  <CommentMarkersTimeline 
+    comments={deliverableComments} 
+    duration={videoDuration} 
+    onMarkerClick={(id, time) => {
+      // Ao clicar no marcador, buscar o vídeo para o timestamp
+      if (videoElementRef.current) {
+        videoElementRef.current.currentTime = time;
+      }
+      setCurrentTime(time);
+    }} 
+  />
+
+  {/* Lista de comentários */}
+  <CommentList deliverableId={selectedDeliverableId} videoRef={videoElementRef} />
+  ```
+
+  Acima, `deliverableComments` seria obtido do projeto atual (por exemplo, `currentProject.videos.find(v => v.id === selectedDeliverableId)?.comments || []`) e `videoDuration` pode vir do estado ou do próprio player (via onTimeUpdate guardando o duration). A lista de comentários é renderizada no painel lateral ou abaixo do vídeo, de acordo com o design (no `EditingWidget`, é em uma coluna separada).
+
+  **Obs:** Se você já possui parte dessa funcionalidade (por exemplo, `EditingWidget` possuía lógica de comentários, marcadores, etc.), adapte para usar o store global em vez de estado local sempre que possível. Remova duplicações – por exemplo, o `INITIAL_COMMENTS` e manipulação local podem ser substituídos por chamadas ao `useProjectsStore`. Assim, evitamos reimplementação redundante. Aproveite também a infraestrutura de colaboração já presente (`useCollaboration`) para sincronizar comentários em tempo real, caso aplicável, apenas ajustando para usar os métodos do store (como `addComment`) em vez de estado local.
+
+## Upload e Visualização de Assets Compartilhados
+
+Para gerenciar **assets compartilhados** (imagens, áudios, logos, PDFs etc.) relacionados ao projeto, implementaremos um módulo de Assets com upload e visualização:
+
+1. **Estrutura de pastas sugerida:** Coloque os arquivos enviados em `public/assets/[eventId]/...` separados por tipo se desejar (ex.: subpastas `logos/`, `musicas/`, `imagens/`). Assim, eles ficam acessíveis via URL pública (Next serve qualquer coisa em `public/` diretamente).
+
+2. **Estado global de Assets (Zustand):** O `useProjectsStore` já define um array global `assets: Asset[]` e métodos (`addAsset`, `updateAsset`, `deleteAsset`). Vamos usar isso para armazenar os assets carregados. Certifique-se de que a interface `Asset` (`types/project.ts`) contém campos suficientes, por exemplo:
+
+   ```ts
+   export interface Asset {
+     id: string;
+     projectId: string;
+     name: string;
+     type: 'image' | 'video' | 'audio' | 'document';
+     url: string;
+     thumbnailUrl?: string;
+     createdAt: string;
+     uploadedBy: string;
+   }
+   ```
+
+   A função `addAsset` já existe no store; podemos melhorá-la para definir automaticamente o tipo com base no nome ou MIME e gerar uma URL local se o arquivo for carregado via input. Exemplo de implementação:
+
+   ```ts
+   addAsset: (file) => set((state) => {
+     if (!state.currentProject) return state;
+     const projectId = state.currentProject.id;
+     const id = crypto.randomUUID();
+     // Determina tipo pelo tipo MIME ou extensão
+     let type: Asset['type'];
+     if (file.type.startsWith('image/')) type = 'image';
+     else if (file.type.startsWith('audio/')) type = 'audio';
+     else if (file.type.startsWith('video/')) type = 'video';
+     else type = 'document';
+     // Gera URL local temporária (nota: em produção, deve fazer upload real)
+     const url = URL.createObjectURL(file);
+     const newAsset: Asset = {
+       id,
+       projectId,
+       name: file.name,
+       type,
+       url,
+       createdAt: new Date().toISOString(),
+       uploadedBy: 'Você',
+     };
+     return { assets: [...state.assets, newAsset] };
+   }),
+   ```
+
+   *(No caso de integração real, você faria upload para um servidor ou salvaria em `public/assets/...` via API, similar ao fluxo de vídeos. Aqui usamos `URL.createObjectURL` para pré-visualização rápida.)*
+
+3. **Componente de Upload/Lista de Assets:** Crie um componente React para o painel de assets, por exemplo `components/widgets/AssetsPanel.tsx`, que permite adicionar e listar arquivos:
+
+   ```tsx
+   // components/widgets/AssetsPanel.tsx
+   'use client';
+   import { useRef } from 'react';
+   import { useProjectsStore } from '@/store/useProjectsStore';
+
+   export default function AssetsPanel() {
+     const inputRef = useRef<HTMLInputElement>(null);
+     const assets = useProjectsStore(s => 
+       // filtra assets do projeto atual
+       s.assets.filter(a => a.projectId === s.currentProject?.id)
+     );
+     const addAsset = useProjectsStore(s => s.addAsset);
+
+     const handleSelectFile = () => {
+       inputRef.current?.click();
+     };
+     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+       const file = e.target.files?.[0];
+       if (file) {
+         addAsset(file);
+         e.target.value = ''; // reseta input
+       }
+     };
+
+     return (
+       <div className="p-4 space-y-4">
+         <div className="flex justify-between items-center">
+           <h2 className="text-xl font-bold">Assets do Projeto</h2>
+           <button onClick={handleSelectFile} className="btn btn-outline flex items-center">
+             📤 Upload Asset
+           </button>
+         </div>
+         <input 
+           ref={inputRef} 
+           type="file" 
+           accept="image/*,video/*,audio/*,.pdf,.doc,.ppt,.xlsx" 
+           className="hidden" 
+           onChange={handleFileChange} 
+         />
+
+         {/* Lista de assets */}
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+           {assets.map(asset => (
+             <div key={asset.id} className="border rounded-md p-3 bg-muted">
+               <p className="text-sm font-medium mb-2">{asset.name}</p>
+               {asset.type === 'image' ? (
+                 <img src={asset.url} alt={asset.name} className="w-full h-auto rounded" />
+               ) : asset.type === 'audio' ? (
+                 <audio controls src={asset.url} className="w-full" />
+               ) : asset.type === 'video' ? (
+                 <video controls src={asset.url} className="w-full rounded" />
+               ) : (
+                 <a href={asset.url} target="_blank" rel="noopener" className="text-blue-500 underline">
+                   Baixar Documento
+                 </a>
+               )}
+             </div>
+           ))}
+           {assets.length === 0 && <p className="text-sm text-muted-foreground">Nenhum asset enviado ainda.</p>}
+         </div>
+       </div>
+     );
+   }
+   ```
+
+   Esse painel mostra um botão **Upload Asset** (estilizado conforme seus componentes UI – aqui usei classe genérica `btn btn-outline`). Ao clicar, dispara o input de arquivo (invisível). No upload, o arquivo é adicionado via `addAsset` no store. Em seguida, renderiza uma grade com cada asset: imagens aparecem com preview, vídeos e áudios embutidos com controles, e outros tipos (pdf, documentos) aparecem como link para download/abertura em nova aba.
+
+   **Integração:** Você pode incluir o `<AssetsPanel />` em uma aba específica do projeto (por exemplo, na página de detalhes do evento, poderia haver uma aba "Assets" ou integrar no workflow). Caso já exista um `AssetsWidget.tsx` no projeto com interface diferente (listagem de pastas, etc.), considere combinar as funcionalidades: por exemplo, usar o mesmo estado global mas apresentar numa UI de pastas/arquivos. O importante é evitar duplicar lógica – se o `AssetsWidget` antigo era mock, podemos substituí-lo por este painel conectado ao store global.
+
+   *Dica:* Em ambiente de produção, para realmente salvar os arquivos enviados, seria necessário criar uma rota API para receber o upload e salvar no `public/assets/[projectId]` ou em um serviço de armazenamento, então retornar a URL. Aqui simplificamos usando `URL.createObjectURL` para demonstrar a visualização imediata no front-end.
+
+## Aprovação de Versões com Histórico, Assinatura e Observações
+
+Para gerenciar o fluxo de aprovação de versões de vídeo, implementaremos funcionalidades para marcar uma versão como "ativa" e "aprovada", registrando quem aprovou e qualquer observação:
+
+1. **Extensão da Interface de Versão:** Acrescente campos de controle de aprovação em `VideoVersion` (`types/project.ts`):
+
+   ```ts
+   export interface VideoVersion {
+     id: string;
+     name: string;
+     url: string;
+     thumbnailUrl?: string;
+     uploadedAt: Date | string;
+     active?: boolean;        // indica se esta versão é a atual/ativa
+     approved?: boolean;      // indica se foi aprovada pelo cliente
+     approvedBy?: string;     // nome/ID de quem aprovou
+     approvalNotes?: string;  // observações da aprovação
+     approvedAt?: string;     // data/hora da aprovação
+   }
+   ```
+
+   *(Use `string` para datas se estiver serializando JSON, ou `Date` se for manipulado internamente – coerente com o restante do projeto.)*
+
+2. **Novos Métodos no Store de Projetos:** No `useProjectsStore`, adicione métodos para marcar a versão ativa e para aprovar uma versão:
+
+   ```ts
+   interface ProjectsStore extends ProjectsState {
+     // ... outros métodos
+     setActiveVideoVersion: (projectId: string, deliverableId: string, versionId: string) => void;
+     approveVideoVersion: (projectId: string, deliverableId: string, versionId: string, approverName?: string, notes?: string) => void;
+   }
+   ```
+
+   Implementações:
+
+   ```ts
+   setActiveVideoVersion: (projectId, deliverableId, versionId) => set((state) => {
+     const projects = state.projects.map(project => {
+       if (project.id !== projectId) return project;
+       const updatedVideos = project.videos.map(video => {
+         if (video.id !== deliverableId) return video;
+         return {
+           ...video,
+           versions: video.versions.map(ver => ({
+             ...ver,
+             active: ver.id === versionId  // apenas a versão selecionada fica ativa
+           }))
+         };
+       });
+       return { ...project, videos: updatedVideos };
+     });
+     return { projects, currentProject: projects.find(p => p.id === projectId) || state.currentProject };
+   }),
+
+   approveVideoVersion: (projectId, deliverableId, versionId, approverName, notes) => set((state) => {
+     const projects = state.projects.map(project => {
+       if (project.id !== projectId) return project;
+       const updatedVideos = project.videos.map(video => {
+         if (video.id !== deliverableId) return video;
+         return {
+           ...video,
+           versions: video.versions.map(ver => {
+             if (ver.id !== versionId) return ver;
+             return {
+               ...ver,
+               approved: true,
+               approvedBy: approverName || 'Cliente',
+               approvalNotes: notes || '',
+               approvedAt: new Date().toISOString()
+             };
+           })
+         };
+       });
+       return { ...project, videos: updatedVideos };
+     });
+     return { projects, currentProject: projects.find(p => p.id === projectId) || state.currentProject };
+   }),
+   ```
+
+   Aqui, `setActiveVideoVersion` percorre os vídeos do projeto e marca `active=true` apenas na versão escolhida (as outras ficam `active=false`). O `approveVideoVersion` marca a versão como aprovada e anota quem aprovou e quando. O campo `approverName` pode ser passado como o nome do usuário logado (por exemplo, o cliente que aprovou) – se não informado, usamos 'Cliente' como default. `notes` pode ser preenchido a partir de um input de observações.
+
+3. **Interface de Aprovação no Front-end:** No componente que lista as versões (por exemplo, no **tab "Versões de Vídeo"** em `EventDetailPage` ou um componente dedicado), adicione botões para marcar ativo e aprovar. Podemos criar ou reutilizar um componente de lista de versões. Tomando como base a sugestão anterior `VideoList`:
+
+   ```tsx
+   // components/widgets/VideoList.tsx
+   'use client';
+   import { useProjectsStore } from '@/store/useProjectsStore';
+   import { useState } from 'react';
+
+   export default function VideoList({ deliverableId }: { deliverableId: string }) {
+     const project = useProjectsStore(s => s.currentProject);
+     const setActive = useProjectsStore(s => s.setActiveVideoVersion);
+     const approve = useProjectsStore(s => s.approveVideoVersion);
+     const [approvalNote, setApprovalNote] = useState<string>('');
+
+     if (!project) return <p>Carregando...</p>;
+     const deliverable = project.videos.find(v => v.id === deliverableId);
+     if (!deliverable) return <p>Nenhum vídeo encontrado.</p>;
+     const versions = deliverable.versions;
+
+     return (
+       <div className="space-y-4">
+         {versions.map(v => (
+           <div key={v.id} className="border p-4 rounded-md relative 
+               ${v.approved ? 'border-green-600' : v.active ? 'border-yellow-500' : 'border-muted'}">
+             <div className="flex justify-between items-center mb-2">
+               <h4 className="font-medium">
+                 {v.name} {v.active && !v.approved && <small className="text-yellow-600">(Ativa)</small>}
+                 {v.approved && <small className="text-green-600">(Aprovada)</small>}
+               </h4>
+               <span className="text-xs text-muted-foreground">
+                 {typeof v.uploadedAt === 'string' 
+                   ? new Date(v.uploadedAt).toLocaleDateString('pt-BR') 
+                   : v.uploadedAt.toLocaleDateString('pt-BR')}
+               </span>
+             </div>
+             {/* Player ou thumbnail da versão */}
+             <video controls src={v.url} className="w-full rounded mb-2" />
+
+             {/* Se versão aprovada, mostrar detalhes */}
+             {v.approved && (
+               <div className="text-sm bg-green-50 text-green-900 p-2 rounded mb-2">
+                 ✅ Aprovado por <strong>{v.approvedBy || "Cliente"}</strong> em {v.approvedAt ? new Date(v.approvedAt).toLocaleDateString('pt-BR') : "―"}.
+                 {v.approvalNotes && <p className="italic">Observação: "{v.approvalNotes}"</p>}
+               </div>
+             )}
+
+             {/* Botões de ação */}
+             {!v.approved && (
+               <div className="flex items-center gap-2">
+                 {!v.active && (
+                   <button 
+                     onClick={() => setActive(project.id, deliverableId, v.id)} 
+                     className="px-3 py-1 rounded bg-yellow-600 hover:bg-yellow-700 text-white text-sm"
+                   >
+                     Tornar Ativa
+                   </button>
+                 )}
+                 <button 
+                   onClick={() => {
+                     // Pede observação (se necessário)
+                     const note = approvalNote || window.prompt("Observações da aprovação (opcional):") || "";
+                     approve(project.id, deliverableId, v.id, /*approverName*/ "Você", note);
+                     setApprovalNote('');
+                   }} 
+                   className="px-3 py-1 rounded bg-green-600 hover:bg-green-700 text-white text-sm"
+                 >
+                   Aprovar Versão
+                 </button>
+                 {/* Campo opcional para nota antes de aprovar */}
+                 <input 
+                   type="text" 
+                   placeholder="Observações..." 
+                   value={approvalNote} 
+                   onChange={e => setApprovalNote(e.target.value)} 
+                   className="text-sm px-2 py-1 border rounded"
+                 />
+               </div>
+             )}
+           </div>
+         ))}
+       </div>
+     );
+   }
+   ```
+
+   Neste código, listamos todas as versões do deliverable selecionado. Para cada versão:
+
+   * Mostramos seu nome e status (ativa/aprovada).
+   * Exibimos um `<video>` controlável (pode ser um thumbnail ou frame se não quisermos carregamento pesado de todos os vídeos; uma alternativa é usar `<img src={version.thumbnailUrl} />` se disponível).
+   * Se a versão estiver aprovada, mostramos um destaque verde com quem aprovou, quando e a observação (caso tenha).
+   * Se não estiver aprovada, exibimos botões:
+
+     * **Tornar Ativa:** disponível se não é a versão ativa atual. Chama `setActiveVideoVersion` no store.
+     * **Aprovar Versão:** chama `approveVideoVersion`. Aqui incluímos um fluxo para opcionalmente coletar observações: o componente possui um state `approvalNote` ligado a um input de texto. O usuário pode digitar algo ali antes de clicar em Aprovar, ou se deixar vazio, abrimos um `window.prompt` simples para última chance de adicionar nota (opcional). Ao aprovar, passamos `"Você"` como nome de quem aprovou (substitua isso integrando com o sistema de autenticação/usuário real, e.g., nome do usuário atual) e a nota coletada.
+   * O estilo visual indica bordas diferentes: aprovado (verde), ativo mas não aprovado (amarelo), outros (default ou muteds).
+
+   **Onde integrar:** Este componente `VideoList` pode ser colocado na aba "Versões de Vídeo" (`TabsContent value="versions"`) em `EventDetailPage`. Por exemplo:
+
+   ```tsx
+   {selectedDeliverableId && <VideoList deliverableId={selectedDeliverableId} />}
+   ```
+
+   Isso substituiria a listagem estática de versões. Assim, quando o watcher adicionar uma nova versão (ou um upload manual via input acontecer), a lista será reativa via Zustand. Ao clicar em *Aprovar Versão*, a interface atualizará mostrando que foi aprovada, e você pode então comunicar ao time que aquela versão está finalizada.
+
+   *Dica:* A "assinatura" aqui pode ser interpretada como o nome de quem aprovou. Se for necessário um **documento de aprovação assinado**, isso pode ser outro processo (por exemplo, gerar um PDF de aceite). Mas pelo enunciado, entendemos que basta registrar quem aprovou e armazenar observações. Isso já garante um histórico simples: múltiplas versões terão ou não flag de aprovação e quem as aprovou. Se precisar de um log completo de histórico, poderia adicionar um array `approvalHistory` dentro de `VideoDeliverable` ou `Project` registrando cada ação de aprovação com timestamp e usuário – porém, para escopo atual, a estrutura acima é suficiente para ver qual versão foi aprovada e quando.
+
+---
+
+**Resumo:** Com essas implementações, seu projeto `melhorapp_final` ganha:
+
+* **Watcher de vídeo local** integrando automaticamente arquivos exportados para dentro do app, agilizando o fluxo do editor de vídeo.
+* **Comentários temporais sincronizados**, com marcadores clicáveis e sobreposição no player, facilitando feedback quadro-a-quadro.
+* **Gerenciamento de assets compartilhados**, permitindo equipe e cliente compartilharem referências visuais/áudio diretamente no projeto.
+* **Controle de versões de vídeo com aprovação**, indicando claramente qual corte está em revisão, qual foi aprovado, por quem e com quais observações, mantendo um histórico de iterações.
+
+Cada trecho de código fornecido segue a arquitetura modular e tipada em TypeScript, ajustando-se aos padrões do projeto (Zustand global store, componentes React funcionais com hooks, uso de pasta `public` para conteúdo estático). Lembre-se de revisar onde integrar esses componentes (por exemplo, substituir componentes mock existentes pelo novo código) para evitar duplicação. Teste cada módulo isoladamente:
+
+1. Rodar o watcher e verificar se novos vídeos aparecem na aba de versões.
+2. Adicionar comentários durante a reprodução e conferir se markers e overlay funcionam.
+3. Fazer upload de assets e checar a listagem.
+4. Marcar versões ativas/aprovadas e validar a interface de histórico.
+
+Assim, você terá uma aplicação coesa para revisão de vídeo, do upload à aprovação final. Boa codificação!

@@ -1,0 +1,136 @@
+
+# Roteiro Técnico – Reconstrução do **MelhorApp**
+
+## 1. Estrutura e Arquitetura do Projeto
+
+* **next.js App Router:** A pasta `app/` contém a raiz da aplicação com rotas e páginas (arquivos `page.tsx`) e *API Routes* no formato App Router (`route.ts`). Por exemplo, há arquivos em `app/api/events/...` e `app/api/briefings/...` definindo handlers `GET/POST` (Next.js passa o parâmetro dinâmico como `{ params }` para esses handlers).
+* **components/**: Componentes React reutilizáveis de UI (cards, botões, inputs, listas, players de vídeo etc.), muitos construídos com *shadcn/UI* e estilizados em Tailwind CSS. Pode haver subpastas como `components/video/`, `components/ui/` para organizar ícones (lucide-react), modal, e widgets (ex: `TaskList`, `CommentItem`, `DeliverableActions`).
+* **features/**: Módulos por domínio funcional (ex.: `features/briefing/`, `features/auth/`, `features/projects/`), cada um agrupando telas, componentes e lógica específica daquela funcionalidade. Por exemplo, `features/briefing/components/GeneralInfoTab.tsx` implementa a aba de briefing.
+* **services/**: Funções que abstraem chamadas à API/back-end. Ex.: `services/auth-service.ts` simula login/registro; `services/briefing-service.ts` lida com operações de briefing (usando `fetch` para as rotas internas). Esses serviços simplificam troca futura do backend real.
+* **store/**: Estado global gerenciado pelo **Zustand**. Há stores separados por domínio, e.g. `useAuthStore` (usuário logado), `useProjectsStore` (projetos/eventos, vídeos, comentários), `useUIStore` (notificações/estado UI) e até `useCollaborationStore` (Socket.io). Cada store define dados imutáveis e *actions* (ex.: criar projeto, adicionar versão de vídeo, marcar tarefa) e geralmente persiste o estado no `localStorage` (via middleware `persist`) para simular um banco de dados local em dev.
+* **contexts/**: Contextos React globais (se houver, por exemplo, Contexto de tema ou similares). Opcional, pois o Zustand já cobre maioria dos estados compartilhados.
+* **hooks/**: Hooks customizados reutilizáveis (ex.: `useAuth`, `useEvent`, etc., se existirem).
+* **lib/**: Funções utilitárias genéricas (date utils, formatações, validações não dependentes de componente).
+* **styles/**: Arquivos CSS globais ou variáveis de estilo. Provavelmente inicializado com Tailwind (ex.: `tailwind.config.js` em raiz) e possivelmente estilos *globals* em `styles/globals.css`.
+* **types/**: Definições TypeScript de tipos e interfaces (por ex. `User`, `Project`, `Deliverable`, `Comment`, etc.) para consistência de dados.
+* **public/**: Arquivos estáticos servidos (imagens de placeholder, logos). Notar a subpasta **`public/exports/`**, usada pelo *watcher* de vídeo: ao colocar vídeos em `public/exports/{projeto}`, o script os detecta e aciona import no app.
+* **Arquitetura em camadas:** O app separa claramente UI, lógica e dados. A camada de interface (React + shadcn/Tailwind) consome serviços (fetch em rotas de API internas) e o estado global do store. As rotas Next.js (`app/api/…/route.ts`) atuam como camada de *backend*, recebendo requisições do frontend e alterando dados em memória.
+
+## 2. Fluxo de Usuário Completo
+
+1. **Cadastro e Login:** O usuário acessa as páginas de registro/login (por exemplo, em `app/(auth)/login/page.tsx` e `register/page.tsx`). O formulário chama o *service* de auth. Como não há backend real, a função `simulateLogin(email)` define o papel (`role`) com base no e-mail inserido (ex.: e-mail com `"admin"` ganha papel **admin**, com `"editor"` → **editor**, caso contrário **client**). O `register` simulado faz lógica similar. O usuário retornado (id, nome, email, role, avatar) é salvo no `useAuthStore`.
+2. **Dashboard de Eventos:** Ao logar, o usuário vai para a rota `/events` (ex.: `app/events/page.tsx`), exibindo um **Dashboard** com a lista de eventos (projetos) presentes no Zustand. A lista é filtrada pelo perfil do usuário:
+
+   * **Admin:** vê todos os eventos.
+   * **Editor:** vê apenas eventos onde seu ID coincide com o `editorId` do projeto.
+   * **Cliente:** vê eventos onde seu ID é o `clientId` do projeto.
+     Também há um botão **“Novo Evento”** para criar novo projeto. Se nenhum evento for visível, mostra mensagem apropriada.
+3. **Criação de Evento:** Em `/events/new` (`app/events/new/page.tsx`), encontra-se o formulário de *novo projeto*. Campos já existentes: título, descrição, datas, número de vídeos (`numVideos`). Para admin, exibem-se campos adicionais **Cliente** e **Editor** (e.g. emails a serem designados). Ao submeter, usa-se a action `createProject` do store (`useProjectsStore`) passando todos os dados, incluindo `clientId` e `editorId` (obtidos a partir dos emails via a mesma lógica do auth). A ação `createProject` internamente gera automaticamente a **timeline de tarefas** e entrega(s) de vídeo padrão com status inicial *draft*. Por exemplo, se `numVideos = 2`, serão criados dois deliverables (Vídeo 1 e Vídeo 2) cada um com array `versions` vazio. Após criar, o ID do novo projeto é definido em `store.currentProject` e o usuário é redirecionado para `/events/[novoId]`.
+4. **Detalhes do Evento – Briefing:** No evento recém-criado (ou ao selecionar um existente), o usuário pode preencher o **Briefing**. Este formulário (e.g. em `app/events/[eventId]/briefing/page.tsx`) usa o componente `GeneralInfoTab` do projeto, passando o `eventId`. As rotas de API `/api/briefings/[eventId]` (GET) e `/api/briefings` (POST) já existem e guardam os dados em memória (há um objeto `briefingData` global). O GET retorna dados de exemplo para `eventId: "123"` e o POST salva o briefing no array `briefingData`. Opcionalmente, pode-se ajustar para que o GET também retorne o briefing salvo após POST. Durante o preenchimento, o componente pode solicitar dados adicionais: ele já tenta fetch em `/api/events/[eventId]` (dados básicos do evento) e `/api/events/[eventId]/team` (membros da equipe). Devemos implementar essas rotas de API (ex.: `app/api/events/[eventId]/route.ts` retorna `{ id, name }`; `app/api/events/[eventId]/team/route.ts` retorna lista simulada de editor e cliente).
+5. **Timeline de Produção:** Após salvar o briefing, o sistema pode gerar automaticamente o cronograma de produção. A lógica de `createProject` já calculou fases padrão (planejamento, gravação, edição, revisão) com base nas datas inseridas. Essas tarefas são armazenadas em `project.tasks`. A aba “Timeline” exibirá essa lista de tarefas com suas datas e status, permitindo ao editor marcar cada etapa como concluída.
+6. **Painel de Edição/Aprovação (Workflow):** Este é o núcleo colaborativo entre editor e cliente. Na rota principal do evento (`app/events/[eventId]/page.tsx`), carregamos dados do projeto via `eventId` (obtido por `useParams()`) e renderizamos:
+
+   * **TaskList:** lista de tarefas do projeto (Planejamento, Edição, Revisão, etc.), cada uma com checkbox. O componente já interage com o store para marcar conclusão (`toggleTaskCompletion`). Apenas editores podem marcar tarefas como concluídas.
+   * **Entregas de Vídeo:** para cada deliverable do projeto (ex.: "Vídeo 1"), exibimos seu status atual e versões de vídeo enviadas. Cada versão é um arquivo carregado, armazenado em `deliverable.versions`.
+   * **Botões de Ação (DeliverableActions):** dependendo do papel do usuário, mostramos botões diferentes: se *editor* logado e status é `editing` ou `changes_requested`, há **“Marcar como pronto para revisão”**; se *cliente* logado e status é `ready_for_review`, aparecem **“Aprovar”** e **“Solicitar alterações”** (ao clicar em “Solicitar alterações” abre um campo para feedback).
+   * **Comentários:** logo abaixo, há seção de comentários. Cada `CommentItem` exibe autor, texto e se foi resolvido. O cliente pode adicionar comentários livres, e o editor verá um botão *“Marcar como resolvido”* nos comentários (não resolvidos).
+     As ações têm lógica no store: por exemplo, quando o editor clica em “Pronto para revisão”, o status do deliverable muda para `ready_for_review`, uma nova tarefa de revisão é criada e é exibida notificação. Quando o cliente aprova, o status vira `approved` e tarefas de revisão são concluídas, etc. Tudo isso acontece chamando ações do store (`markVideoReady`, `approveDeliverable`, `requestChanges`) e atualizando `project.videos[].status` e `project.tasks`.
+7. **Upload Manual de Vídeo:** Na aba de **Edição/Aprovação**, o editor pode fazer upload do vídeo finalizado manualmente. Há um botão “Enviar Vídeo” (um `<label>` estilizado com `<input type="file">`). Ao escolher um arquivo local (por exemplo `v1.mp4` em `public/exports/projeto-1/v1.mp4`), dispara-se a função `handleUploadVideo`, que chama a ação `addVideoVersion(file)` do store. Esta ação cria uma URL temporária (`URL.createObjectURL`) para o arquivo e adiciona um objeto `version` no array `deliverable.versions` com esse URL e status inicial `pendingReview`. Imediatamente, a nova versão aparece na interface; o componente de vídeo `<video>` (renderizado se houver versões) exibe essa versão para reprodução. O botão muda para “Enviando...” durante o processo. O watcher local (script em Node) é opcional: para a apresentação basta o upload manual, sem necessidade de automação. Cada nova versão fica listada, incrementando o nome (v1, v2, etc.) e preservando histórico de uploads.
+8. **Aprovação e Feedback:** Depois do upload, o editor clica em “Pronto para revisão”; o cliente então assiste ao vídeo pelo player e clica em “Aprovar” ou “Solicitar alterações”. Caso de aprovação, o status vai para `approved`; caso de solicitação de alterações, aparece um campo para descrição das modificações, é criado uma tarefa para “Implementar alterações solicitadas” e o status fica `changes_requested`. Após isso, o editor corrige e faz novo upload, repetindo o ciclo.
+9. **Entregas:** Na aba “Entregas” (ou parte do painel de edição), o usuário vê a lista de todos os deliverables criados (um por vídeo), com suas versões e status. Cada item mostra claramente o status atual (ex.: *Em edição*, *Aguardando aprovação*, *Alterações solicitadas*, *Aprovado*) e permite download do arquivo se for o cliente. As ações acima atualizam o status visível (cores/ícones) dinamicamente.
+10. **Assets:** Finalmente, há a aba **Assets** (em `app/events/[eventId]/assets` ou integrada na página do evento) para compartilhamento de materiais diversos. Todos os membros do evento podem ver e enviar arquivos adicionais (logotipos, fotos brutas, documentos). O código pode listar `useProjectsStore.getState().assets.filter(a => a.projectId === project.id)` e exibir cada asset com ícone por tipo. Um input file similar permite fazer upload (criando um objeto URL e chamando `addAsset` no store).
+
+Todo o fluxo utiliza o **Zustand** para propagar dados: componentes consomem diretamente o estado global (ex.: `useProjectsStore(state => state.projects)` ou `currentProject`), e chamam ações para atualizar. O `eventId` corrente vem das rotas dinâmicas (`useParams()` do Next App Router), garantindo que cada aba trabalhe sobre o mesmo projeto selecionado. O store também mantém `currentProject` (definido ao criar o evento) para facilitar a navegação entre páginas do mesmo evento.
+
+## 3. Permissões de Usuário
+
+Existem três perfis predefinidos: **admin**, **editor** e **cliente**. O papel do usuário (guardado em `useAuthStore.user.role`) controla o que cada um vê/faz:
+
+* **Admin:** **Total acesso.** Pode criar/editar eventos, atribuir equipe/cliente, ver todos os eventos no Dashboard, gerar cronograma, acessar todas as abas e aprovar vídeos. No formulário de evento (`/events/new`), o admin vê campos extras para selecionar editor e cliente (inserindo emails). Também pode visualizar e baixar qualquer asset.
+* **Editor:** Tem acesso à edição de conteúdo. No Dashboard vê apenas eventos onde é atribuído (`editorId`). Dentro do evento, vê a aba de Edição/Workflow: pode fazer upload de vídeos, marcar tarefas, incluir comentários, e clicar em **“Marcar como pronto para revisão”** (quando status permitir). Não vê campos de seleção de equipe nem pode criar eventos (exceto, em cenários simplificados, pode-se permitir que crie seu próprio evento, tornando-se automaticamente editor e client se desejar).
+* **Cliente:** Perfil de aprovação. No Dashboard vê só eventos onde é `clientId`. Dentro do evento, visualiza o briefing e o painel de revisão: pode assistir aos vídeos enviados, adicionar comentários e clicar em **“Aprovar”** ou **“Solicitar alterações”** nos deliverables (quando estiverem prontos para revisão). Não pode fazer upload de vídeo nem marcar tarefas como concluídas. Também pode enviar assets extras, já que a aba de Assets é visível a todos.
+  As permissões são aplicadas tanto na **UI** (botões ou campos escondidos conforme `user.role`) quanto na **lógica** do store (as ações verificam quem está executando, embora aqui seja simplificado). Exemplos de UI: o filtro de eventos no Dashboard (linha 254-262 do \[42]) já filtra por `user.role`, o form de evento exibe campos apenas para admin, e o componente `DeliverableActions` mostra botões diferentes para editor vs. cliente.
+
+## 4. Rotas Dinâmicas e Contexto do Evento
+
+O Next.js App Router trata URLs dinâmicas facilmente. Todas as rotas de evento usam o segmento `[eventId]`. Por exemplo, ao navegar para `/events/123`, entra-se no diretório `app/events/[eventId]/`, onde o arquivo `page.tsx` renderiza o painel de edição desse evento. Nos **Route Handlers** (API), arquivos como `app/api/events/[eventId]/route.ts` recebem o ID do evento pelo parâmetro do contexto (p.ex. `export async function GET(request, { params }: { params: { eventId: string } }) { ... params.eventId ... }`). O Next.js passa automaticamente `params.eventId` para esses handlers, evitando erro de parâmetro indefinido. No frontend, dentro de componentes (Client Components), usamos o hook `useParams()` de `next/navigation` para ler o `eventId` atual da URL. Assim, toda chamada de API (fetch) ou atualização de estado associa-se corretamente ao evento em foco. Essa abordagem mantém o **contexto do evento selecionado** consistente: ao criar um evento, definimos `currentProject` no store e fazemos `router.push(/events/[id])`; em seguida, todas as abas usam esse mesmo `eventId` para filtrar tarefas, vídeos, comentários, etc.
+
+## 5. Upload Manual de Vídeo
+
+Na aba de Edição/Aprovação, os **editores** importam manualmente o arquivo de vídeo exportado. Há um botão “Enviar Vídeo” (um `<label>` estilizado) que esconde um `<input type="file">`. Quando o editor seleciona um arquivo de vídeo local, dispara-se `handleUploadVideo`, que invoca a ação `addVideoVersion(file)` do store. Esta ação:
+
+1. Gera uma URL temporária (via `URL.createObjectURL`) para simular o upload do arquivo.
+2. Cria um objeto *version* com `id`, `name`, `url`, `uploadedAt`, `detectedAt` e `status: 'pendingReview'`.
+3. Adiciona essa versão ao array `deliverable.versions` correspondente no projeto.
+   Imediatamente a nova versão aparece na interface: renderiza-se um player `<video controls>` com o `src` da última versão enviada. O botão indica “Enviando...” durante o processo. Cada nova versão incrementa (v1, v2, …) e mantém o histórico de uploads. O watcher de arquivos (`scripts/video-watcher.js`) é opcional – no demo, o fluxo manual já basta. Em resumo, após o upload manual, o estado global registra a nova versão (via Zustand) e o frontend atualiza para exibir o vídeo e permitir que o editor marque como pronto para revisão.
+
+## 6. Interface por Abas do Evento
+
+A página de detalhes do evento é dividida em seções (abas). Uma possível navegação (via tabs ou links) inclui: **Briefing**, **Edição/Aprovação (Workflow)**, **Timeline/Entregas** e **Assets**. Cada aba corresponde a uma rota filha ou seção do evento:
+
+* `/events/[eventId]/briefing` – Exibe o formulário de briefing (`GeneralInfoTab`).
+* `/events/[eventId]` – (pode ser considerada “Edição” ou “Workflow”) mostra tarefas e entregas de vídeo (como descrito no fluxo acima).
+* `/events/[eventId]/timeline` ou similar – poderia mostrar o cronograma gerado (geralmente embutido no workflow atual como lista de tarefas).
+* `/events/[eventId]/entregas` – Mostra as entregas (vídeos) com suas versões e status (pode ser parte do painel principal ou página separada).
+* `/events/[eventId]/assets` – Exibe os **Assets** do evento (upload/download de arquivos diversos).
+  O `eventId` é mantido no URL, garantindo o contexto. Além disso, usamos `useProjectsStore.currentProject` para reter o evento ativo. Ao criar ou carregar um evento, `currentProject` é atualizado e usado para navegar entre as abas. Cada aba consome dados relacionados: por exemplo, a aba de briefing pega o briefing do store (ou API), a aba de edição lista `project.tasks` e `project.videos` do projeto atual, e a aba Assets filtra `store.assets` por `projectId == eventId`. Dessa forma, o projeto selecionado permanece em contexto e todas as seções consultam o mesmo objeto de evento (via ID ou store), mantendo a consistência dos dados.
+
+## 7. Execução Local e Armazenamento
+
+O **MelhorApp** foi projetado para funcionar **inteiramente local**, sem dependências de backend externo. Todos os dados (usuários, eventos, briefings, vídeos, etc.) são guardados em memória pelo Zustand (possivelmente persistidos no `localStorage` apenas para facilitar testes). Isso significa que ao reiniciar ou dar *refresh*, os dados voltam ao estado inicial pré-definido (como eventos de exemplo com ID 123/456). Essa simulação local de dados foi escolhida para o MVP: fornece uma experiência realista sem infra complexa. O uso do middleware `persist` do Zustand mantém certas informações (como sessões ou projeto atual) no `localStorage`, mas não há banco de dados externo nem server real. As chamadas de API internas usam estruturas em memória (objetos JS) e respondem JSON em cada request. Essa abordagem garante que **tudo rode localmente** – é ideal para demo e validação sem infra adicional.
+
+## 8. Dependências
+
+As principais bibliotecas necessárias são:
+
+* **Next.js** e **React** (framework base).
+* **Zustand** (`zustand`) para estado global.
+* **Tailwind CSS** (`tailwindcss`) para estilização utilitária.
+* **shadcn/UI** (que depende de Radix UI) para componentes prontos.
+* **lucide-react** para ícones de interface (fechado, download, upload, etc.).
+* **zod** e **react-hook-form** para validação de formulários.
+* **socket.io-client** (opcional) para a simulação de comentários em tempo real.
+* Outras utilitárias: `date-fns` (opcional para datas), `concurrently` (dev), `chokidar` e `node-fetch` (dev, para o watcher de vídeo).
+
+Para instalar via npm, por exemplo:
+
+```bash
+npm i next react react-dom zustand tailwindcss @shadcn/ui lucide-react zod react-hook-form socket.io-client
+npm i -D tailwindcss postcss autoprefixer concurrently chokidar node-fetch
+npx tailwindcss init -p   # para configurar Tailwind
+```
+
+Também será necessário configurar shadcn/UI seguindo a documentação (`npx shadcn-ui@latest init`) e instalar suas dependências (Radix). As instruções completas constam no README do projeto.
+
+## 9. Variáveis de Ambiente
+
+Crie um arquivo `.env.local` na raiz com as variáveis necessárias. Embora o app seja local, podem ser usadas variáveis de exemplo (ex.: `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SOCKET_URL`) para configurar serviços de mock. Importante em Next.js: por padrão **APENAS** variáveis iniciadas com `NEXT_PUBLIC_` são injetadas no código cliente. Todas as demais só ficam no servidor. Por exemplo:
+
+```
+NEXT_PUBLIC_SOCKET_URL=http://localhost:3001
+NEXT_PUBLIC_AUTH_SECRET=qualquer-chave
+NEXT_PUBLIC_ANEXO_PATH=/exports  # pasta local de vídeos/assets
+```
+
+No código, `process.env.NEXT_PUBLIC_SOCKET_URL` será substituída em tempo de build pelo valor acima. As variáveis sem `NEXT_PUBLIC_` seriam usadas apenas em código server-side (ex.: seeds). Nesse projeto, a maioria do comportamento é simulado, então não há variáveis críticas além de direcionar URLs ou flags de simulação. Documente cada variável no `.env.local` com comentário explicando seu uso (e.g. `NEXT_PUBLIC_SOCKET_URL` aponta para o servidor Socket em dev).
+
+## 10. Scripts e Inicialização
+
+No `package.json` já constam scripts úteis. Exemplo típico:
+
+* `"dev"` ou `"dev:all"`: roda o servidor Next.js em modo dev. No projeto existe `"dev": "next dev -p 3001"`, rodando na porta 3001.
+* `"build"`: compila para produção.
+* `"watch:videos"`: inicia o script de watch de vídeos (`node scripts/video-watcher.js`).
+* `"socket-server"`: inicia servidor Socket.io de teste (`node scripts/socket-server-teste.js`).
+* `"dev:all"`: costuma usar **concurrently** para rodar `dev`, `socket-server` e `watch:videos` juntos.
+
+Para testar localmente com upload funcional, siga:
+
+1. `npm install` para obter dependências.
+2. Em uma janela de terminal, rode `npm run dev:all` (ou seja, `next dev`, socket e watcher). O Next inicia em 3001 e o watcher monitora `public/exports`.
+3. Em outra janela, crie ou importe um vídeo na pasta `public/exports/projeto-{ID}`; o watcher enviará automaticamente ao app (ver \[13-14]). Entretanto, como alternativa, apenas abra a UI no navegador e use o botão *“Enviar Vídeo”* para upload manual (isto ativa o fluxo de importação no frontend).
+4. O app estará funcional: faça login (admin/editor/client), crie evento, preencha briefing, faça upload de vídeos, adicione comentários, aprove ou solicite mudanças – tudo localmente, com dados simulados.
+
+Mantendo o layout atual ou melhorando-o, o foco é que **todas** as funcionalidades estejam operacionais sem servidor externo. O contexto do evento (`eventId`) deve permanecer preservado nas rotas, e as APIs simuladas (em `app/api/.../route.ts`) garantem respostas coerentes. Com isso, o MVP pode ser demonstrado fielmente a investidores, mostrando desde cadastro até entrega final, tudo rodando local.
+
+**Fontes e referências:** Baseadas no código-fonte do repositório e na documentação oficial do Next.js, Zustand e análises internas do sistema, garantindo que a arquitetura e os fluxos descritos correspondam à implementação existente.

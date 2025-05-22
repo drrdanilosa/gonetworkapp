@@ -1,0 +1,1106 @@
+Com base na estrutura real do seu projeto `melhorapp_final` no GitHub, vou te entregar agora uma **implementação completa e modularizada** para o recurso:
+
+> **"Detectar automaticamente novos vídeos exportados do Premiere para uma pasta local e exibir no app para revisão/feedback."**
+
+---
+
+## ✅ VISÃO GERAL DO QUE VAMOS FAZER
+
+| Etapa | Descrição                                                                                                    |
+| ----- | ------------------------------------------------------------------------------------------------------------ |
+| 📂 1  | Definir pasta monitorada (`/exports`)                                                                        |
+| 👀 2  | Criar um watcher local em Node.js (fora do Next.js) que detecta `.mp4` novos                                 |
+| 🧠 3  | Registrar esses vídeos como versões dentro do `useProjectsStore.ts`                                          |
+| 🎥 4  | Exibir esses vídeos automaticamente na aba “Edições” usando o player existente                               |
+| 💾 5  | Preparar caminho de pastas local (Windows ou Linux/Mac) com uso da pasta `public/` ou compartilhada via rede |
+| 🔄 6  | No futuro: evoluir para plugin do Adobe Premiere lendo diretórios do projeto e usando API do app             |
+
+---
+
+## 📁 ESTRUTURA DE PASTA RECOMENDADA
+
+```bash
+melhorapp_final/
+├── public/
+│   └── exports/
+│       ├── evento-001/
+│       │   ├── v1.mp4
+│       │   ├── v2.mp4
+│       └── evento-002/
+│           └── v1.mp4
+```
+
+---
+
+## ⚙️ 1. SCRIPT WATCHER (fora do Next.js)
+
+Crie um arquivo chamado `video-watcher.js` na raiz do projeto:
+
+```js
+// video-watcher.js
+const fs = require('fs');
+const path = require('path');
+const axios = require('axios');
+
+const EXPORTS_DIR = path.resolve(__dirname, 'public/exports');
+const SERVER_API = 'http://localhost:3000/api/events/upload-from-watcher';
+
+fs.watch(EXPORTS_DIR, { recursive: true }, async (eventType, filename) => {
+  if (filename.endsWith('.mp4') && eventType === 'rename') {
+    const [eventFolder, file] = filename.split(path.sep);
+    const videoPath = `/exports/${eventFolder}/${file}`;
+    console.log(`📹 Novo vídeo detectado: ${videoPath}`);
+
+    // Envia para API Next.js registrar no store
+    await axios.post(SERVER_API, {
+      eventId: eventFolder,
+      filename: file,
+      url: videoPath
+    });
+  }
+});
+```
+
+Execute com:
+
+```bash
+node video-watcher.js
+```
+
+---
+
+## 🧠 2. API para registrar vídeo no Zustand (`/app/api/events/upload-from-watcher/route.ts`)
+
+```ts
+// app/api/events/upload-from-watcher/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { useProjectsStore } from '@/store/useProjectsStore';
+
+export async function POST(req: NextRequest) {
+  const { eventId, filename, url } = await req.json();
+
+  const store = useProjectsStore.getState();
+  const project = store.projects.find(p => p.id === eventId);
+  if (!project) return NextResponse.json({ error: 'Projeto não encontrado' }, { status: 404 });
+
+  const deliverable = project.videos?.[0] || {
+    id: 'main',
+    title: 'Principal',
+    versions: []
+  };
+
+  deliverable.versions.push({
+    id: `${Date.now()}`,
+    name: filename,
+    url,
+    uploadedAt: new Date()
+  });
+
+  const updated = {
+    ...project,
+    videos: [deliverable]
+  };
+
+  store.projects = store.projects.map(p => (p.id === eventId ? updated : p));
+  store.currentProject = updated;
+
+  return NextResponse.json({ success: true, video: url });
+}
+```
+
+---
+
+## 🏗️ 3. AJUSTES EM `useProjectsStore.ts`
+
+Certifique-se de que o tipo `VideoDeliverable` e `VideoVersion` estão definidos assim:
+
+```ts
+interface VideoVersion {
+  id: string;
+  name: string;
+  url: string;
+  uploadedAt: Date;
+}
+interface VideoDeliverable {
+  id: string;
+  title: string;
+  versions: VideoVersion[];
+}
+interface Project {
+  id: string;
+  name: string;
+  videos: VideoDeliverable[];
+  ...
+}
+```
+
+---
+
+## 🎥 4. COMPONENTE PARA EXIBIR AS VERSÕES DE VÍDEO
+
+Coloque em `components/widgets/video-list.tsx`:
+
+```tsx
+'use client';
+import { useProjectsStore } from '@/store/useProjectsStore';
+
+export default function VideoList() {
+  const project = useProjectsStore((s) => s.currentProject);
+
+  if (!project?.videos?.length) return <p>Nenhum vídeo disponível.</p>;
+
+  const versions = project.videos[0].versions;
+
+  return (
+    <div className="space-y-6">
+      {versions.map(v => (
+        <div key={v.id}>
+          <p className="font-bold">{v.name}</p>
+          <video controls className="rounded-lg w-full" src={v.url} />
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+---
+
+## 💡 5. INTEGRE NA ABA DE EDIÇÃO
+
+No `editing-widget.tsx` ou equivalente, importe e use:
+
+```tsx
+import VideoList from './video-list';
+
+...
+
+<VideoList />
+```
+
+---
+
+## 🧪 PRONTO PARA TESTAR
+
+1. Rode o app (`npm run dev`)
+2. Rode o watcher (`node video-watcher.js`)
+3. Exporte um `.mp4` do Premiere para `public/exports/evento-001/`
+4. Veja o vídeo aparecer automaticamente na aba de Edição
+
+---
+
+
+
+
+
+
+ 
+
+---
+
+## ✅ CONTINUAÇÃO: Controles de Aprovação e Marcação de Versão Ativa
+
+---
+
+### 🧠 6. Extensão do Zustand (`useProjectsStore.ts`)
+
+Inclua os seguintes métodos no seu `ProjectsState`:
+
+```ts
+interface ProjectsState {
+  ...
+  setActiveVideoVersion: (projectId: string, versionId: string) => void;
+  approveVideoVersion: (projectId: string, versionId: string) => void;
+}
+```
+
+E implemente assim:
+
+```ts
+setActiveVideoVersion: (projectId, versionId) => {
+  set((state) => {
+    const projects = state.projects.map(project => {
+      if (project.id !== projectId) return project;
+
+      const updatedVideos = project.videos.map(video => ({
+        ...video,
+        versions: video.versions.map(version => ({
+          ...version,
+          active: version.id === versionId
+        }))
+      }));
+
+      return { ...project, videos: updatedVideos };
+    });
+    return { projects };
+  });
+},
+
+approveVideoVersion: (projectId, versionId) => {
+  set((state) => {
+    const projects = state.projects.map(project => {
+      if (project.id !== projectId) return project;
+
+      const updatedVideos = project.videos.map(video => ({
+        ...video,
+        versions: video.versions.map(version => ({
+          ...version,
+          approved: version.id === versionId
+        }))
+      }));
+
+      return { ...project, videos: updatedVideos };
+    });
+    return { projects };
+  });
+},
+```
+
+E adicione os campos nos tipos:
+
+```ts
+interface VideoVersion {
+  id: string;
+  name: string;
+  url: string;
+  uploadedAt: Date;
+  active?: boolean;
+  approved?: boolean;
+}
+```
+
+---
+
+### 🎛️ 7. Interface de Aprovação e Seleção
+
+Atualize o componente `VideoList.tsx` para incluir os botões:
+
+```tsx
+'use client';
+import { useProjectsStore } from '@/store/useProjectsStore';
+
+export default function VideoList() {
+  const project = useProjectsStore((s) => s.currentProject);
+  const setActive = useProjectsStore((s) => s.setActiveVideoVersion);
+  const approve = useProjectsStore((s) => s.approveVideoVersion);
+
+  if (!project?.videos?.length) return <p>Nenhum vídeo disponível.</p>;
+
+  const versions = project.videos[0].versions;
+
+  return (
+    <div className="space-y-6">
+      {versions.map((v) => (
+        <div key={v.id} className="border border-neutral-700 p-4 rounded-md">
+          <p className="font-bold">
+            {v.name}
+            {v.approved && <span className="ml-2 text-green-400">(Aprovado)</span>}
+            {v.active && !v.approved && <span className="ml-2 text-yellow-400">(Ativo)</span>}
+          </p>
+          <video controls className="rounded-lg w-full" src={v.url} />
+          <div className="mt-2 space-x-3">
+            {!v.approved && (
+              <>
+                <button
+                  onClick={() => setActive(project.id, v.id)}
+                  className="px-4 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-sm"
+                >
+                  Marcar como Ativo
+                </button>
+                <button
+                  onClick={() => approve(project.id, v.id)}
+                  className="px-4 py-1 bg-green-600 hover:bg-green-700 rounded text-sm"
+                >
+                  Aprovar Versão
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+---
+
+### 📦 Estrutura final esperada
+
+| Componente/Arquivo                  | Função                               |
+| ----------------------------------- | ------------------------------------ |
+| `video-watcher.js`                  | Detecta exportações e envia à API    |
+| `api/events/upload-from-watcher.ts` | Adiciona versão ao projeto no store  |
+| `store/useProjectsStore.ts`         | Estado global com controle de vídeos |
+| `components/widgets/VideoList.tsx`  | Exibe vídeos + botões de controle    |
+| `public/exports/[evento]/vX.mp4`    | Armazenamento físico dos vídeos      |
+
+---
+
+### 🔄 Futuro: Evolução com plugin Adobe Premiere
+
+* Painel do Premiere para:
+
+  * Acessar Assets
+  * Selecionar nome da exportação
+  * Ver lista de alterações
+  * Exportar direto para `/exports/[evento]`
+* API para leitura dos comentários por frame (já existe base para isso)
+
+---
+
+
+
+
+
+
+
+Perfeito. Agora vamos expandir seu sistema com duas funcionalidades cruciais e integradas:
+
+---
+
+## ✅ PARTE 1 — Comentários Temporais com Cards Sobrepostos
+
+Você já possui:
+
+* Comentários com timestamps associados
+* Marcadores na timeline (`comment-markers-timeline.tsx`)
+* Lista de comentários com autor e tempo (`CommentItem`)
+
+### 🔥 Melhorias agora:
+
+1. **Mostrar cards sobre o vídeo no tempo certo**
+2. **Permitir clique em “+” para adicionar comentário no tempo atual**
+3. **Marcar comentários como resolvidos**
+
+---
+
+### 🧱 Estrutura sugerida
+
+| Arquivo                       | Função                                                 |
+| ----------------------------- | ------------------------------------------------------ |
+| `comment-overlay.tsx`         | Exibe cards flutuantes sincronizados com o vídeo       |
+| `add-comment-button.tsx`      | Botão “+” para adicionar comentário no tempo atual     |
+| `comment-form.tsx`            | Formulário de novo comentário com tempo embutido       |
+| `comments-store.ts` (Zustand) | Armazena, adiciona e marca comentários como resolvidos |
+
+---
+
+### 🧩 Exemplo de `comment-overlay.tsx`
+
+```tsx
+'use client';
+import { useEffect, useState } from 'react';
+import { useCommentsStore } from '@/store/comments-store';
+
+interface Props {
+  currentTime: number;
+}
+
+export default function CommentOverlay({ currentTime }: Props) {
+  const comments = useCommentsStore(s => s.comments);
+  const active = comments.filter(c => Math.abs(c.timestamp - currentTime) < 1.5 && !c.resolved);
+
+  if (!active.length) return null;
+
+  return (
+    <div className="absolute top-5 left-5 z-50 space-y-2">
+      {active.map(c => (
+        <div key={c.id} className="bg-black/70 text-white p-2 rounded max-w-md">
+          <strong>{c.author}</strong>: {c.text}
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+---
+
+### 🧩 Exemplo de `add-comment-button.tsx`
+
+```tsx
+'use client';
+export default function AddCommentButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="absolute top-4 right-4 bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 z-50"
+    >
+      + Comentar
+    </button>
+  );
+}
+```
+
+---
+
+### 🧩 `comments-store.ts` (Zustand)
+
+```ts
+import { create } from 'zustand';
+
+export interface Comment {
+  id: string;
+  author: string;
+  timestamp: number;
+  text: string;
+  resolved: boolean;
+}
+
+interface CommentState {
+  comments: Comment[];
+  addComment: (comment: Omit<Comment, 'id' | 'resolved'>) => void;
+  markResolved: (id: string) => void;
+}
+
+export const useCommentsStore = create<CommentState>((set) => ({
+  comments: [],
+  addComment: (c) =>
+    set((s) => ({
+      comments: [...s.comments, { ...c, id: crypto.randomUUID(), resolved: false }],
+    })),
+  markResolved: (id) =>
+    set((s) => ({
+      comments: s.comments.map((c) =>
+        c.id === id ? { ...c, resolved: true } : c
+      ),
+    })),
+}));
+```
+
+---
+
+## ✅ PARTE 2 — Assets Compartilhados (trilhas, logos, imagens)
+
+Com base no `AssetsWidget`, sugerimos:
+
+### 📂 Estrutura no projeto:
+
+```
+/public/assets/[eventId]/
+├── logos/
+├── musicas/
+├── imagens/
+```
+
+### ⚙️ Implementação base:
+
+1. Um **input de upload** que move o arquivo para `public/assets/[eventId]/`
+2. Uma **lista de arquivos** com preview e tipo
+3. Botão “Usar no projeto” → vincula o asset ao projeto
+
+---
+
+### 🧩 Exemplo de Store (`useAssetsStore.ts`)
+
+Já sugerido no trecho anterior: você adiciona assets com `addAsset(file, tags)`, define tipo automático (imagem, vídeo, áudio) e gera `URL.createObjectURL`.
+
+---
+
+### 🧩 Componente de Interface: `AssetsPanel.tsx`
+
+```tsx
+'use client';
+import { useAssetsStore } from '@/store/useAssetsStore';
+
+export default function AssetsPanel() {
+  const { assets, addAsset } = useAssetsStore();
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) addAsset(file);
+  };
+
+  return (
+    <div className="p-4">
+      <input type="file" onChange={handleUpload} />
+      <div className="grid grid-cols-3 gap-4 mt-4">
+        {assets.map((a) => (
+          <div key={a.id} className="p-2 border rounded bg-neutral-800 text-white">
+            <p className="text-sm">{a.name}</p>
+            {a.type === 'image' && <img src={a.url} className="w-full" />}
+            {a.type === 'audio' && <audio controls src={a.url} />}
+            {a.type === 'video' && <video controls src={a.url} />}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Excelente escolha. Vamos agora implementar **cards de comentários clicáveis** que, ao serem clicados, **movem o vídeo para o ponto correspondente do comentário**.
+
+Isso integra perfeitamente com seu fluxo de revisão de cortes no GoNetwork AI.
+
+---
+
+## ✅ Objetivo:
+
+Criar uma **lista lateral** (ou abaixo do vídeo) com **comentários clicáveis**. Ao clicar em um comentário, o player avança automaticamente para o timestamp correspondente.
+
+---
+
+### 🧱 ESTRUTURA FINAL ENVOLVIDA
+
+| Arquivo                         | Função                                |
+| ------------------------------- | ------------------------------------- |
+| `comments-store.ts`             | Armazena os comentários com timestamp |
+| `CommentList.tsx`               | Lista os comentários clicáveis        |
+| `useVideoControl.ts` (opcional) | Hook para manipular tempo do player   |
+| `<video ref={...} />`           | Player com controle direto            |
+
+---
+
+## 🧠 1. Store (Já existente)
+
+Você já possui `useCommentsStore` com os timestamps. Agora vamos usá-los para controle de tempo.
+
+---
+
+## 📦 2. Hook utilitário (opcional, mas limpo)
+
+Crie `hooks/useVideoControl.ts`:
+
+```tsx
+import { RefObject } from 'react';
+
+export function useVideoControl(videoRef: RefObject<HTMLVideoElement>) {
+  const seekTo = (seconds: number) => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = seconds;
+      videoRef.current.play();
+    }
+  };
+
+  return { seekTo };
+}
+```
+
+---
+
+## 🧩 3. `CommentList.tsx` — Lista clicável de comentários
+
+```tsx
+'use client';
+import { useCommentsStore } from '@/store/comments-store';
+import { useRef } from 'react';
+import { useVideoControl } from '@/hooks/useVideoControl';
+
+export default function CommentList({ videoRef }: { videoRef: React.RefObject<HTMLVideoElement> }) {
+  const comments = useCommentsStore((s) => s.comments);
+  const { seekTo } = useVideoControl(videoRef);
+
+  return (
+    <div className="space-y-2 mt-4 text-white">
+      <h3 className="text-lg font-bold">Comentários</h3>
+      {comments.map((c) => (
+        <div
+          key={c.id}
+          className="p-2 bg-neutral-800 hover:bg-neutral-700 rounded cursor-pointer"
+          onClick={() => seekTo(c.timestamp)}
+        >
+          <p className="text-sm text-yellow-400">⏱ {formatTime(c.timestamp)}</p>
+          <p><strong>{c.author}</strong>: {c.text}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function formatTime(seconds: number) {
+  const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
+  return `${mins}:${secs}`;
+}
+```
+
+---
+
+## 🎥 4. Integração com o player
+
+No seu componente onde está o player (ex: `EditingWidgetContent.tsx` ou `VideoReviewPage.tsx`):
+
+```tsx
+import { useRef } from 'react';
+import CommentList from './CommentList';
+
+export default function VideoReviewSection() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="relative">
+        <video ref={videoRef} controls className="rounded-lg w-full" src="/videos/exemplo.mp4" />
+      </div>
+      <div>
+        <CommentList videoRef={videoRef} />
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+## ✨ Com isso, você tem:
+
+* Uma timeline de comentários clicáveis
+* Acesso direto ao ponto do vídeo
+* Perfeito para revisões e feedback preciso
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
+Perfeito! Agora vamos implementar **anotações desenhadas sobre o vídeo**, estilo Frame.io — onde o cliente ou editor pode **clicar e desenhar sobre um frame específico**, associando a anotação a um timestamp e a um comentário textual.
+
+---
+
+## 🎯 OBJETIVO
+
+* Permitir desenhar sobre o vídeo pausado (como um quadro)
+* Registrar o **timestamp** da anotação
+* Associar a anotação a um **comentário**
+* Exibir as anotações no tempo correto durante a revisão
+
+---
+
+## ✅ ARQUITETURA ENVOLVIDA
+
+| Arquivo                  | Função                                                 |
+| ------------------------ | ------------------------------------------------------ |
+| `DrawingOverlay.tsx`     | Componente que exibe a camada de desenho sobre o vídeo |
+| `drawing-store.ts`       | Zustand store para salvar desenhos por timestamp       |
+| `CommentWithDrawing.tsx` | Formulário para adicionar comentário + desenho         |
+| `CanvasDrawer.tsx`       | Camada de canvas desenhável                            |
+
+---
+
+## 🧠 1. Store de desenhos — `drawing-store.ts`
+
+```ts
+import { create } from 'zustand';
+
+interface DrawingData {
+  id: string;
+  timestamp: number;
+  points: { x: number; y: number }[];
+  comment: string;
+  author: string;
+}
+
+interface DrawingState {
+  drawings: DrawingData[];
+  addDrawing: (data: Omit<DrawingData, 'id'>) => void;
+  getDrawingsAt: (timestamp: number) => DrawingData[];
+}
+
+export const useDrawingStore = create<DrawingState>((set, get) => ({
+  drawings: [],
+  addDrawing: (data) =>
+    set((state) => ({
+      drawings: [...state.drawings, { ...data, id: crypto.randomUUID() }],
+    })),
+  getDrawingsAt: (timestamp) => {
+    return get().drawings.filter(
+      (d) => Math.abs(d.timestamp - timestamp) < 1.5
+    );
+  },
+}));
+```
+
+---
+
+## 🧩 2. `CanvasDrawer.tsx` — Componente que permite desenhar
+
+```tsx
+'use client';
+import { useRef, useState } from 'react';
+
+interface CanvasDrawerProps {
+  width: number;
+  height: number;
+  onSave: (points: { x: number; y: number }[]) => void;
+}
+
+export default function CanvasDrawer({ width, height, onSave }: CanvasDrawerProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [drawing, setDrawing] = useState(false);
+  const [points, setPoints] = useState<{ x: number; y: number }[]>([]);
+
+  const startDrawing = (e: React.MouseEvent) => {
+    setDrawing(true);
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (rect)
+      setPoints([{ x: e.clientX - rect.left, y: e.clientY - rect.top }]);
+  };
+
+  const draw = (e: React.MouseEvent) => {
+    if (!drawing) return;
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (rect)
+      setPoints((prev) => [
+        ...prev,
+        { x: e.clientX - rect.left, y: e.clientY - rect.top },
+      ]);
+  };
+
+  const stopDrawing = () => {
+    setDrawing(false);
+    onSave(points);
+    setPoints([]);
+  };
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={width}
+      height={height}
+      className="absolute top-0 left-0 z-40 cursor-crosshair"
+      onMouseDown={startDrawing}
+      onMouseMove={draw}
+      onMouseUp={stopDrawing}
+    />
+  );
+}
+```
+
+---
+
+## 📥 3. Formulário de comentário com desenho
+
+```tsx
+'use client';
+import { useState } from 'react';
+import CanvasDrawer from './CanvasDrawer';
+import { useDrawingStore } from '@/store/drawing-store';
+
+export default function CommentWithDrawing({ videoRef }: { videoRef: React.RefObject<HTMLVideoElement> }) {
+  const [showCanvas, setShowCanvas] = useState(false);
+  const [comment, setComment] = useState('');
+  const add = useDrawingStore((s) => s.addDrawing);
+
+  const saveDrawing = (points: { x: number; y: number }[]) => {
+    if (!videoRef.current) return;
+    const timestamp = videoRef.current.currentTime;
+
+    add({
+      timestamp,
+      points,
+      comment,
+      author: 'Cliente',
+    });
+    setShowCanvas(false);
+    setComment('');
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setShowCanvas(true)}
+        className="bg-red-600 text-white px-3 py-1 rounded mb-2"
+      >
+        Desenhar no frame atual
+      </button>
+      <textarea
+        placeholder="Comente o que está errado no frame"
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+        className="w-full p-2 rounded mb-2"
+      />
+      {showCanvas && (
+        <CanvasDrawer width={640} height={360} onSave={saveDrawing} />
+      )}
+    </div>
+  );
+}
+```
+
+---
+
+## 🖼️ 4. `DrawingOverlay.tsx` — Exibe desenhos no tempo certo
+
+```tsx
+'use client';
+import { useDrawingStore } from '@/store/drawing-store';
+
+export default function DrawingOverlay({ currentTime }: { currentTime: number }) {
+  const get = useDrawingStore((s) => s.getDrawingsAt);
+  const drawings = get(currentTime);
+
+  return (
+    <svg className="absolute top-0 left-0 w-full h-full z-30 pointer-events-none">
+      {drawings.map((d) => (
+        <polyline
+          key={d.id}
+          points={d.points.map(p => `${p.x},${p.y}`).join(' ')}
+          fill="none"
+          stroke="red"
+          strokeWidth="2"
+        />
+      ))}
+    </svg>
+  );
+}
+```
+
+---
+
+## ✅ Integração final (no componente do vídeo)
+
+```tsx
+'use client';
+import { useRef, useState, useEffect } from 'react';
+import DrawingOverlay from './DrawingOverlay';
+import CommentWithDrawing from './CommentWithDrawing';
+
+export default function VideoWithDraw() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+
+  useEffect(() => {
+    const ref = videoRef.current;
+    const update = () => setCurrentTime(ref?.currentTime ?? 0);
+    ref?.addEventListener('timeupdate', update);
+    return () => ref?.removeEventListener('timeupdate', update);
+  }, []);
+
+  return (
+    <div className="relative w-[640px] h-[360px]">
+      <video ref={videoRef} controls src="/videos/exemplo.mp4" className="w-full h-full rounded" />
+      <DrawingOverlay currentTime={currentTime} />
+      <CommentWithDrawing videoRef={videoRef} />
+    </div>
+  );
+}
+```
+
+---
+
+Com isso você tem:
+
+* ✏️ Uma camada desenhável sincronizada com o tempo
+* 📝 Um formulário de comentários associados ao frame
+* 🧠 Um store separado para desenhos e comentários visuais
+* 🎯 Anotações aparecendo automaticamente nos momentos certos do vídeo
+
+--
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Excelente! Agora vamos implementar a **interface de aprovação final** do vídeo, com:
+
+* ✅ Botão para aprovar uma versão específica do vídeo
+* ✅ Registro da data, hora, nome do aprovador
+* ✅ Visualização do histórico de aprovações (quem aprovou, quando e qual versão)
+* ✅ Campos configuráveis para assinatura, observações e "voltar versão"
+
+---
+
+## 🎯 OBJETIVO
+
+Permitir que o **cliente aprove formalmente uma versão do vídeo**, com controle de:
+
+* Quem aprovou (usuário)
+* Quando aprovou (timestamp)
+* Qual versão foi aprovada (ID)
+* Comentários ou observações adicionais
+
+---
+
+## ✅ ARQUITETURA ENVOLVIDA
+
+| Arquivo                     | Função                                        |
+| --------------------------- | --------------------------------------------- |
+| `store/useApprovalStore.ts` | Armazena o histórico de aprovações            |
+| `ApprovalPanel.tsx`         | Exibe o botão de aprovação e formulário       |
+| `ApprovalHistory.tsx`       | Mostra todas as versões já aprovadas          |
+| `VideoList.tsx`             | Chama `approveVersion` ao clicar em "Aprovar" |
+
+---
+
+## 🧠 1. Store de Aprovação — `store/useApprovalStore.ts`
+
+```ts
+import { create } from 'zustand';
+
+export interface Approval {
+  id: string;
+  videoVersionId: string;
+  approvedBy: string;
+  approvedAt: string; // ISO string
+  observation?: string;
+}
+
+interface ApprovalState {
+  approvals: Approval[];
+  approveVersion: (data: Omit<Approval, 'id'>) => void;
+}
+
+export const useApprovalStore = create<ApprovalState>((set) => ({
+  approvals: [],
+  approveVersion: (data) => {
+    const approval: Approval = {
+      id: crypto.randomUUID(),
+      ...data,
+      approvedAt: new Date().toISOString(),
+    };
+    set((s) => ({ approvals: [...s.approvals, approval] }));
+  },
+}));
+```
+
+---
+
+## 🧩 2. `ApprovalPanel.tsx` — Formulário de aprovação
+
+```tsx
+'use client';
+import { useState } from 'react';
+import { useApprovalStore } from '@/store/useApprovalStore';
+
+export default function ApprovalPanel({ versionId }: { versionId: string }) {
+  const approveVersion = useApprovalStore(s => s.approveVersion);
+  const [name, setName] = useState('');
+  const [observation, setObservation] = useState('');
+  const [approved, setApproved] = useState(false);
+
+  const handleApprove = () => {
+    if (!name) return alert('Informe seu nome para aprovar');
+    approveVersion({ videoVersionId: versionId, approvedBy: name, observation });
+    setApproved(true);
+  };
+
+  if (approved) return <p className="text-green-400">✅ Versão aprovada por {name}</p>;
+
+  return (
+    <div className="p-4 bg-neutral-900 rounded space-y-2 text-white">
+      <h3 className="text-lg font-bold">Aprovação Final</h3>
+      <input
+        placeholder="Seu nome (assinatura)"
+        className="w-full p-2 rounded bg-neutral-800"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+      <textarea
+        placeholder="Observações (opcional)"
+        className="w-full p-2 rounded bg-neutral-800"
+        value={observation}
+        onChange={(e) => setObservation(e.target.value)}
+      />
+      <button
+        onClick={handleApprove}
+        className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded"
+      >
+        ✅ Aprovar esta versão
+      </button>
+    </div>
+  );
+}
+```
+
+---
+
+## 🧾 3. `ApprovalHistory.tsx` — Visualização do histórico
+
+```tsx
+'use client';
+import { useApprovalStore } from '@/store/useApprovalStore';
+
+export default function ApprovalHistory() {
+  const approvals = useApprovalStore(s => s.approvals);
+
+  if (!approvals.length) return <p className="text-neutral-500">Nenhuma versão foi aprovada ainda.</p>;
+
+  return (
+    <div className="p-4 mt-4 bg-neutral-800 rounded text-white space-y-3">
+      <h3 className="text-lg font-bold">Histórico de Aprovações</h3>
+      {approvals.map(a => (
+        <div key={a.id} className="border-b border-neutral-600 pb-2">
+          <p><strong>Versão:</strong> {a.videoVersionId}</p>
+          <p><strong>Por:</strong> {a.approvedBy}</p>
+          <p><strong>Data:</strong> {new Date(a.approvedAt).toLocaleString()}</p>
+          {a.observation && <p><strong>Obs:</strong> {a.observation}</p>}
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+---
+
+## 🧩 4. Integração no componente de vídeo
+
+No seu `VideoList.tsx`, adicione abaixo de cada vídeo:
+
+```tsx
+import ApprovalPanel from './ApprovalPanel';
+
+...
+
+<video controls src={v.url} className="rounded-lg w-full" />
+<ApprovalPanel versionId={v.id} />
+```
+
+E onde quiser exibir histórico (no final da aba ou lateral):
+
+```tsx
+import ApprovalHistory from './ApprovalHistory';
+
+<ApprovalHistory />
+```
+
+---
+
+## ✨ Resultado Final
+
+* ✅ Cliente pode aprovar uma versão, com nome e observação
+* ✅ Aprovação é registrada com data/hora
+* ✅ Lista de todas as aprovações fica visível para controle e documentação
+* ✅ Gatilho para próxima etapa do fluxo (ex: gerar entrega final, liberar download, etc.)
+
+---
+
+
+
+

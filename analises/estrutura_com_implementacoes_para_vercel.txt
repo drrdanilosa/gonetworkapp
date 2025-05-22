@@ -1,0 +1,168 @@
+Perfeito, Danilo. Vou montar um direcionamento técnico completo, passo a passo, para que a equipe da Vercel consiga reconstruir todo o seu aplicativo com base na estrutura original, aplicando todas as correções e melhorias exigidas — especialmente quanto à lógica de importação de vídeos locais, layout, fluxo entre abas (Equipe, Briefing, Timeline, Edição/Aprovação, Entregas e Assets), permissões por perfil e watcher automático.
+
+Incluirei todas as instruções técnicas necessárias: estrutura de arquivos, rotas, estado global, APIs simuladas, watcher, lógica de entregas, bem como orientações específicas para que o sistema esteja funcional mesmo sem banco de dados externo, usando apenas arquivos e dados locais.
+
+Vou iniciar agora e volto com o material completo pronto para ser enviado ao time da Vercel.
+
+
+# Organização do Projeto
+
+O repositório **melhorapp\_final** segue a arquitetura modular por *features*. A estrutura básica é a seguinte (ver ):
+
+* **app/**: diretório do Next.js *App Router*, contendo páginas principais. Ex.: `app/page.tsx` (início), `app/events/page.tsx` (lista de eventos), `app/events/new/page.tsx` (criação de novo evento) e pastas dinâmicas `app/events/[eventId]/*` (detalhes do evento, incluindo subpáginas como `/briefing`).
+* **components/**: componentes React compartilhados. Inclui subpastas como `ui/` (componentes de interface estilizados com shadcn/UI), `video/` (player de vídeo e anotações), `widgets/` (widgets funcionais, e.g. `<LoginWidget />`), etc.
+* **features/**: funcionalidades por domínio. Ex.: `features/auth/` (login/registro), `features/briefing/` (formulários de briefing do evento), etc. Cada *feature* encapsula seus componentes, hooks e lógica.
+* **services/**: abstrações de chamadas de API. Ex.: `services/briefing-service.ts` para CRUD de briefing via rotas internas.
+* **store/**: *stores* de estado global com Zustand. Ex.: `useAuthStore.ts` (autenticação), `useProjectsStore.ts` (projetos/eventos, entregáveis, vídeos, tarefas), `useUIStore.ts` (notificações) etc.
+* **contexts/**, **hooks/**, **lib/**, **styles/**, **types/**: código utilitário, ganchos customizados, definições de tipos TypeScript.
+* **app/api/**: rotas de API internas do Next.js. Ex.: `app/api/briefings/route.ts` e `app/api/briefings/[eventId]/route.ts` para CRUD de briefing, `app/api/events/[eventId]/videos/route.ts` (importação de vídeo via watcher) etc.
+* **public/exports/**: pasta pública monitorada para vídeos exportados localmente. Cada subpasta nesta (`public/exports/<eventId>/`) corresponde a um evento e contém arquivos `.mp4` que o watcher local importará automaticamente.
+
+Essa organização (features, services, store, rotas em *app/api*, etc.) foi descrita no README do projeto e permite separar responsabilidades e escalar facilmente.
+
+## Fluxo Completo do Aplicativo
+
+O fluxo principal do *MelhorApp* percorre as seguintes etapas (conforme documentado no README):
+
+1. **Autenticação:** Usuários (editores ou clientes) registram-se e fazem login pelo widget de login. Ao autenticar, o estado global de usuário (`useAuthStore`) é preenchido.
+2. **Dashboard/Listagem de Projetos:** Após login, o usuário é direcionado à página de **Eventos** (`/events`), que exibe uma lista de projetos/eventos existentes. Cada entrada mostra título, datas e status.
+3. **Criação de Evento/Projeto:** O editor pode criar um novo evento via `/events/new`. Há um formulário (React Hook Form + Zod) para título, descrição, data do evento, prazo final, número de vídeos etc.. É possível gerar um cronograma automático clicando em “Gerar Cronograma”, que chama a função `generateScheduleFromBriefing(title, numVideos, eventDate, finalDueDate)`. Essa função (em `lib/scheduleGenerator.ts`) cria fases predefinidas (“Planejamento”, “Gravação”, “Edição”, “Revisão”, “Aprovação”) com datas planejadas com base no briefing preenchido. O cronograma gerado é exibido em pré-visualização na própria página antes de confirmar a criação do projeto.
+4. **Detalhes do Evento:** Após criação, o usuário é redirecionado à página de detalhes do evento (`/events/[eventId]`). Nessa página há múltiplas abas (por exemplo, “Informações Gerais (Briefing)”, “Edição/Aprovação”, “Histórico”, “Assets” etc.), que mantêm o contexto do `eventId` atual. Cada aba carrega dados do evento ativo (brinfing, versões de vídeo, comentários, entregas) usando o `eventId` dos parâmetros de rota. Por exemplo, na aba **Briefing** o usuário preenche informações detalhadas (data, local, requisitos), que são salvas via API e atualizam a timeline do evento automaticamente.
+5. **Envio de Vídeo:** Editores enviam arquivos de vídeo via duas formas: (a) carregando pelo formulário de upload na aba de edição do evento (gerando novas versões de um entregável); (b) colocando vídeos exportados em `public/exports/<eventId>/`, monitorado pelo watcher local (explicado adiante). Em ambos os casos, o vídeo fica disponível na aba **Edição/Aprovação** sob o entregável correspondente. Cada carregamento cria uma nova versão (v1, v2, v3, …) do vídeo no evento.
+6. **Edição, Comentários e Revisão:** Na aba **Edição/Aprovação**, o editor pode marcar um vídeo como pronto para revisão (`markVideoReady`). O cliente assiste ao vídeo, faz comentários (com timestamp) e pode solicitar alterações ou aprová-lo. O fluxo de comentários (cada comentário tem autor, texto, timestamp) é gerenciado no estado global e exibido junto ao vídeo. Se o cliente solicitar mudanças, o status do entregável muda para `changes_requested`; se aprovar, muda para `approved`. Cada ação (pronto, solicitação, aprovação) dispara um update no *store*. O histórico de versões e comentários fica disponível para comparação.
+7. **Aprovação Final:** Quando o cliente aprova, registra-se a aprovação final. Em nossa implementação atual, há até um componente de assinatura digital que o cliente preenche (assinando com o mouse ou nome). Ao confirmar, é enviado um POST para `/api/events/[eventId]/approve`, atualizando o entregável como aprovado e informando data/hora da aprovação. A interface exibe que o vídeo foi aprovado pelo cliente naquela data.
+8. **Entregas e Histórico:** O sistema mantém o histórico de todas as versões de cada entregável (vídeo) e todos os comentários. O status final do projeto pode ser acompanhado (e.g. “aguardando aprovação”, “entregue” etc.).
+9. **Assets Reutilizáveis:** Há suporte básico para gerenciar *assets* (biblioteca de mídia). Cada asset (vídeo/imagem/áudio) é registrado no estado global e pode ser reutilizado em diferentes projetos. A implementação atual armazena localmente um URL dos arquivos e permite buscar por nome/tag. Futuras melhorias podem incluir tagging automático (IA).
+
+Todo o fluxo acima foi delineado no README e nas documentações internas do projeto. Em resumo, o usuário faz login, cria eventos, preenche briefing (cronograma automático), edita/vê vídeos, comenta e aprova entregas. A navegação entre abas mantém o contexto do evento ativo, sem quebrar o fluxo.
+
+## Lógica de Permissões por Perfil
+
+O **MelhorApp** define três perfis de usuário: **admin**, **editor** e **cliente** (tipos do objeto `User.role`). A lógica de acesso é a seguinte:
+
+* **Administradores (admin):** Têm acesso ao painel administrativo (`/admin/*`) e todas as funcionalidades do sistema. Podem visualizar e editar qualquer informação de projeto ou usuário.
+* **Editores (editor):** São os responsáveis por criar eventos/projetos e gerenciar o fluxo de edição. Podem **criar/editar** briefings, fazer upload de vídeos, gerenciar versões, adicionar comentários e marcar entregas como prontas, solicitar mudanças, etc. (Basicamente tudo no fluxo normal do projeto). Nas abas do evento, exibimos controles adicionais (como botões de “Excluir versão” ou “Marcar como pronto”) somente para editores.
+* **Clientes (client):** Podem acessar apenas os eventos em que são clientes atribuídos. Em geral, só podem **visualizar** o briefing e os vídeos, além de fazer comentários ou aprovar/solicitar mudanças. Não têm acesso a criar eventos ou editar briefing de outros, apenas revisar conteúdo. Concretamente, no módulo de briefing, apenas admins e “coordenadores” (editores) podem editar; demais usuários (clientes) visualizam os dados. Em outras áreas, interfaces e botões de edição são desativados para clientes.
+
+Essa lógica de permissões costuma ser aplicada via *guardas* nos componentes ou verificações no próprio código (e.g. checando `user.role` antes de executar certas ações). No geral, **admins/editors** podem alterar dados e **clientes** somente visualizar. O próprio código de interface reflete isso: por exemplo, o botão de “Excluir versão” só aparece se o usuário for editor, e rotas administrativas só são acessíveis a admins.
+
+## Rotas Dinâmicas e Contexto de Evento
+
+O projeto usa o **App Router** do Next.js 15, que habilita rotas dinâmicas de forma simples. Por exemplo, a pasta `app/events/[eventId]/` define rotas onde o `eventId` é passado automaticamente como parâmetro. Em cada *page component* correspondente usamos o `eventId` do contexto: p.ex.
+
+```tsx
+export default function EventDetailsPage({ params }: { params: { eventId: string } }) {
+  const eventId = params.eventId;
+  // ...
+}
+```
+
+Assim, não precisamos de `getServerSideProps` – o Next.js passa `params.eventId` diretamente às funções do server ou às páginas de servidor. Do lado do cliente, podemos usar o hook `useParams()` para obter o mesmo ID. Essa abordagem elimina problemas como `"params.eventId is undefined"` que ocorriam antes. Em resumo, todas as páginas de evento (breifing, edição, histórico etc.) recebem o `params.eventId` correto via contexto do Next.js, garantindo que exibamos e gravemos informações no evento certo.
+
+Exemplo de rota: ao acessar `/events/123/briefing`, o componente em `app/events/[eventId]/briefing/page.tsx` receberá `{ params: { eventId: '123' } }`. A partir daí ele carrega dados do briefing e atualiza o estado global conforme necessário.
+
+## Watcher de Vídeo com chokidar e API Interna
+
+Para **detectar automaticamente vídeos exportados localmente**, implementamos um *watcher* em Node.js que monitora a pasta `public/exports`. Detalhes técnicos:
+
+* **Script Node.js (`scripts/video-watcher.js`):** Usa a biblioteca **chokidar** para observar novos arquivos `.mp4` em `public/exports/**/*`. Assume-se que cada evento tem uma subpasta nomeada com seu `eventId` (e.g. `public/exports/456/v1.mp4`). Quando um arquivo é adicionado, o watcher extrai o `eventId` do caminho e o nome do arquivo, e faz uma requisição HTTP POST interna para o Next.js. (Veja trecho de código exemplo.)
+* **Dependências do Watcher:** É preciso instalar `chokidar` e `node-fetch` (ou `axios`) para esse script. No `package.json`, adicionamos por exemplo `"watch:videos": "node scripts/video-watcher.js"` e incluímos nos scripts de dev. Como mostrado em \[36], executamos `npm install chokidar node-fetch` e podemos rodar `npm run watch:videos` em paralelo com o Next.js.
+* **Rota de Importação de Vídeo:** Criamos a rota API `app/api/events/[eventId]/videos/route.ts` para receber essas requisições POST. O handler lê `params.eventId` e `fileName` do corpo, valida que o evento existe e então registra o vídeo no store do projeto. Isso envolve criar (ou usar) um deliverable de vídeo existente e adicionar uma nova **versão** à lista (com `url: "/exports/<eventId>/<fileName>"` acessível diretamente via pasta `public`). O status do entregável é mantido como `"editing"` por padrão (ou pode ser marcado como `ready_for_review`). Essa API devolve sucesso após inserir a versão; o front-end passa então a exibi-la automaticamente na aba de edição do evento.
+* **Execução do Watcher:** Durante o desenvolvimento, iniciamos o watcher em paralelo. Por exemplo, podemos usar `npm run dev` para o Next.js e, em outra aba, `npm run watch:videos`. O script ficará rodando e, ao detectar um novo vídeo exportado, ele o importará automaticamente para o evento, facilitando o fluxo de edição sem upload manual. É importante que o servidor Next.js esteja rodando (normalmente em `http://localhost:3000`), pois o watcher faz chamadas HTTP a `http://localhost:3000/api/...`. Opcionalmente, podemos usar um script único `dev:all` (com **concurrently**) para iniciar front-end, socket e watcher juntos.
+
+Este mecanismo (chokidar + rota API interna) garante que vídeos colocados em `public/exports/<eventId>/` sejam imediatamente visíveis no app, sem necessidade de infra extra.
+
+## Interface por Abas e Contexto de Evento
+
+Na página de detalhes do evento, a interface é organizada em **abas (tabs)** para facilitar a navegação entre seções do fluxo sem perder contexto. Tipicamente há abas como:
+
+* **Informações Gerais (Briefing):** Formulários de briefing do evento.
+* **Cronograma:** Visualização do timeline automático e manual.
+* **Edição/Aprovação:** Lista de vídeos e versões, player, comentários e botões de status.
+* **Histórico:** Registro de entregas anteriores e comentários.
+* **Assets:** Biblioteca de mídia reutilizável do evento.
+
+Essas abas são componentes React que recebem o `eventId` ativo (via props/context do Next.js) para carregar/atualizar os dados do evento atual. Por exemplo, ao clicar na aba “Edição/Aprovação”, o app renderiza o componente que lista todas as versões de vídeo daquele evento, puxando do estado global (`useProjectsStore`) os vídeos do projeto cujo `id = eventId`. A troca de abas não recarrega a aplicação, apenas troca o painel de conteúdo, mantendo a navegação responsiva. Em Next.js App Router, cada aba pode corresponder a uma sub-rota (ex: `/events/[eventId]/briefing` vs `/events/[eventId]/videos`), o que já passa o contexto de `eventId` para todos os componentes daquela aba. Graças a isso, todas as interações (salvar briefing, comentar vídeo etc.) acontecem no projeto correto.
+
+## Execução Local (dados locais, sem DB externo)
+
+O **MelhorApp** foi projetado para rodar inteiramente localmente sem necessidade de bancos de dados externos. O estado da aplicação (projetos, vídeos, comentários etc.) é mantido em memória/armazenamento local via **Zustand** (com middleware `persist` se configurado), simulando uma base de dados simples. Em desenvolvimento, utilizamos dados de *mock* preexistentes ou vazios, e não há infraestrutura back-end real – as rotas API manipulam objetos JavaScript em memória (por exemplo, arrays `mockEvents` no exemplo do watcher). Portanto, basta clonar o repositório e rodar localmente; o sistema utilizará os dados locais imediatamente.
+
+Como descrito no README, as chamadas a API são simuladas e preparadas para uma possível integração futura com servidor real. Em síntese, **não é preciso configurar banco de dados nem servidores externos**: o app já traz toda a lógica necessária para funcionar com dados locais.
+
+Para rodar localmente, basta instalar dependências e iniciar o Next.js em modo de desenvolvimento. O front-end carregará usuários e eventos simulados e ficará pronto para demonstração (incluindo vídeos na pasta `public/exports`). Em ambientes de demonstração, podemos usar as credenciais de demo (`admin@gonetwork.ai` / `admin`) para entrar como administrador, mas isso não requer infra extra.
+
+## Dependências Necessárias
+
+O projeto utiliza várias bibliotecas modernas. As principais dependências (indicadas no README) são:
+
+* **Next.js 15** e **React 18** (com **TypeScript**).
+* **Tailwind CSS** para estilização.
+* **shadcn/UI** para componentes de interface (buttons, cards, inputs, etc.).
+* **Zustand** para gerenciamento de estado global (stores separados por domínio).
+* **React Query** para gerenciamento de dados e cache em possíveis integrações com API.
+* **React Hook Form** + **Zod** para formularários com validação.
+* **Socket.io** (cliente no front-end e servidor Node opcional) para comunicação em tempo real.
+* Ícones e bibliotecas auxiliares: **Lucide-React** (ícones), **@hookform/resolvers**, **class-variance-authority** (para estilização dinâmica), etc.
+
+Para o *watcher* local, são necessárias também as bibliotecas **chokidar** e **node-fetch** (ou **axios**). No `package.json` adicionamos um script `"watch:videos": "node scripts/video-watcher.js"`, então instale com:
+
+```bash
+npm install chokidar node-fetch concurrently
+```
+
+(ou via yarn). O `concurrently` é útil para rodar múltiplos comandos em paralelo (como front-end, socket server e watcher).
+
+Finalmente, qualquer outra dependência indicada no `package.json` – lembre de rodar `npm install` no diretório do projeto para garantir todas as bibliotecas apontadas (next, react, zustand, react-query, react-hook-form, zod, socket.io-client, socket.io, etc.).
+
+## Configurações de Ambiente
+
+Copie o arquivo de exemplo de variáveis de ambiente para o local:
+
+```bash
+cp .env.local.example .env.local
+```
+
+Edite `.env.local` conforme necessário. As principais variáveis são:
+
+* `NEXT_PUBLIC_SOCKET_URL`: endereço do servidor Socket.io. Em desenvolvimento local **não é necessário definir**, pois usamos o proxy interno. Em produção, atribua algo como `http://seu-servidor:3001` para o front-end se conectar.
+* `PORT` (opcional): porta do servidor Next.js, caso queira mudar da padrão 3000. Pode-se iniciar o servidor em outra porta com o comando `next dev -p 3001` ou definindo `PORT=3001`. No `next.config.mjs` do projeto não há configuração de porta; deve-se definir na hora de rodar (veja nota técnica).
+  Nenhuma outra configuração manual especial é exigida; o restante das rotas e URLs já estão embutidos no código. Basta garantir que os caminhos relativos (e.g. `http://localhost:3000/api/...`) estejam corretos para seu ambiente local.
+
+## Comandos de Início
+
+Após instalar as dependências (`npm install`), use os scripts npm definidos:
+
+* **Executar em desenvolvimento:**
+
+  ```bash
+  npm run dev
+  ```
+
+  Isso inicia o Next.js em modo dev (padrão na porta 3000). Você pode então acessar `http://localhost:3000` no navegador.
+* **Script com múltiplos serviços (opcional):** Se você tiver um servidor Socket.io de teste ou quiser iniciar o watcher junto, o projeto pode ter um script como `"dev:all"` que usa *concurrently*. Por exemplo:
+
+  ```bash
+  npm run dev:all
+  ```
+
+  que iniciaria `npm run dev`, o servidor de sockets (`npm run socket-server`) e o watcher (`npm run watch:videos`) simultaneamente.
+* **Watcher de Vídeos:** Se não usar o script acima, rode o watcher separadamente em outra aba:
+
+  ```bash
+  npm run watch:videos
+  ```
+
+  Ele ficará observando `public/exports` e enviando novas versões automaticamente.
+* **Build de Produção:** Para testar produção localmente:
+
+  ```bash
+  npm run build
+  npm start
+  ```
+
+  Isso gera a versão de produção do Next.js e inicia o servidor. Se usar serviço de sockets em produção, ajuste `NEXT_PUBLIC_SOCKET_URL` antes de iniciar.
+
+Todos esses comandos foram resumidos no README. Em particular, os comandos básicos são `npm install`, `npm run dev`, e (`npm run dev:all` ou `npm run watch:videos`) conforme necessário para ativar o watcher. Seguindo estes passos e a estrutura explicada acima, a equipe da Vercel poderá reconstruir o **melhorapp\_final** a partir do código disponibilizado, com funcionamento completo para demonstração local (vídeos importados automaticamente, abas interativas e sem infra externa).
+
+**Referências:** Especificações detalhadas de estrutura e fluxo foram tomadas da documentação interna e do código-fonte (e.g., README do projeto, documentações de módulos e implementações de watcher). As instruções de execução seguem os scripts fornecidos.

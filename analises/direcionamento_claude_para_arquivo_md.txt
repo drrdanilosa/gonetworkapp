@@ -1,0 +1,186 @@
+Vou analisar detalhadamente o código anexado e criar uma estratégia técnica eficiente para implementação, com a melhor ordem e instruções claras.
+
+# Estratégia de Implementação para Workflows e Interação Cliente-Editor
+
+## Análise do Contexto
+
+O código fornecido visa implementar:
+1. Sistema de automação de workflow para eventos/projetos de vídeo
+2. Interação entre clientes e editores
+3. Sistema de notificações
+4. Gerenciamento de tarefas e comentários
+
+A aplicação está estruturada com:
+- Next.js 15
+- Zustand para gerenciamento de estado
+- Arquitetura modular por features
+- Tailwind CSS para estilos
+
+## Melhor Ordem de Implementação
+
+Recomendo implementar na seguinte ordem:
+
+1. **Stores Zustand** - Base para toda funcionalidade
+   - useUIStore (notificações)
+   - Extensão do useProjectsStore (tarefas/workflow)
+
+2. **Componentes de base** - Blocos fundamentais
+   - NotificationToast
+   - TaskList
+
+3. **Componentes de interação** - Especializados
+   - CommentItem
+   - DeliverableActions
+
+4. **Integração no Layout** - Montagem final
+   - Adicionar NotificationToast no layout global
+   - Integrar componentes na página de detalhe do evento
+
+## Requisitos e Setup
+
+**Instalações necessárias**:
+- Se ainda não tiver, instale o Zustand: `npm install zustand`
+- Não são necessárias outras bibliotecas externas
+
+## Plano de Implementação Detalhado
+
+### 1. Stores Zustand
+
+**useUIStore.ts**:
+- Implementar primeiro por ser mais simples e servir como base para notificações
+- Sistema de gerenciamento de toasts/notificações
+
+**useProjectsStore.ts (extensão)**:
+- Adicionar suporte para tarefas de projeto
+- Implementar lógica de workflow (aprovar, solicitar alterações)
+- Integrar com notificações do useUIStore
+
+### 2. Componentes de Base
+
+**NotificationToast**:
+- Componente reativo para exibir notificações do useUIStore
+- Posicionado globalmente para estar disponível em toda aplicação
+
+**TaskList**:
+- Lista de tarefas com interação condicional baseada no papel do usuário
+- Fundamento para visualizar o progresso do workflow
+
+### 3. Componentes de Interação
+
+**CommentItem**:
+- Item para representar feedback sobre vídeos
+- Implementar funcionalidade de "marcar como resolvido"
+
+**DeliverableActions**:
+- Botões e indicadores de estado específicos por papel (cliente/editor)
+- Implementa as principais interações do workflow
+
+### 4. Integração no Layout
+
+**Layout Global**:
+- Adicionar NotificationToast para disponibilidade global
+
+**Página de Detalhe do Evento**:
+- Integrar TaskList, DeliverableActions e CommentItem
+- Testar fluxo completo
+
+## Instruções de Testes
+
+Após implementação, testar os seguintes fluxos:
+1. Criação de evento com tarefas padrão
+2. Fluxo editor -> cliente (marcar como pronto para revisão)
+3. Fluxo cliente (aprovar ou solicitar alterações)
+4. Sistema de comentários e resolução
+5. Sistema de notificações
+
+## Prompt Técnico para VSCode
+
+# Estratégia Técnica de Implementação: Workflows e Interação Cliente-Editor
+
+Após analisar cuidadosamente o código fornecido, elaborei uma estratégia de implementação eficiente para adicionar funcionalidades de workflow automático e interação cliente-editor ao seu projeto Next.js.
+
+## Visão Geral
+
+O objetivo é implementar:
+- Sistema de gerenciamento de tarefas/workflow
+- Interações específicas por papel (editor/cliente)
+- Sistema de notificações
+- Funcionalidade de comentários e resolução
+
+## Pré-requisitos
+
+1. **Instalações**:
+   - Verifique se tem Zustand instalado: `npm install zustand`
+   - Não são necessários outros pacotes adicionais
+
+2. **Estrutura do projeto**:
+   - Projeto Next.js 15
+   - Arquitetura modular por features
+   - Store de autenticação existente com informação de role do usuário
+
+## Plano de Implementação (Ordem Recomendada)
+
+### 1. Stores Zustand (Base da Funcionalidade)
+
+Comece implementando os stores, pois eles fornecem a base de toda a lógica:
+
+- **Store de UI (useUIStore.ts)**
+  - Sistema de notificações/toasts
+  - Funções para adicionar/remover mensagens temporárias
+
+- **Extensão do Store de Projetos**
+  - Adicionar suporte para tarefas/workflow
+  - Implementar ações de aprovação/solicitação
+  - Conectar com o sistema de notificações
+
+Esta camada é fundamental e precisa estar funcionando antes de prosseguir.
+
+### 2. Componentes de Interface Base
+
+Em seguida, implemente os componentes básicos que renderizam o estado:
+
+- **NotificationToast**
+  - Exibe toasts no canto da tela
+  - Reage a mudanças no store de UI
+
+- **TaskList**
+  - Exibe tarefas do projeto  
+  - Adapta interação conforme o papel do usuário
+
+### 3. Componentes de Interação Específicos
+
+Depois, crie os componentes que implementam as interações principais:
+
+- **CommentItem**
+  - Renderiza comentários individuais
+  - Permite marcar como resolvido (somente editores)
+
+- **DeliverableActions**
+  - Botões de workflow condicionais por papel e status
+  - Implementa aprovação/alteração para clientes
+  - Implementa marcação de pronto para editores
+
+### 4. Integração no Layout
+
+Finalmente, integre tudo no layout da aplicação:
+
+- Adicione NotificationToast no layout global
+- Integre os componentes na página de detalhes do evento
+- Implemente o fluxo de criação para gerar tarefas automaticamente
+
+## Considerações Importantes
+
+- **Typing**: Use os tipos já definidos no projeto para manter consistência
+- **Modularidade**: Siga a arquitetura existente, mantendo responsabilidades separadas
+- **Estado de Usuário**: Use o store de autenticação existente para acesso a roles
+- **Testes**: Teste cada componente individualmente antes de integrar no fluxo completo
+
+## Evolução Futura
+
+Depois da implementação básica, você pode considerar:
+- Implementar WebSockets para notificações em tempo real
+- Persistir estado de tarefas no backend
+- Adicionar filtros e visualizações de workflows
+- Expandir para um sistema mais robusto (Kanban, Gantt, etc)
+
+No artefato que criei, você encontrará instruções detalhadas de implementação, com todo o código necessário organizado em uma ordem lógica de implementação.
