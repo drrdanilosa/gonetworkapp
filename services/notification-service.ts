@@ -1,17 +1,21 @@
 // services/notification-service.ts
-import { useUIStore } from '@/store/useUIStore';
-import { useAuthStore } from '@/store/useAuthStore';
+'use client'
+
+"use client"
+
+import { useUIStore } from '@/store/useUIStore'
+import { useAuthStore } from '@/store/useAuthStore'
 
 // Interface para dados de notificação
 export interface NotificationData {
-  title: string;
-  message: string;
-  type?: 'info' | 'success' | 'warning' | 'error';
-  duration?: number;
+  title: string
+  message: string
+  type?: 'info' | 'success' | 'warning' | 'error'
+  duration?: number
   action?: {
-    label: string;
-    onClick: () => void;
-  };
+    label: string
+    onClick: () => void
+  }
 }
 
 // Tipos de eventos do sistema de vídeo
@@ -22,53 +26,53 @@ export enum VideoEventType {
   PROCESSING = 'video_processing',
   COMMENT = 'video_comment',
   READY = 'video_ready',
-  ERROR = 'video_error'
+  ERROR = 'video_error',
 }
 
 // Classe do serviço de notificações
 class NotificationService {
   // Método para enviar notificação
   notify(data: NotificationData): void {
-    const { addNotification } = useUIStore.getState();
-    
+    const { addNotification } = useUIStore.getState()
+
     addNotification(
       data.message,
       data.type || 'info',
       data.duration || 5000,
       data.action
-    );
-    
+    )
+
     // Registrar notificação no histórico (se implementado)
-    this.logNotification(data);
+    this.logNotification(data)
   }
-  
+
   // Método para registrar notificação (para histórico)
   private logNotification(data: NotificationData): void {
     // Aqui poderíamos implementar registro em banco de dados
     // ou enviar para um serviço de analytics
-    console.log(`[Notification] ${data.title}: ${data.message}`);
+    console.log(`[Notification] ${data.title}: ${data.message}`)
   }
-  
+
   // Notificações específicas para eventos de vídeo
   notifyVideoEvent(
-    eventType: VideoEventType, 
-    projectId: string, 
-    projectName: string, 
+    eventType: VideoEventType,
+    projectId: string,
+    projectName: string,
     versionInfo: {
-      id: string;
-      name: string;
+      id: string
+      name: string
     },
     additionalInfo?: Record<string, any>
   ): void {
-    const currentUser = useAuthStore.getState().user;
-    
+    const currentUser = useAuthStore.getState().user
+
     // Definir mensagens de acordo com o tipo de evento
     let notification: NotificationData = {
       title: '',
       message: '',
-      type: 'info'
-    };
-    
+      type: 'info',
+    }
+
     switch (eventType) {
       case VideoEventType.UPLOAD:
         notification = {
@@ -78,12 +82,12 @@ class NotificationService {
           action: {
             label: 'Visualizar',
             onClick: () => {
-              window.location.href = `/eventos/${projectId}/aprovacao`;
-            }
-          }
-        };
-        break;
-        
+              window.location.href = `/eventos/${projectId}/aprovacao`
+            },
+          },
+        }
+        break
+
       case VideoEventType.APPROVAL:
         notification = {
           title: 'Vídeo aprovado',
@@ -92,12 +96,12 @@ class NotificationService {
           action: {
             label: 'Detalhes',
             onClick: () => {
-              window.location.href = `/eventos/${projectId}/aprovacao`;
-            }
-          }
-        };
-        break;
-        
+              window.location.href = `/eventos/${projectId}/aprovacao`
+            },
+          },
+        }
+        break
+
       case VideoEventType.REJECTION:
         notification = {
           title: 'Alterações solicitadas',
@@ -108,20 +112,20 @@ class NotificationService {
           action: {
             label: 'Visualizar feedback',
             onClick: () => {
-              window.location.href = `/eventos/${projectId}/aprovacao`;
-            }
-          }
-        };
-        break;
-        
+              window.location.href = `/eventos/${projectId}/aprovacao`
+            },
+          },
+        }
+        break
+
       case VideoEventType.PROCESSING:
         notification = {
           title: 'Vídeo em processamento',
           message: `O vídeo "${versionInfo.name}" está sendo processado`,
-          type: 'info'
-        };
-        break;
-        
+          type: 'info',
+        }
+        break
+
       case VideoEventType.COMMENT:
         notification = {
           title: 'Novo comentário',
@@ -130,12 +134,12 @@ class NotificationService {
           action: {
             label: 'Ver comentário',
             onClick: () => {
-              window.location.href = `/eventos/${projectId}/aprovacao`;
-            }
-          }
-        };
-        break;
-        
+              window.location.href = `/eventos/${projectId}/aprovacao`
+            },
+          },
+        }
+        break
+
       case VideoEventType.READY:
         notification = {
           title: 'Vídeo pronto para revisão',
@@ -144,12 +148,12 @@ class NotificationService {
           action: {
             label: 'Revisar agora',
             onClick: () => {
-              window.location.href = `/eventos/${projectId}/aprovacao`;
-            }
-          }
-        };
-        break;
-        
+              window.location.href = `/eventos/${projectId}/aprovacao`
+            },
+          },
+        }
+        break
+
       case VideoEventType.ERROR:
         notification = {
           title: 'Erro no processamento',
@@ -158,25 +162,25 @@ class NotificationService {
           action: {
             label: 'Ver detalhes',
             onClick: () => {
-              window.location.href = `/eventos/${projectId}/aprovacao`;
-            }
-          }
-        };
-        break;
-        
+              window.location.href = `/eventos/${projectId}/aprovacao`
+            },
+          },
+        }
+        break
+
       default:
         notification = {
           title: 'Atualização de vídeo',
           message: `O vídeo "${versionInfo.name}" foi atualizado`,
-          type: 'info'
-        };
+          type: 'info',
+        }
     }
-    
+
     // Disparar a notificação
-    this.notify(notification);
+    this.notify(notification)
   }
 }
 
 // Criar e exportar instância singleton
-export const notificationService = new NotificationService();
-export default notificationService;
+export const notificationService = new NotificationService()
+export default notificationService

@@ -1,7 +1,11 @@
+'use client'
+
+'use client'
+
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -9,15 +13,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Input } from "@/components/ui/input"
-import { Loader2, FileText, FileSpreadsheet } from "lucide-react"
-import type { Comment } from "@/components/video/comment-markers-timeline"
-import type { Annotation } from "@/components/video/annotation-canvas"
+} from '@/components/ui/dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Input } from '@/components/ui/input'
+import { Loader2, FileText, FileSpreadsheet } from 'lucide-react'
+import type { Comment } from '@/components/video/comment-markers-timeline'
+import type { Annotation } from '@/components/video/annotation-canvas'
 
 interface ExportModalProps {
   isOpen: boolean
@@ -25,7 +29,7 @@ interface ExportModalProps {
   comments: Comment[]
   annotations: Annotation[]
   videoTitle: string
-  onExport: (format: "pdf" | "csv", options: ExportOptions) => Promise<void>
+  onExport: (format: 'pdf' | 'csv', options: ExportOptions) => Promise<void>
 }
 
 export interface ExportOptions {
@@ -34,7 +38,7 @@ export interface ExportOptions {
   includeScreenshots: boolean
   includeResolved: boolean
   includePending: boolean
-  sortBy: "time" | "type" | "author" | "status"
+  sortBy: 'time' | 'type' | 'author' | 'status'
   filename: string
 }
 
@@ -46,7 +50,7 @@ export default function ExportModal({
   videoTitle,
   onExport,
 }: ExportModalProps) {
-  const [exportFormat, setExportFormat] = useState<"pdf" | "csv">("pdf")
+  const [exportFormat, setExportFormat] = useState<'pdf' | 'csv'>('pdf')
   const [isExporting, setIsExporting] = useState(false)
   const [options, setOptions] = useState<ExportOptions>({
     includeComments: true,
@@ -54,8 +58,8 @@ export default function ExportModal({
     includeScreenshots: true,
     includeResolved: true,
     includePending: true,
-    sortBy: "time",
-    filename: `${videoTitle.replace(/\s+/g, "_")}_feedback`,
+    sortBy: 'time',
+    filename: `${videoTitle.replace(/\s+/g, '_')}_feedback`,
   })
 
   const handleExport = async () => {
@@ -64,25 +68,31 @@ export default function ExportModal({
       await onExport(exportFormat, options)
       onClose()
     } catch (error) {
-      console.error("Erro ao exportar:", error)
+      console.error('Erro ao exportar:', error)
     } finally {
       setIsExporting(false)
     }
   }
 
   const updateOption = (key: keyof ExportOptions, value: any) => {
-    setOptions((prev) => ({ ...prev, [key]: value }))
+    setOptions(prev => ({ ...prev, [key]: value }))
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Exportar Feedback</DialogTitle>
-          <DialogDescription>Configure as opções para exportar comentários e anotações do vídeo.</DialogDescription>
+          <DialogDescription>
+            Configure as opções para exportar comentários e anotações do vídeo.
+          </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="pdf" value={exportFormat} onValueChange={(v) => setExportFormat(v as "pdf" | "csv")}>
+        <Tabs
+          defaultValue="pdf"
+          value={exportFormat}
+          onValueChange={v => setExportFormat(v as 'pdf' | 'csv')}
+        >
           <TabsList className="grid grid-cols-2 mb-4">
             <TabsTrigger value="pdf" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
@@ -103,28 +113,42 @@ export default function ExportModal({
                     <Checkbox
                       id="include-comments-pdf"
                       checked={options.includeComments}
-                      onCheckedChange={(checked) => updateOption("includeComments", !!checked)}
+                      onCheckedChange={checked =>
+                        updateOption('includeComments', !!checked)
+                      }
                     />
-                    <Label htmlFor="include-comments-pdf">Incluir comentários</Label>
+                    <Label htmlFor="include-comments-pdf">
+                      Incluir comentários
+                    </Label>
                   </div>
                   <div className="flex items-center gap-2">
                     <Checkbox
                       id="include-annotations-pdf"
                       checked={options.includeAnnotations}
-                      onCheckedChange={(checked) => updateOption("includeAnnotations", !!checked)}
+                      onCheckedChange={checked =>
+                        updateOption('includeAnnotations', !!checked)
+                      }
                     />
-                    <Label htmlFor="include-annotations-pdf">Incluir anotações visuais</Label>
+                    <Label htmlFor="include-annotations-pdf">
+                      Incluir anotações visuais
+                    </Label>
                   </div>
                   <div className="flex items-center gap-2">
                     <Checkbox
                       id="include-screenshots-pdf"
                       checked={options.includeScreenshots}
                       disabled={!options.includeAnnotations}
-                      onCheckedChange={(checked) => updateOption("includeScreenshots", !!checked)}
+                      onCheckedChange={checked =>
+                        updateOption('includeScreenshots', !!checked)
+                      }
                     />
                     <Label
                       htmlFor="include-screenshots-pdf"
-                      className={!options.includeAnnotations ? "text-muted-foreground" : ""}
+                      className={
+                        !options.includeAnnotations
+                          ? 'text-muted-foreground'
+                          : ''
+                      }
                     >
                       Incluir capturas de tela com anotações
                     </Label>
@@ -139,17 +163,25 @@ export default function ExportModal({
                     <Checkbox
                       id="include-resolved-pdf"
                       checked={options.includeResolved}
-                      onCheckedChange={(checked) => updateOption("includeResolved", !!checked)}
+                      onCheckedChange={checked =>
+                        updateOption('includeResolved', !!checked)
+                      }
                     />
-                    <Label htmlFor="include-resolved-pdf">Incluir itens resolvidos</Label>
+                    <Label htmlFor="include-resolved-pdf">
+                      Incluir itens resolvidos
+                    </Label>
                   </div>
                   <div className="flex items-center gap-2">
                     <Checkbox
                       id="include-pending-pdf"
                       checked={options.includePending}
-                      onCheckedChange={(checked) => updateOption("includePending", !!checked)}
+                      onCheckedChange={checked =>
+                        updateOption('includePending', !!checked)
+                      }
                     />
-                    <Label htmlFor="include-pending-pdf">Incluir itens pendentes</Label>
+                    <Label htmlFor="include-pending-pdf">
+                      Incluir itens pendentes
+                    </Label>
                   </div>
                 </div>
               </div>
@@ -158,16 +190,20 @@ export default function ExportModal({
                 <h3 className="text-sm font-medium">Ordenação</h3>
                 <RadioGroup
                   value={options.sortBy}
-                  onValueChange={(value) => updateOption("sortBy", value)}
+                  onValueChange={value => updateOption('sortBy', value)}
                   className="flex flex-col gap-2"
                 >
                   <div className="flex items-center gap-2">
                     <RadioGroupItem id="sort-time-pdf" value="time" />
-                    <Label htmlFor="sort-time-pdf">Ordenar por tempo no vídeo</Label>
+                    <Label htmlFor="sort-time-pdf">
+                      Ordenar por tempo no vídeo
+                    </Label>
                   </div>
                   <div className="flex items-center gap-2">
                     <RadioGroupItem id="sort-type-pdf" value="type" />
-                    <Label htmlFor="sort-type-pdf">Ordenar por tipo (comentário/anotação)</Label>
+                    <Label htmlFor="sort-type-pdf">
+                      Ordenar por tipo (comentário/anotação)
+                    </Label>
                   </div>
                   <div className="flex items-center gap-2">
                     <RadioGroupItem id="sort-author-pdf" value="author" />
@@ -175,7 +211,9 @@ export default function ExportModal({
                   </div>
                   <div className="flex items-center gap-2">
                     <RadioGroupItem id="sort-status-pdf" value="status" />
-                    <Label htmlFor="sort-status-pdf">Ordenar por status (resolvido/pendente)</Label>
+                    <Label htmlFor="sort-status-pdf">
+                      Ordenar por status (resolvido/pendente)
+                    </Label>
                   </div>
                 </RadioGroup>
               </div>
@@ -185,7 +223,7 @@ export default function ExportModal({
                 <Input
                   id="filename-pdf"
                   value={options.filename}
-                  onChange={(e) => updateOption("filename", e.target.value)}
+                  onChange={e => updateOption('filename', e.target.value)}
                 />
               </div>
             </div>
@@ -200,17 +238,25 @@ export default function ExportModal({
                     <Checkbox
                       id="include-comments-csv"
                       checked={options.includeComments}
-                      onCheckedChange={(checked) => updateOption("includeComments", !!checked)}
+                      onCheckedChange={checked =>
+                        updateOption('includeComments', !!checked)
+                      }
                     />
-                    <Label htmlFor="include-comments-csv">Incluir comentários</Label>
+                    <Label htmlFor="include-comments-csv">
+                      Incluir comentários
+                    </Label>
                   </div>
                   <div className="flex items-center gap-2">
                     <Checkbox
                       id="include-annotations-csv"
                       checked={options.includeAnnotations}
-                      onCheckedChange={(checked) => updateOption("includeAnnotations", !!checked)}
+                      onCheckedChange={checked =>
+                        updateOption('includeAnnotations', !!checked)
+                      }
                     />
-                    <Label htmlFor="include-annotations-csv">Incluir anotações visuais</Label>
+                    <Label htmlFor="include-annotations-csv">
+                      Incluir anotações visuais
+                    </Label>
                   </div>
                 </div>
               </div>
@@ -222,17 +268,25 @@ export default function ExportModal({
                     <Checkbox
                       id="include-resolved-csv"
                       checked={options.includeResolved}
-                      onCheckedChange={(checked) => updateOption("includeResolved", !!checked)}
+                      onCheckedChange={checked =>
+                        updateOption('includeResolved', !!checked)
+                      }
                     />
-                    <Label htmlFor="include-resolved-csv">Incluir itens resolvidos</Label>
+                    <Label htmlFor="include-resolved-csv">
+                      Incluir itens resolvidos
+                    </Label>
                   </div>
                   <div className="flex items-center gap-2">
                     <Checkbox
                       id="include-pending-csv"
                       checked={options.includePending}
-                      onCheckedChange={(checked) => updateOption("includePending", !!checked)}
+                      onCheckedChange={checked =>
+                        updateOption('includePending', !!checked)
+                      }
                     />
-                    <Label htmlFor="include-pending-csv">Incluir itens pendentes</Label>
+                    <Label htmlFor="include-pending-csv">
+                      Incluir itens pendentes
+                    </Label>
                   </div>
                 </div>
               </div>
@@ -241,16 +295,20 @@ export default function ExportModal({
                 <h3 className="text-sm font-medium">Ordenação</h3>
                 <RadioGroup
                   value={options.sortBy}
-                  onValueChange={(value) => updateOption("sortBy", value)}
+                  onValueChange={value => updateOption('sortBy', value)}
                   className="flex flex-col gap-2"
                 >
                   <div className="flex items-center gap-2">
                     <RadioGroupItem id="sort-time-csv" value="time" />
-                    <Label htmlFor="sort-time-csv">Ordenar por tempo no vídeo</Label>
+                    <Label htmlFor="sort-time-csv">
+                      Ordenar por tempo no vídeo
+                    </Label>
                   </div>
                   <div className="flex items-center gap-2">
                     <RadioGroupItem id="sort-type-csv" value="type" />
-                    <Label htmlFor="sort-type-csv">Ordenar por tipo (comentário/anotação)</Label>
+                    <Label htmlFor="sort-type-csv">
+                      Ordenar por tipo (comentário/anotação)
+                    </Label>
                   </div>
                   <div className="flex items-center gap-2">
                     <RadioGroupItem id="sort-author-csv" value="author" />
@@ -258,7 +316,9 @@ export default function ExportModal({
                   </div>
                   <div className="flex items-center gap-2">
                     <RadioGroupItem id="sort-status-csv" value="status" />
-                    <Label htmlFor="sort-status-csv">Ordenar por status (resolvido/pendente)</Label>
+                    <Label htmlFor="sort-status-csv">
+                      Ordenar por status (resolvido/pendente)
+                    </Label>
                   </div>
                 </RadioGroup>
               </div>
@@ -268,7 +328,7 @@ export default function ExportModal({
                 <Input
                   id="filename-csv"
                   value={options.filename}
-                  onChange={(e) => updateOption("filename", e.target.value)}
+                  onChange={e => updateOption('filename', e.target.value)}
                 />
               </div>
             </div>

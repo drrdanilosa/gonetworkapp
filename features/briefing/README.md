@@ -10,19 +10,19 @@ O módulo de Briefing é uma parte essencial do sistema MelhorApp para o gerenci
 /features/briefing/
   ├── components/
   │   └── GeneralInfoTab.tsx      # Componente para informações gerais do evento
-  │   
+  │
 /app/api/briefings/
   ├── route.ts                    # API para gerenciamento dos briefings
   └── [eventId]/
       └── route.ts                # API para briefings específicos
-      
+
 /app/events/
   ├── page.tsx                    # Página de listagem de eventos
   └── [eventId]/
       ├── page.tsx                # Página de detalhes do evento
       └── briefing/
           └── page.tsx            # Página de briefing do evento
-          
+
 /services/
   └── briefing-service.ts         # Serviço para interação com API de briefings
 ```
@@ -65,17 +65,19 @@ O `briefing-service.ts` fornece funções para interagir com a API de briefings,
 ## Controle de Acesso
 
 O módulo implementa verificações de permissões baseadas nos papéis dos usuários:
+
 - Administradores e coordenadores podem editar informações
 - Outros usuários podem apenas visualizar os dados
 
 ## Próximos Passos
 
 1. Implementar abas adicionais para o briefing:
+
    - Requisitos Técnicos
    - Cronograma
    - Recursos
    - Equipe
-  
+
 2. Melhorar o sistema de notificações para alertar membros da equipe quando um briefing for atualizado
 
 3. Adicionar histórico de alterações para rastrear modificações nos briefings

@@ -1,333 +1,160 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useAuthStore } from "@/store/useAuthStore";
-import { toast } from "@/hooks/use-toast";
-
-// Tipos para os membros da equipe
-type TeamMember = {
-  id: string;
-  name: string;
-  role: string;
-};
+import { useEffect } from 'react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import * as z from 'zod'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 
 // Definição do esquema de validação com Zod
-const generalInfoSchema = z.object({
-  eventDate: z.string().min(1, { message: "Data do evento é obrigatória" }),
-  startTime: z.string().min(1, { message: "Horário de início é obrigatório" }),
-  endTime: z.string().min(1, { message: "Horário de término é obrigatório" }),
-  eventLocation: z.string().min(1, { message: "Local do evento é obrigatório" }),
-  
-  hasCredentialing: z.enum(["sim", "não"], {
-    required_error: "Por favor selecione uma opção",
-  }),
+const formSchema = z.object({
+  eventDate: z.string(),
+  startTime: z.string(),
+  endTime: z.string(),
+  eventLocation: z.string(),
+  hasCredentialing: z.string(),
   accessLocation: z.string().optional(),
-  credentialingStart: z.string().optional(),
-  credentialingEnd: z.string().optional(),
-  credentialingResponsible: z.string().optional(),
-  
-  eventAccessLocation: z.string().min(1, { message: "Local de acesso ao evento é obrigatório" }),
-  
-  hasMediaRoom: z.enum(["sim", "não"], {
-    required_error: "Por favor selecione uma opção",
-  }),
+  eventAccessLocation: z.string(),
+  hasMediaRoom: z.string(),
   mediaRoomLocation: z.string().optional(),
-  
-  hasInternet: z.enum(["sim", "não"], {
-    required_error: "Por favor selecione uma opção",
-  }),
+  hasInternet: z.string(),
   internetLogin: z.string().optional(),
   internetPassword: z.string().optional(),
-  
-  generalInfo: z.string().min(1, { message: "Informações gerais são obrigatórias" }),
+  generalInfo: z.string(),
+  credentialingResponsible: z.string().optional(),
+  credentialingStart: z.string().optional(),
+  credentialingEnd: z.string().optional(),
 })
-// Validação condicional para os campos dependentes
-.refine(
-  (data) => {
-    if (data.hasCredentialing === "sim") {
-      return !!data.accessLocation;
-    }
-    return true;
-  },
-  {
-    message: "Local de acesso é obrigatório quando há credenciamento",
-    path: ["accessLocation"],
-  }
-)
-.refine(
-  (data) => {
-    if (data.hasCredentialing === "sim") {
-      return !!data.credentialingStart;
-    }
-    return true;
-  },
-  {
-    message: "Início do credenciamento é obrigatório quando há credenciamento",
-    path: ["credentialingStart"],
-  }
-)
-.refine(
-  (data) => {
-    if (data.hasCredentialing === "sim") {
-      return !!data.credentialingEnd;
-    }
-    return true;
-  },
-  {
-    message: "Fim do credenciamento é obrigatório quando há credenciamento",
-    path: ["credentialingEnd"],
-  }
-)
-.refine(
-  (data) => {
-    if (data.hasCredentialing === "sim") {
-      return !!data.credentialingResponsible;
-    }
-    return true;
-  },
-  {
-    message: "Responsável pelo credenciamento é obrigatório quando há credenciamento",
-    path: ["credentialingResponsible"],
-  }
-)
-.refine(
-  (data) => {
-    if (data.hasMediaRoom === "sim") {
-      return !!data.mediaRoomLocation;
-    }
-    return true;
-  },
-  {
-    message: "Local da sala de mídia é obrigatório quando há sala de mídia",
-    path: ["mediaRoomLocation"],
-  }
-)
-.refine(
-  (data) => {
-    if (data.hasInternet === "sim") {
-      return !!data.internetLogin;
-    }
-    return true;
-  },
-  {
-    message: "Login da internet é obrigatório quando há acesso à internet",
-    path: ["internetLogin"],
-  }
-)
-.refine(
-  (data) => {
-    if (data.hasInternet === "sim") {
-      return !!data.internetPassword;
-    }
-    return true;
-  },
-  {
-    message: "Senha da internet é obrigatória quando há acesso à internet",
-    path: ["internetPassword"],
-  }
-);
-
-type GeneralInfoFormValues = z.infer<typeof generalInfoSchema>;
 
 interface GeneralInfoTabProps {
-  eventId: string;
+  eventId?: string
 }
 
-export default function GeneralInfoTab({ eventId }: GeneralInfoTabProps) {
-  // O eventId agora vem como propriedade do componente
+const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
+  // Inicializar o formulário com react-hook-form
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      eventDate: '',
+      startTime: '',
+      endTime: '',
+      eventLocation: '',
+      hasCredentialing: 'não',
+      accessLocation: '',
+      eventAccessLocation: '',
+      hasMediaRoom: 'não',
+      mediaRoomLocation: '',
+      hasInternet: 'não',
+      internetLogin: '',
+      internetPassword: '',
+      generalInfo: '',
+      credentialingResponsible: '',
+      credentialingStart: '',
+      credentialingEnd: '',
+    },
+    mode: 'onChange',
+  })
+
+  // Extrair métodos e estados do formulário
+  const { watch, control, handleSubmit, reset } = form
   
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const { user } = useAuthStore();
-  
-  // Estado para controlar a permissão de edição
-  const [canEdit, setCanEdit] = useState(false);
-    // Valores padrão para o formulário - garantindo que todos os campos têm valores iniciais
-  const defaultValues: Partial<GeneralInfoFormValues> = {
-    eventDate: "",
-    startTime: "",
-    endTime: "",
-    eventLocation: "",
-    hasCredentialing: "não",
-    accessLocation: "",
-    credentialingStart: "",
-    credentialingEnd: "",
-    credentialingResponsible: "",
-    eventAccessLocation: "",
-    hasMediaRoom: "não",
-    mediaRoomLocation: "",
-    hasInternet: "não",
-    internetLogin: "",
-    internetPassword: "",
-    generalInfo: "",
-  };
-  
-  // Inicialização do formulário com react-hook-form
-  const form = useForm<GeneralInfoFormValues>({
-    resolver: zodResolver(generalInfoSchema),
-    defaultValues,
-    mode: "onChange",
-  });
-  
-  // Observar valores para exibir campos condicionais
-  const hasCredentialing = form.watch("hasCredentialing");
-  const hasMediaRoom = form.watch("hasMediaRoom");
-  const hasInternet = form.watch("hasInternet");
-  
-  // Buscar dados do evento e membros da equipe
+  // Observar campos para lógica condicional
+  const hasCredentialing = watch('hasCredentialing')
+  const hasMediaRoom = watch('hasMediaRoom')
+  const hasInternet = watch('hasInternet')
+
+  // Carregar dados do evento quando o componente montar ou o ID mudar
   useEffect(() => {
-    if (!eventId) return;
-    
+    if (!eventId) return
+
     const fetchEventData = async () => {
       try {
-        // Buscar dados do evento
-        const eventResponse = await fetch(`/api/events/${eventId}`);
-        if (eventResponse.ok) {
-          const eventData = await eventResponse.json();
-            // Preencher o formulário com os dados do evento, garantindo valores seguros
-          form.setValue("eventDate", eventData.date || "");
-          // Preencher outros campos do evento se disponíveis
-          if (eventData.startTime) form.setValue("startTime", eventData.startTime);
-          if (eventData.endTime) form.setValue("endTime", eventData.endTime);
-          if (eventData.location) form.setValue("eventLocation", eventData.location);
-        }
-        
-        // Buscar membros da equipe
-        const teamResponse = await fetch(`/api/events/${eventId}/team`);
-        if (teamResponse.ok) {
-          const teamData = await teamResponse.json();
-          setTeamMembers(teamData);
-        }
-        
-        // Verificar permissões do usuário
-        const userRole = user?.role;
-        setCanEdit(userRole === "admin" || userRole === "coordenador");
-        
+        const eventResponse = await fetch(`/api/events/${eventId}`)
+        if (!eventResponse.ok) throw new Error('Erro ao buscar dados do evento')
+
+        const eventData = await eventResponse.json()
+        reset(eventData)
       } catch (error) {
-        console.error("Erro ao buscar dados:", error);
-        toast({
-          title: "Erro",
-          description: "Não foi possível carregar os dados do evento",
-          variant: "destructive",
-        });
+        console.error('Erro ao buscar dados do evento:', error)
       }
-    };
-      // Buscar dados do briefing existente, se houver
-    const fetchBriefingData = async () => {
-      try {
-        // Importar o serviço de briefing
-        const { getBriefing } = await import('@/services/briefing-service');
-        
-        try {
-          // Usar o serviço para buscar os dados
-          const briefingData = await getBriefing(eventId as string);
-            // Preencher o formulário com os dados existentes, garantindo valores seguros
-          Object.keys(briefingData).forEach((key) => {
-            // @ts-ignore - keys dinâmicas
-            const value = briefingData[key] === undefined ? "" : briefingData[key];
-            // @ts-ignore - keys dinâmicas
-            form.setValue(key, value);
-          });
-        } catch (err) {
-          // Se o briefing ainda não existe, isso é normal para novos eventos
-          console.log("Briefing ainda não existe para este evento");
-        }
-      } catch (error) {
-        console.error("Erro ao buscar briefing:", error);
-      }
-    };
-    
-    fetchEventData();
-    fetchBriefingData();
-  }, [eventId, form, user]);
-    // Função para enviar o formulário
-  const onSubmit = async (data: GeneralInfoFormValues) => {
-    if (!canEdit) {
-      toast({
-        title: "Permissão negada",
-        description: "Você não tem permissão para editar estas informações",
-        variant: "destructive",
-      });
-      return;
     }
-    
-    setIsLoading(true);
-    
+
+    fetchEventData()
+  }, [eventId, reset])
+
+  // Manipulador de envio do formulário
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
-      // Importar o serviço de briefing
-      const { saveBriefing } = await import('@/services/briefing-service');
+      console.log('Dados do formulário:', data)
+      // Aqui você implementaria a lógica para salvar os dados
+      // Ex: await fetch(`/api/events/${eventId}`, { method: 'PUT', body: JSON.stringify(data) })
       
-      // Usar o serviço para salvar os dados
-      await saveBriefing({
-        eventId: eventId as string,
-        ...data,
-      });
-      
-      toast({
-        title: "Sucesso",
-        description: "Informações gerais salvas com sucesso",
-      });
+      // Mostrar feedback de sucesso (através de um toast, por exemplo)
     } catch (error) {
-      console.error("Erro ao enviar formulário:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível salvar as informações",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      console.error('Erro ao salvar:', error)
+      // Mostrar feedback de erro
     }
-  };
-  
+  }
+
   return (
     <div className="bg-[#282A36] text-[#F8F8F2] p-6 rounded-xl">
-      <h2 className="text-2xl font-bold text-[#BD93F9] mb-6">Informações Gerais</h2>
-      
+      <h2 className="text-2xl font-bold text-[#BD93F9] mb-6">
+        Informações Gerais
+      </h2>
+
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-6"
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Data do Evento */}
             <FormField
-              control={form.control}
+              control={control}
               name="eventDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[#BD93F9]">Data do Evento</FormLabel>
+                  <FormLabel className="text-[#BD93F9]">
+                    Data do Evento
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="date"
                       placeholder="Selecione a data"
                       className="bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
-                      disabled={!canEdit}
                       {...field}
+                      aria-required="true"
                     />
                   </FormControl>
                   <FormMessage className="text-[#FF5555]" />
                 </FormItem>
               )}
             />
-            
+
             {/* Horário de Início */}
             <FormField
-              control={form.control}
+              control={control}
               name="startTime"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[#BD93F9]">Horário de Início</FormLabel>
+                  <FormLabel className="text-[#BD93F9]">
+                    Horário de Início
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="time"
                       placeholder="Selecione o horário"
                       className="bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
-                      disabled={!canEdit}
                       {...field}
                     />
                   </FormControl>
@@ -335,20 +162,21 @@ export default function GeneralInfoTab({ eventId }: GeneralInfoTabProps) {
                 </FormItem>
               )}
             />
-            
+
             {/* Horário de Término */}
             <FormField
-              control={form.control}
+              control={control}
               name="endTime"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[#BD93F9]">Horário de Término</FormLabel>
+                  <FormLabel className="text-[#BD93F9]">
+                    Horário de Término
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="time"
                       placeholder="Selecione o horário"
                       className="bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
-                      disabled={!canEdit}
                       {...field}
                     />
                   </FormControl>
@@ -356,19 +184,20 @@ export default function GeneralInfoTab({ eventId }: GeneralInfoTabProps) {
                 </FormItem>
               )}
             />
-            
+
             {/* Local do Evento */}
             <FormField
-              control={form.control}
+              control={control}
               name="eventLocation"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[#BD93F9]">Local do Evento</FormLabel>
+                  <FormLabel className="text-[#BD93F9]">
+                    Local do Evento
+                  </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Endereço completo do evento"
                       className="bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
-                      disabled={!canEdit}
                       {...field}
                     />
                   </FormControl>
@@ -376,47 +205,43 @@ export default function GeneralInfoTab({ eventId }: GeneralInfoTabProps) {
                 </FormItem>
               )}
             />
-            
+
             {/* Credenciamento? */}
             <FormField
-              control={form.control}
+              control={control}
               name="hasCredentialing"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[#BD93F9]">Credenciamento?</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    disabled={!canEdit}
-                  >
-                    <FormControl>
-                      <select 
-                        className="w-full bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
-                        disabled={!canEdit}
-                        {...field}
-                      >
-                        <option value="sim">Sim</option>
-                        <option value="não">Não</option>
-                      </select>
-                    </FormControl>
-                  </Select>
+                  <FormLabel className="text-[#BD93F9]">
+                    Credenciamento?
+                  </FormLabel>
+                  <FormControl>
+                    <select
+                      className="w-full bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
+                      {...field}
+                    >
+                      <option value="sim">Sim</option>
+                      <option value="não">Não</option>
+                    </select>
+                  </FormControl>
                   <FormMessage className="text-[#FF5555]" />
                 </FormItem>
               )}
             />
-            
+
             {/* Local de Acesso ao Evento */}
             <FormField
-              control={form.control}
+              control={control}
               name="eventAccessLocation"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[#BD93F9]">Local de Acesso ao Evento</FormLabel>
+                  <FormLabel className="text-[#BD93F9]">
+                    Local de Acesso ao Evento
+                  </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Descreva o local de acesso"
                       className="bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
-                      disabled={!canEdit}
                       {...field}
                     />
                   </FormControl>
@@ -425,25 +250,28 @@ export default function GeneralInfoTab({ eventId }: GeneralInfoTabProps) {
               )}
             />
           </div>
-          
+
           {/* Campos condicionais de Credenciamento */}
-          {hasCredentialing === "sim" && (
+          {hasCredentialing === 'sim' && (
             <div className="bg-[#21222C] p-4 rounded-md border-l-4 border-purple-400 space-y-4">
-              <h3 className="text-xl text-[#8BE9FD]">Informações de Credenciamento</h3>
-              
+              <h3 className="text-xl text-[#8BE9FD]">
+                Informações de Credenciamento
+              </h3>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Local de Acesso */}
                 <FormField
-                  control={form.control}
+                  control={control}
                   name="accessLocation"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[#BD93F9]">Local de Acesso</FormLabel>
+                      <FormLabel className="text-[#BD93F9]">
+                        Local de Acesso
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Local específico do credenciamento"
                           className="bg-[#282A36] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
-                          disabled={!canEdit}
                           {...field}
                         />
                       </FormControl>
@@ -451,52 +279,45 @@ export default function GeneralInfoTab({ eventId }: GeneralInfoTabProps) {
                     </FormItem>
                   )}
                 />
-                
+
                 {/* Responsável pelo Credenciamento */}
                 <FormField
-                  control={form.control}
+                  control={control}
                   name="credentialingResponsible"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[#BD93F9]">Responsável pelo Credenciamento</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        disabled={!canEdit}
-                      >
-                        <FormControl>
-                          <select 
-                            className="w-full bg-[#282A36] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
-                            disabled={!canEdit}
-                            {...field}
-                          >
-                            <option value="">Selecione um responsável</option>
-                            {teamMembers.map((member) => (
-                              <option key={member.id} value={member.id}>
-                                {member.name} ({member.role})
-                              </option>
-                            ))}
-                          </select>
-                        </FormControl>
-                      </Select>
+                      <FormLabel className="text-[#BD93F9]">
+                        Responsável pelo Credenciamento
+                      </FormLabel>
+                      <FormControl>
+                        <select
+                          className="w-full bg-[#282A36] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
+                          {...field}
+                        >
+                          <option value="">Selecione um responsável</option>
+                          <option value="responsavel1">Responsável 1</option>
+                          <option value="responsavel2">Responsável 2</option>
+                        </select>
+                      </FormControl>
                       <FormMessage className="text-[#FF5555]" />
                     </FormItem>
                   )}
                 />
-                
+
                 {/* Início Credenciamento */}
                 <FormField
-                  control={form.control}
+                  control={control}
                   name="credentialingStart"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[#BD93F9]">Início do Credenciamento</FormLabel>
+                      <FormLabel className="text-[#BD93F9]">
+                        Início do Credenciamento
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="time"
                           placeholder="Horário de início"
                           className="bg-[#282A36] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
-                          disabled={!canEdit}
                           {...field}
                         />
                       </FormControl>
@@ -504,20 +325,21 @@ export default function GeneralInfoTab({ eventId }: GeneralInfoTabProps) {
                     </FormItem>
                   )}
                 />
-                
+
                 {/* Fim Credenciamento */}
                 <FormField
-                  control={form.control}
+                  control={control}
                   name="credentialingEnd"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[#BD93F9]">Fim do Credenciamento</FormLabel>
+                      <FormLabel className="text-[#BD93F9]">
+                        Fim do Credenciamento
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="time"
                           placeholder="Horário de término"
                           className="bg-[#282A36] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
-                          disabled={!canEdit}
                           {...field}
                         />
                       </FormControl>
@@ -528,78 +350,69 @@ export default function GeneralInfoTab({ eventId }: GeneralInfoTabProps) {
               </div>
             </div>
           )}
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Sala de Mídia? */}
             <FormField
-              control={form.control}
+              control={control}
               name="hasMediaRoom"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[#BD93F9]">Sala de Mídia?</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    disabled={!canEdit}
-                  >
-                    <FormControl>
-                      <select 
-                        className="w-full bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
-                        disabled={!canEdit}
-                        {...field}
-                      >
-                        <option value="sim">Sim</option>
-                        <option value="não">Não</option>
-                      </select>
-                    </FormControl>
-                  </Select>
+                  <FormLabel className="text-[#BD93F9]">
+                    Sala de Mídia?
+                  </FormLabel>
+                  <FormControl>
+                    <select
+                      className="w-full bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
+                      {...field}
+                    >
+                      <option value="sim">Sim</option>
+                      <option value="não">Não</option>
+                    </select>
+                  </FormControl>
                   <FormMessage className="text-[#FF5555]" />
                 </FormItem>
               )}
             />
-            
+
             {/* Acesso à Internet? */}
             <FormField
-              control={form.control}
+              control={control}
               name="hasInternet"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[#BD93F9]">Acesso à Internet?</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    disabled={!canEdit}
-                  >
-                    <FormControl>
-                      <select 
-                        className="w-full bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
-                        disabled={!canEdit}
-                        {...field}
-                      >
-                        <option value="sim">Sim</option>
-                        <option value="não">Não</option>
-                      </select>
-                    </FormControl>
-                  </Select>
+                  <FormLabel className="text-[#BD93F9]">
+                    Acesso à Internet?
+                  </FormLabel>
+                  <FormControl>
+                    <select
+                      className="w-full bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
+                      {...field}
+                    >
+                      <option value="sim">Sim</option>
+                      <option value="não">Não</option>
+                    </select>
+                  </FormControl>
                   <FormMessage className="text-[#FF5555]" />
                 </FormItem>
               )}
             />
           </div>
-          
+
           {/* Local da Sala de Mídia (condicional) */}
-          {hasMediaRoom === "sim" && (
+          {hasMediaRoom === 'sim' && (
             <FormField
-              control={form.control}
+              control={control}
               name="mediaRoomLocation"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[#BD93F9]">Local da Sala de Mídia</FormLabel>
+                  <FormLabel className="text-[#BD93F9]">
+                    Local da Sala de Mídia
+                  </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Descreva o local da sala de mídia"
                       className="bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
-                      disabled={!canEdit}
                       {...field}
                     />
                   </FormControl>
@@ -608,22 +421,23 @@ export default function GeneralInfoTab({ eventId }: GeneralInfoTabProps) {
               )}
             />
           )}
-          
+
           {/* Campos condicionais de Internet */}
-          {hasInternet === "sim" && (
+          {hasInternet === 'sim' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Login da Internet */}
               <FormField
-                control={form.control}
+                control={control}
                 name="internetLogin"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[#BD93F9]">Login da Internet</FormLabel>
+                    <FormLabel className="text-[#BD93F9]">
+                      Login da Internet
+                    </FormLabel>
                     <FormControl>
                       <Input
                         placeholder="Login/usuário para acesso"
                         className="bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
-                        disabled={!canEdit}
                         {...field}
                       />
                     </FormControl>
@@ -631,20 +445,21 @@ export default function GeneralInfoTab({ eventId }: GeneralInfoTabProps) {
                   </FormItem>
                 )}
               />
-              
+
               {/* Senha da Internet */}
               <FormField
-                control={form.control}
+                control={control}
                 name="internetPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[#BD93F9]">Senha da Internet</FormLabel>
+                    <FormLabel className="text-[#BD93F9]">
+                      Senha da Internet
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="password"
                         placeholder="Senha para acesso"
                         className="bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
-                        disabled={!canEdit}
                         {...field}
                       />
                     </FormControl>
@@ -654,19 +469,20 @@ export default function GeneralInfoTab({ eventId }: GeneralInfoTabProps) {
               />
             </div>
           )}
-          
+
           {/* Informações Gerais */}
           <FormField
-            control={form.control}
+            control={control}
             name="generalInfo"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-[#BD93F9]">Informações Gerais</FormLabel>
+                <FormLabel className="text-[#BD93F9]">
+                  Informações Gerais
+                </FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder="Informações adicionais, detalhes importantes sobre o evento..."
                     className="bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md min-h-[100px]"
-                    disabled={!canEdit}
                     {...field}
                   />
                 </FormControl>
@@ -674,18 +490,17 @@ export default function GeneralInfoTab({ eventId }: GeneralInfoTabProps) {
               </FormItem>
             )}
           />
-          
-          {canEdit && (
-            <Button 
-              type="submit" 
-              disabled={isLoading || !canEdit} 
-              className="bg-[#6272A4] hover:bg-[#50587E] text-white"
-            >
-              {isLoading ? "Salvando..." : "Salvar Informações"}
-            </Button>
-          )}
+
+          <Button
+            type="submit"
+            className="bg-[#6272A4] hover:bg-[#50587E] text-white"
+          >
+            Salvar Informações
+          </Button>
         </form>
       </Form>
     </div>
-  );
+  )
 }
+
+export default GeneralInfoTab

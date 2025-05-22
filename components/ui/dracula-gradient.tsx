@@ -2,8 +2,22 @@
 
 import React from 'react'
 
-type VariantType = 'purple-pink' | 'cyan-green' | 'pink-orange' | 'purple-cyan' | 'yellow-orange' | 'green-cyan'
-type DirectionType = 'to-r' | 'to-l' | 'to-t' | 'to-b' | 'to-tr' | 'to-tl' | 'to-br' | 'to-bl'
+type VariantType =
+  | 'purple-pink'
+  | 'cyan-green'
+  | 'pink-orange'
+  | 'purple-cyan'
+  | 'yellow-orange'
+  | 'green-cyan'
+type DirectionType =
+  | 'to-r'
+  | 'to-l'
+  | 'to-t'
+  | 'to-b'
+  | 'to-tr'
+  | 'to-tl'
+  | 'to-br'
+  | 'to-bl'
 
 interface DraculaGradientProps {
   variant?: VariantType
@@ -16,12 +30,11 @@ export function DraculaGradient({
   variant = 'purple-pink',
   direction = 'to-br',
   className = '',
-  children
+  children,
 }: DraculaGradientProps) {
-  
   const getGradientClasses = (): string => {
     const baseClass = `bg-gradient-${direction}`
-    
+
     switch (variant) {
       case 'purple-pink':
         return `${baseClass} from-dracula-purple to-dracula-pink`
@@ -39,10 +52,8 @@ export function DraculaGradient({
         return `${baseClass} from-dracula-purple to-dracula-pink`
     }
   }
-  
+
   return (
-    <div className={`${getGradientClasses()} ${className}`}>
-      {children}
-    </div>
+    <div className={`${getGradientClasses()} ${className}`}>{children}</div>
   )
 }

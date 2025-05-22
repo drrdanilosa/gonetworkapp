@@ -1,4 +1,4 @@
-import type { Config } from 'tailwindcss';
+import type { Config } from 'tailwindcss'
 
 // Define manualmente as cores do tema Dracula
 const draculaColors = {
@@ -14,123 +14,127 @@ const draculaColors = {
   'dracula-purple': '#bd93f9',
   'dracula-red': '#ff5555',
   'dracula-yellow': '#f1fa8c',
-};
+}
 
 const config: Config = {
-  darkMode: ["class"],
+  darkMode: ['class'],
   content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
-    "*.{js,ts,jsx,tsx,mdx}",
+    './pages/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './app/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
+    '*.{js,ts,jsx,tsx,mdx}',
   ],
-  prefix: "",
+  prefix: '',
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      padding: '2rem',
       screens: {
-        "2xl": "1400px",
+        '2xl': '1400px',
       },
     },
     extend: {
       fontFamily: {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
         mono: ['var(--font-fira-code)', 'monospace'],
-      },      // Integração do tema Dracula
+      }, // Integração do tema Dracula
       colors: {
         ...draculaColors,
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: 'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))',
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: 'hsl(var(--secondary))',
+          foreground: 'hsl(var(--secondary-foreground))',
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
         },
         success: {
-          DEFAULT: "hsl(var(--success))",
-          foreground: "hsl(var(--success-foreground))",
+          DEFAULT: 'hsl(var(--success))',
+          foreground: 'hsl(var(--success-foreground))',
         },
         warning: {
-          DEFAULT: "hsl(var(--warning))",
-          foreground: "hsl(var(--warning-foreground))",
+          DEFAULT: 'hsl(var(--warning))',
+          foreground: 'hsl(var(--warning-foreground))',
         },
         info: {
-          DEFAULT: "hsl(var(--info))",
-          foreground: "hsl(var(--info-foreground))",
+          DEFAULT: 'hsl(var(--info))',
+          foreground: 'hsl(var(--info-foreground))',
         },
         highlight: {
-          DEFAULT: "hsl(var(--highlight))",
-          foreground: "hsl(var(--highlight-foreground))",
+          DEFAULT: 'hsl(var(--highlight))',
+          foreground: 'hsl(var(--highlight-foreground))',
         },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))',
         },
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))',
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
       },
       keyframes: {
-        "accordion-down": {
-          from: { height: "0" },
-          to: { height: "var(--radix-accordion-content-height)" },
+        'accordion-down': {
+          from: { height: '0' },
+          to: { height: 'var(--radix-accordion-content-height)' },
         },
-        "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
+        'accordion-up': {
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: '0' },
         },
-        "pulse-dracula": {
+        'pulse-dracula': {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.5' },
         },
-        "fade-in": {
+        'fade-in': {
           from: { opacity: '0' },
           to: { opacity: '1' },
         },
-        "fade-out": {
+        'fade-out': {
           from: { opacity: '1' },
           to: { opacity: '0' },
         },
       },
       animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
-        "pulse-dracula": "pulse-dracula 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-        "fade-in": "fade-in 0.3s ease-in",
-        "fade-out": "fade-out 0.3s ease-out",
+        'accordion-down': 'accordion-down 0.2s ease-out',
+        'accordion-up': 'accordion-up 0.2s ease-out',
+        'pulse-dracula':
+          'pulse-dracula 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'fade-in': 'fade-in 0.3s ease-in',
+        'fade-out': 'fade-out 0.3s ease-out',
       },
       boxShadow: {
         'dracula-sm': '0 1px 2px 0 rgba(40, 42, 54, 0.05)',
-        'dracula': '0 4px 14px 0 rgba(189, 147, 249, 0.15)',
-        'dracula-md': '0 4px 6px -1px rgba(40, 42, 54, 0.1), 0 2px 4px -1px rgba(40, 42, 54, 0.06)',
-        'dracula-lg': '0 10px 15px -3px rgba(40, 42, 54, 0.1), 0 4px 6px -2px rgba(40, 42, 54, 0.05)',
-        'dracula-xl': '0 20px 25px -5px rgba(40, 42, 54, 0.1), 0 10px 10px -5px rgba(40, 42, 54, 0.04)',
+        dracula: '0 4px 14px 0 rgba(189, 147, 249, 0.15)',
+        'dracula-md':
+          '0 4px 6px -1px rgba(40, 42, 54, 0.1), 0 2px 4px -1px rgba(40, 42, 54, 0.06)',
+        'dracula-lg':
+          '0 10px 15px -3px rgba(40, 42, 54, 0.1), 0 4px 6px -2px rgba(40, 42, 54, 0.05)',
+        'dracula-xl':
+          '0 20px 25px -5px rgba(40, 42, 54, 0.1), 0 10px 10px -5px rgba(40, 42, 54, 0.04)',
         'dracula-2xl': '0 25px 50px -12px rgba(40, 42, 54, 0.25)',
         'dracula-inner': 'inset 0 2px 4px 0 rgba(40, 42, 54, 0.06)',
         'dracula-hover': '0 10px 30px 0 rgba(189, 147, 249, 0.4)',
@@ -140,9 +144,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [
-    require("tailwindcss-animate"),
-  ],
-};
+  plugins: [require('tailwindcss-animate')],
+}
 
-export default config;
+export default config

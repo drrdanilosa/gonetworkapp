@@ -1,20 +1,24 @@
-"use client";
+'use client'
 
-import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+'use client'
 
-import { useProjectsStore } from "@/store/useProjectsStore";
-import { useAuthStore } from "@/store/useAuthStore";
-import { generateScheduleFromBriefing } from "@/lib/scheduleGenerator";
-import Timeline from "@/components/widgets/Timeline";
+"use client"
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
+
+import { useProjectsStore } from '@/store/useProjectsStore'
+import { useAuthStore } from '@/store/useAuthStore'
+import { generateScheduleFromBriefing } from '@/lib/scheduleGenerator'
+import Timeline from '@/components/widgets/Timeline'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Form,
   FormControl,
@@ -22,123 +26,126 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { toast } from "@/hooks/use-toast";
+} from '@/components/ui/form'
+import { toast } from '@/hooks/use-toast'
 
 // Esquema de validação para o formulário
 const projectSchema = z.object({
-  title: z.string().min(3, "O título precisa ter pelo menos 3 caracteres"),
+  title: z.string().min(3, 'O título precisa ter pelo menos 3 caracteres'),
   description: z.string().optional(),
   eventDate: z.string().optional(),
   finalDueDate: z.string().optional(),
   numVideos: z.coerce
     .number()
-    .min(1, "Precisa ter pelo menos 1 vídeo")
-    .max(20, "Máximo de 20 vídeos por projeto"),
-});
+    .min(1, 'Precisa ter pelo menos 1 vídeo')
+    .max(20, 'Máximo de 20 vídeos por projeto'),
+})
 
-type ProjectFormValues = z.infer<typeof projectSchema>;
+type ProjectFormValues = z.infer<typeof projectSchema>
 
 export default function NewProjectPage() {
-  const router = useRouter();
-  const { user } = useAuthStore();
-  const { createProject } = useProjectsStore();
-  const [generatedTimeline, setGeneratedTimeline] = useState<any[]>([]);
-  const [previewVisible, setPreviewVisible] = useState(false);
-  const [finalDueDate, setFinalDueDate] = useState<Date | undefined>(undefined);
-  
+  const router = useRouter()
+  const { user } = useAuthStore()
+  const { createProject } = useProjectsStore()
+  const [generatedTimeline, setGeneratedTimeline] = useState<any[]>([])
+  const [previewVisible, setPreviewVisible] = useState(false)
+  const [finalDueDate, setFinalDueDate] = useState<Date | undefined>(undefined)
+
   // Inicializar formulário com react-hook-form
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
-      title: "",
-      description: "",
+      title: '',
+      description: '',
       numVideos: 1,
     },
-  });
+  })
 
   // Gerar cronograma a partir dos dados do formulário
   const handleGenerateTimeline = () => {
-    const formData = form.getValues();
-    let eventDate: Date | undefined;
-    let dueDate: Date | undefined;
-    
+    const formData = form.getValues()
+    let eventDate: Date | undefined
+    let dueDate: Date | undefined
+
     if (formData.eventDate) {
-      eventDate = new Date(formData.eventDate);
-    }
-    
-    if (formData.finalDueDate) {
-      dueDate = new Date(formData.finalDueDate);
-      setFinalDueDate(dueDate);
-    } else {
-      setFinalDueDate(undefined);
+      eventDate = new Date(formData.eventDate)
     }
 
-    const numVideos = formData.numVideos || 1;
-    
+    if (formData.finalDueDate) {
+      dueDate = new Date(formData.finalDueDate)
+      setFinalDueDate(dueDate)
+    } else {
+      setFinalDueDate(undefined)
+    }
+
+    const numVideos = formData.numVideos || 1
+
     const timeline = generateScheduleFromBriefing(
       formData.title,
       numVideos,
       eventDate,
       dueDate
-    );
-    
-    setGeneratedTimeline(timeline);
-    setPreviewVisible(true);
-    
+    )
+
+    setGeneratedTimeline(timeline)
+    setPreviewVisible(true)
+
     toast({
-      title: "Cronograma gerado",
-      description: "Revise o cronograma e confirme para criar o projeto",
-    });
-  };
+      title: 'Cronograma gerado',
+      description: 'Revise o cronograma e confirme para criar o projeto',
+    })
+  }
 
   // Função para lidar com a criação do projeto
   const onSubmit = async (data: ProjectFormValues) => {
     if (!user) {
       toast({
-        title: "Erro",
-        description: "Você precisa estar logado para criar um projeto",
-        variant: "destructive",
-      });
-      return;
+        title: 'Erro',
+        description: 'Você precisa estar logado para criar um projeto',
+        variant: 'destructive',
+      })
+      return
     }
-    
+
     // Converter datas
-    let eventDate: Date | undefined;
-    let finalDueDate: Date | undefined;
-    
+    let eventDate: Date | undefined
+    let finalDueDate: Date | undefined
+
     if (data.eventDate) {
-      eventDate = new Date(data.eventDate);
+      eventDate = new Date(data.eventDate)
     }
-    
+
     if (data.finalDueDate) {
-      finalDueDate = new Date(data.finalDueDate);
+      finalDueDate = new Date(data.finalDueDate)
     }
-    
+
     // Verificar se temos um cronograma gerado, caso não, gerar agora
-    let timeline = generatedTimeline;
+    let timeline = generatedTimeline
     if (!timeline.length) {
       timeline = generateScheduleFromBriefing(
         data.title,
         data.numVideos || 1,
         eventDate,
         finalDueDate
-      );
+      )
     }
-    
+
     // Inicializar estrutura de entregáveis de vídeo
-    const videoDeliverables = Array.from({ length: data.numVideos || 1 }, (_, i) => ({
-      id: `vid-${Date.now()}-${i}`,
-      title: `Vídeo ${i + 1}`,
-      versions: [],
-    }));
-    
+    const videoDeliverables = Array.from(
+      { length: data.numVideos || 1 },
+      (_, i) => ({
+        id: `vid-${Date.now()}-${i}`,
+        title: `Vídeo ${i + 1}`,
+        versions: [],
+      })
+    )
+
     // Criar o projeto com os dados e cronograma
     try {
       createProject({
         title: data.title,
         name: data.title, // para compatibilidade com o novo sistema
-        description: data.description || "",
+        description: data.description || '',
         clientId: user.id,
         editorId: user.id, // Temporariamente mesmo usuário
         eventDate,
@@ -147,25 +154,25 @@ export default function NewProjectPage() {
         videos: videoDeliverables,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        status: "draft",
-      });
-      
+        status: 'draft',
+      })
+
       toast({
-        title: "Projeto criado com sucesso",
-        description: "Você será redirecionado para a página do projeto",
-      });
-      
+        title: 'Projeto criado com sucesso',
+        description: 'Você será redirecionado para a página do projeto',
+      })
+
       // Redirecionar para a página de eventos
-      router.push("/events");
+      router.push('/events')
     } catch (error) {
-      console.error("Erro ao criar projeto:", error);
+      console.error('Erro ao criar projeto:', error)
       toast({
-        title: "Erro ao criar projeto",
-        description: "Por favor, tente novamente",
-        variant: "destructive",
-      });
+        title: 'Erro ao criar projeto',
+        description: 'Por favor, tente novamente',
+        variant: 'destructive',
+      })
     }
-  };
+  }
 
   return (
     <div className="container py-10">
@@ -245,12 +252,7 @@ export default function NewProjectPage() {
                   <FormItem>
                     <FormLabel>Número de Vídeos</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        min={1}
-                        max={20}
-                        {...field}
-                      />
+                      <Input type="number" min={1} max={20} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -258,7 +260,7 @@ export default function NewProjectPage() {
               />
 
               {/* Botão de gerar cronograma */}
-              <Button 
+              <Button
                 type="button"
                 variant="outline"
                 onClick={handleGenerateTimeline}
@@ -270,15 +272,18 @@ export default function NewProjectPage() {
               {/* Preview da timeline */}
               {previewVisible && generatedTimeline.length > 0 && (
                 <div className="border rounded-lg p-4 bg-muted/20">
-                  <h3 className="text-lg font-medium mb-2">Cronograma Gerado</h3>
-                  <Timeline 
-                    phases={generatedTimeline} 
-                    finalDueDate={finalDueDate} 
+                  <h3 className="text-lg font-medium mb-2">
+                    Cronograma Gerado
+                  </h3>
+                  <Timeline
+                    phases={generatedTimeline}
+                    finalDueDate={finalDueDate}
                   />
                   <div className="mt-4 text-sm text-muted-foreground">
                     <p>
-                      Este cronograma foi gerado automaticamente com base nas informações
-                      fornecidas. Você poderá ajustá-lo após criar o projeto.
+                      Este cronograma foi gerado automaticamente com base nas
+                      informações fornecidas. Você poderá ajustá-lo após criar o
+                      projeto.
                     </p>
                   </div>
                 </div>
@@ -299,5 +304,5 @@ export default function NewProjectPage() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

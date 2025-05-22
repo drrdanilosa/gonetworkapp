@@ -1,12 +1,23 @@
+'use client'
+
+'use client'
+
 "use client"
 
-import type React from "react"
+import type React from 'react'
 
-import { useRef, useState, useEffect } from "react"
-import { cn } from "@/lib/utils"
-import { useCollaboration } from "@/contexts/collaboration-context"
+import { useRef, useState, useEffect } from 'react'
+import { cn } from '@/lib/utils'
+import { useCollaboration } from '@/contexts/collaboration-context'
 
-export type AnnotationTool = "pen" | "arrow" | "rectangle" | "ellipse" | "text" | "highlighter" | "eraser"
+export type AnnotationTool =
+  | 'pen'
+  | 'arrow'
+  | 'rectangle'
+  | 'ellipse'
+  | 'text'
+  | 'highlighter'
+  | 'eraser'
 
 export interface Annotation {
   id: string
@@ -56,9 +67,14 @@ export default function AnnotationCanvas({
 }: AnnotationCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isDrawing, setIsDrawing] = useState(false)
-  const [currentAnnotation, setCurrentAnnotation] = useState<Annotation | null>(null)
-  const [textInput, setTextInput] = useState("")
-  const [textPosition, setTextPosition] = useState<{ x: number; y: number } | null>(null)
+  const [currentAnnotation, setCurrentAnnotation] = useState<Annotation | null>(
+    null
+  )
+  const [textInput, setTextInput] = useState('')
+  const [textPosition, setTextPosition] = useState<{
+    x: number
+    y: number
+  } | null>(null)
   const [visibleAnnotations, setVisibleAnnotations] = useState<Annotation[]>([])
 
   // Collaboration context
@@ -76,7 +92,8 @@ export default function AnnotationCanvas({
   // Filtrar anotações visíveis com base no tempo atual
   useEffect(() => {
     const visible = annotations.filter(
-      (annotation) => currentTime >= annotation.timeStart && currentTime <= annotation.timeEnd,
+      annotation =>
+        currentTime >= annotation.timeStart && currentTime <= annotation.timeEnd
     )
     setVisibleAnnotations(visible)
   }, [annotations, currentTime])
@@ -86,44 +103,50 @@ export default function AnnotationCanvas({
     const canvas = canvasRef.current
     if (!canvas) return
 
-    const ctx = canvas.getContext("2d")
+    const ctx = canvas.getContext('2d')
     if (!ctx) return
 
     // Limpar o canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
     // Desenhar todas as anotações visíveis
-    visibleAnnotations.forEach((annotation) => {
+    visibleAnnotations.forEach(annotation => {
       if (!annotation.completed) return
 
       ctx.strokeStyle = annotation.color
       ctx.fillStyle = annotation.color
       ctx.lineWidth = annotation.thickness
-      ctx.lineCap = "round"
-      ctx.lineJoin = "round"
+      ctx.lineCap = 'round'
+      ctx.lineJoin = 'round'
 
       switch (annotation.tool) {
-        case "pen":
+        case 'pen':
           drawPen(ctx, annotation.points)
           break
-        case "highlighter":
+        case 'highlighter':
           drawHighlighter(ctx, annotation.points, annotation.thickness)
           break
-        case "arrow":
+        case 'arrow':
           drawArrow(ctx, annotation.points)
           break
-        case "rectangle":
+        case 'rectangle':
           drawRectangle(ctx, annotation.points)
           break
-        case "ellipse":
+        case 'ellipse':
           drawEllipse(ctx, annotation.points)
           break
-        case "text":
+        case 'text':
           if (annotation.text) {
-            drawText(ctx, annotation.points[0], annotation.text, annotation.color, annotation.thickness)
+            drawText(
+              ctx,
+              annotation.points[0],
+              annotation.text,
+              annotation.color,
+              annotation.thickness
+            )
           }
           break
-        case "eraser":
+        case 'eraser':
           // Eraser não é renderizado
           break
       }
@@ -131,7 +154,10 @@ export default function AnnotationCanvas({
   }, [visibleAnnotations])
 
   // Funções de desenho para diferentes ferramentas
-  const drawPen = (ctx: CanvasRenderingContext2D, points: { x: number; y: number }[]) => {
+  const drawPen = (
+    ctx: CanvasRenderingContext2D,
+    points: { x: number; y: number }[]
+  ) => {
     if (points.length < 2) return
 
     ctx.beginPath()
@@ -144,7 +170,11 @@ export default function AnnotationCanvas({
     ctx.stroke()
   }
 
-  const drawHighlighter = (ctx: CanvasRenderingContext2D, points: { x: number; y: number }[], thickness: number) => {
+  const drawHighlighter = (
+    ctx: CanvasRenderingContext2D,
+    points: { x: number; y: number }[],
+    thickness: number
+  ) => {
     if (points.length < 2) return
 
     const originalGlobalAlpha = ctx.globalAlpha
@@ -159,7 +189,10 @@ export default function AnnotationCanvas({
     ctx.lineWidth = originalLineWidth
   }
 
-  const drawArrow = (ctx: CanvasRenderingContext2D, points: { x: number; y: number }[]) => {
+  const drawArrow = (
+    ctx: CanvasRenderingContext2D,
+    points: { x: number; y: number }[]
+  ) => {
     if (points.length < 2) return
 
     const start = points[0]
@@ -177,13 +210,22 @@ export default function AnnotationCanvas({
 
     ctx.beginPath()
     ctx.moveTo(end.x, end.y)
-    ctx.lineTo(end.x - headLength * Math.cos(angle - Math.PI / 6), end.y - headLength * Math.sin(angle - Math.PI / 6))
+    ctx.lineTo(
+      end.x - headLength * Math.cos(angle - Math.PI / 6),
+      end.y - headLength * Math.sin(angle - Math.PI / 6)
+    )
     ctx.moveTo(end.x, end.y)
-    ctx.lineTo(end.x - headLength * Math.cos(angle + Math.PI / 6), end.y - headLength * Math.sin(angle + Math.PI / 6))
+    ctx.lineTo(
+      end.x - headLength * Math.cos(angle + Math.PI / 6),
+      end.y - headLength * Math.sin(angle + Math.PI / 6)
+    )
     ctx.stroke()
   }
 
-  const drawRectangle = (ctx: CanvasRenderingContext2D, points: { x: number; y: number }[]) => {
+  const drawRectangle = (
+    ctx: CanvasRenderingContext2D,
+    points: { x: number; y: number }[]
+  ) => {
     if (points.length < 2) return
 
     const start = points[0]
@@ -197,7 +239,10 @@ export default function AnnotationCanvas({
     ctx.stroke()
   }
 
-  const drawEllipse = (ctx: CanvasRenderingContext2D, points: { x: number; y: number }[]) => {
+  const drawEllipse = (
+    ctx: CanvasRenderingContext2D,
+    points: { x: number; y: number }[]
+  ) => {
     if (points.length < 2) return
 
     const start = points[0]
@@ -218,7 +263,7 @@ export default function AnnotationCanvas({
     position: { x: number; y: number },
     text: string,
     color: string,
-    size: number,
+    size: number
   ) => {
     ctx.font = `${Math.max(12, size * 5)}px sans-serif`
     ctx.fillStyle = color
@@ -236,7 +281,7 @@ export default function AnnotationCanvas({
     const x = e.clientX - rect.left
     const y = e.clientY - rect.top
 
-    if (selectedTool === "text") {
+    if (selectedTool === 'text') {
       setTextPosition({ x, y })
       return
     }
@@ -285,40 +330,46 @@ export default function AnnotationCanvas({
     onAnnotationUpdate(updatedAnnotation)
 
     // Renderizar a anotação atual
-    const ctx = canvas.getContext("2d")
+    const ctx = canvas.getContext('2d')
     if (!ctx) return
 
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
     // Desenhar anotações existentes
-    visibleAnnotations.forEach((annotation) => {
+    visibleAnnotations.forEach(annotation => {
       if (!annotation.completed) return
 
       ctx.strokeStyle = annotation.color
       ctx.fillStyle = annotation.color
       ctx.lineWidth = annotation.thickness
-      ctx.lineCap = "round"
-      ctx.lineJoin = "round"
+      ctx.lineCap = 'round'
+      ctx.lineJoin = 'round'
 
       switch (annotation.tool) {
-        case "pen":
+        case 'pen':
           drawPen(ctx, annotation.points)
           break
-        case "highlighter":
+        case 'highlighter':
           drawHighlighter(ctx, annotation.points, annotation.thickness)
           break
-        case "arrow":
+        case 'arrow':
           drawArrow(ctx, annotation.points)
           break
-        case "rectangle":
+        case 'rectangle':
           drawRectangle(ctx, annotation.points)
           break
-        case "ellipse":
+        case 'ellipse':
           drawEllipse(ctx, annotation.points)
           break
-        case "text":
+        case 'text':
           if (annotation.text) {
-            drawText(ctx, annotation.points[0], annotation.text, annotation.color, annotation.thickness)
+            drawText(
+              ctx,
+              annotation.points[0],
+              annotation.text,
+              annotation.color,
+              annotation.thickness
+            )
           }
           break
       }
@@ -328,26 +379,30 @@ export default function AnnotationCanvas({
     ctx.strokeStyle = updatedAnnotation.color
     ctx.fillStyle = updatedAnnotation.color
     ctx.lineWidth = updatedAnnotation.thickness
-    ctx.lineCap = "round"
-    ctx.lineJoin = "round"
+    ctx.lineCap = 'round'
+    ctx.lineJoin = 'round'
 
     switch (updatedAnnotation.tool) {
-      case "pen":
+      case 'pen':
         drawPen(ctx, updatedAnnotation.points)
         break
-      case "highlighter":
-        drawHighlighter(ctx, updatedAnnotation.points, updatedAnnotation.thickness)
+      case 'highlighter':
+        drawHighlighter(
+          ctx,
+          updatedAnnotation.points,
+          updatedAnnotation.thickness
+        )
         break
-      case "arrow":
+      case 'arrow':
         drawArrow(ctx, updatedAnnotation.points)
         break
-      case "rectangle":
+      case 'rectangle':
         drawRectangle(ctx, updatedAnnotation.points)
         break
-      case "ellipse":
+      case 'ellipse':
         drawEllipse(ctx, updatedAnnotation.points)
         break
-      case "eraser":
+      case 'eraser':
         // Implementar lógica de apagador
         break
     }
@@ -374,7 +429,7 @@ export default function AnnotationCanvas({
 
     if (!textPosition || !textInput.trim()) {
       setTextPosition(null)
-      setTextInput("")
+      setTextInput('')
       return
     }
 
@@ -383,7 +438,7 @@ export default function AnnotationCanvas({
       id: Date.now().toString(),
       timeStart: currentTime,
       timeEnd: currentTime + 5,
-      tool: "text",
+      tool: 'text',
       color: selectedColor,
       thickness: selectedThickness,
       points: [textPosition],
@@ -399,7 +454,7 @@ export default function AnnotationCanvas({
 
     // Limpar o estado
     setTextPosition(null)
-    setTextInput("")
+    setTextInput('')
   }
 
   return (
@@ -407,9 +462,11 @@ export default function AnnotationCanvas({
       <canvas
         ref={canvasRef}
         className={cn(
-          "absolute top-0 left-0 z-10 pointer-events-none",
-          isAnnotationMode && !isPlaying && "pointer-events-auto cursor-crosshair",
-          className,
+          'absolute top-0 left-0 z-10 pointer-events-none',
+          isAnnotationMode &&
+            !isPlaying &&
+            'pointer-events-auto cursor-crosshair',
+          className
         )}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -426,7 +483,7 @@ export default function AnnotationCanvas({
             <input
               type="text"
               value={textInput}
-              onChange={(e) => setTextInput(e.target.value)}
+              onChange={e => setTextInput(e.target.value)}
               className="border rounded px-2 py-1 text-sm"
               placeholder="Digite o texto..."
               autoFocus
@@ -437,12 +494,15 @@ export default function AnnotationCanvas({
                 className="px-2 py-1 text-xs bg-secondary rounded"
                 onClick={() => {
                   setTextPosition(null)
-                  setTextInput("")
+                  setTextInput('')
                 }}
               >
                 Cancelar
               </button>
-              <button type="submit" className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded">
+              <button
+                type="submit"
+                className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded"
+              >
                 Adicionar
               </button>
             </div>

@@ -1,9 +1,13 @@
+'use client'
+
+'use client'
+
 "use client"
 
-import type React from "react"
+import type React from 'react'
 
-import { useCollaboration } from "@/contexts/collaboration-context"
-import { useEffect, useState } from "react"
+import { useCollaboration } from '@/contexts/collaboration-context'
+import { useEffect, useState } from 'react'
 
 interface RemoteCursorsProps {
   containerRef: React.RefObject<HTMLDivElement>
@@ -40,7 +44,7 @@ export default function RemoteCursors({ containerRef }: RemoteCursorsProps) {
   return (
     <>
       {Object.entries(userCursors).map(([userId, position]) => {
-        const user = activeUsers.find((u) => u.id === userId)
+        const user = activeUsers.find(u => u.id === userId)
         if (!user) return null
 
         // Calcular a posição relativa ao contêiner
@@ -48,7 +52,12 @@ export default function RemoteCursors({ containerRef }: RemoteCursorsProps) {
         const y = position.y - containerRect.top
 
         // Verificar se o cursor está dentro do contêiner
-        if (x < 0 || y < 0 || x > containerRect.width || y > containerRect.height) {
+        if (
+          x < 0 ||
+          y < 0 ||
+          x > containerRect.width ||
+          y > containerRect.height
+        ) {
           return null
         }
 
@@ -59,7 +68,7 @@ export default function RemoteCursors({ containerRef }: RemoteCursorsProps) {
             style={{
               left: `${x}px`,
               top: `${y}px`,
-              transform: "translate(-50%, -50%)",
+              transform: 'translate(-50%, -50%)',
             }}
           >
             {/* Cursor personalizado */}
@@ -85,7 +94,7 @@ export default function RemoteCursors({ containerRef }: RemoteCursorsProps) {
               {/* Nome do usuário */}
               <div
                 className="absolute left-6 top-0 px-2 py-1 rounded text-xs whitespace-nowrap"
-                style={{ backgroundColor: user.color, color: "#fff" }}
+                style={{ backgroundColor: user.color, color: '#fff' }}
               >
                 {user.name}
               </div>

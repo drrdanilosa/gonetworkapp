@@ -1,11 +1,27 @@
 // components/widgets/AssetsWidget.tsx
-import React, { useState, useCallback } from 'react';
-import { useProjectsStore } from '@/store/useProjectsStore';
-import { useUIStore } from '@/store/useUIStore';
-import { FolderOpen, Upload, FileText, FileImage, FileVideo, FileAudio, File, Share2, Trash2, DownloadCloud, ExternalLink } from 'lucide-react';
-import { format } from 'date-fns';
-import { pt } from 'date-fns/locale';
-import { v4 as uuidv4 } from 'uuid';
+'use client'
+
+"use client"
+
+import React, { useState, useCallback } from 'react'
+import { useProjectsStore } from '@/store/useProjectsStore'
+import { useUIStore } from '@/store/useUIStore'
+import {
+  FolderOpen,
+  Upload,
+  FileText,
+  FileImage,
+  FileVideo,
+  FileAudio,
+  File,
+  Share2,
+  Trash2,
+  DownloadCloud,
+  ExternalLink,
+} from 'lucide-react'
+import { format } from 'date-fns'
+import { pt } from 'date-fns/locale'
+import { v4 as uuidv4 } from 'uuid'
 
 import {
   Card,
@@ -14,98 +30,115 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/tooltip'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Checkbox } from "@/components/ui/checkbox";
+} from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Checkbox } from '@/components/ui/checkbox'
 
 // Interfaces
 interface AssetsWidgetProps {
-  projectId: string;
-  isEditable?: boolean;
+  projectId: string
+  isEditable?: boolean
 }
 
 // Componente principal
 const AssetsWidget: React.FC<AssetsWidgetProps> = ({
   projectId,
-  isEditable = true
+  isEditable = true,
 }) => {
-  const { projects, addAsset, deleteAsset, updateAsset, getProjectAssets } = useProjectsStore();
-  const { addNotification } = useUIStore();
-  
-  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
-  const [isSharedDialogOpen, setIsSharedDialogOpen] = useState(false);
-  const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
-  const [assetCategory, setAssetCategory] = useState('all');
-  
+  const { projects, addAsset, deleteAsset, updateAsset, getProjectAssets } =
+    useProjectsStore()
+  const { addNotification } = useUIStore()
+
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
+  const [isSharedDialogOpen, setIsSharedDialogOpen] = useState(false)
+  const [selectedAssets, setSelectedAssets] = useState<string[]>([])
+  const [assetCategory, setAssetCategory] = useState('all')
+
   // Encontrar o projeto
-  const project = projects.find(p => p.id === projectId);
-  
+  const project = projects.find(p => p.id === projectId)
+
   // Se não houver projeto, retornar mensagem
   if (!project) {
-    return <Card className="w-full"><CardContent className="pt-4">Projeto não encontrado</CardContent></Card>;
+    return (
+      <Card className="w-full">
+        <CardContent className="pt-4">Projeto não encontrado</CardContent>
+      </Card>
+    )
   }
-  
+
   // Obter os assets do projeto
-  const projectAssets = getProjectAssets(projectId);
-  
+  const projectAssets = getProjectAssets(projectId)
+
   // Filtrar por categoria
-  const filteredAssets = assetCategory === 'all' 
-    ? projectAssets 
-    : projectAssets.filter(asset => asset.category === assetCategory);
-  
+  const filteredAssets =
+    assetCategory === 'all'
+      ? projectAssets
+      : projectAssets.filter(asset => asset.category === assetCategory)
+
   // Função para fazer upload de arquivo
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-    
+    const files = event.target.files
+    if (!files || files.length === 0) return
+
     // Processa cada arquivo
     Array.from(files).forEach(file => {
       // Em um ambiente real, você enviaria o arquivo para o servidor
       // Aqui, simularemos isso com um URL local
-      const assetUrl = URL.createObjectURL(file);
-      
+      const assetUrl = URL.createObjectURL(file)
+
       // Determinar categoria com base no tipo de arquivo
-      const fileType = file.type.split('/')[0];
-      let category;
-      
+      const fileType = file.type.split('/')[0]
+      let category
+
       switch (fileType) {
         case 'image':
-          category = 'image';
-          break;
+          category = 'image'
+          break
         case 'video':
-          category = 'video';
-          break;
+          category = 'video'
+          break
         case 'audio':
-          category = 'audio';
-          break;
+          category = 'audio'
+          break
         case 'application':
-          category = file.type.includes('pdf') ? 'document' : 'other';
-          break;
+          category = file.type.includes('pdf') ? 'document' : 'other'
+          break
         default:
-          category = 'other';
+          category = 'other'
       }
-      
+
       // Criar novo asset
       const newAsset = {
         id: uuidv4(),
@@ -118,103 +151,107 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
         projectId,
         isShared: false,
         metadata: {
-          lastModified: new Date(file.lastModified).toISOString()
-        }
-      };
-      
+          lastModified: new Date(file.lastModified).toISOString(),
+        },
+      }
+
       // Adicionar ao store
-      addAsset(newAsset);
-      addNotification(`Asset "${file.name}" adicionado com sucesso`);
-    });
-    
-    setIsUploadDialogOpen(false);
-  };
-  
+      addAsset(newAsset)
+      addNotification(`Asset "${file.name}" adicionado com sucesso`)
+    })
+
+    setIsUploadDialogOpen(false)
+  }
+
   // Função para excluir um asset
   const handleDeleteAsset = (assetId: string) => {
-    deleteAsset(assetId);
-    addNotification('Asset removido com sucesso');
-  };
-  
+    deleteAsset(assetId)
+    addNotification('Asset removido com sucesso')
+  }
+
   // Função para compartilhar/tornar privado um asset
   const toggleAssetSharing = (assetId: string, isShared: boolean) => {
-    const asset = projectAssets.find(a => a.id === assetId);
-    if (!asset) return;
-    
-    updateAsset(assetId, { isShared: !isShared });
-    addNotification(isShared ? 'Asset agora é privado' : 'Asset está compartilhado');
-  };
-  
+    const asset = projectAssets.find(a => a.id === assetId)
+    if (!asset) return
+
+    updateAsset(assetId, { isShared: !isShared })
+    addNotification(
+      isShared ? 'Asset agora é privado' : 'Asset está compartilhado'
+    )
+  }
+
   // Função para selecionar/deselecionar um asset
   const toggleAssetSelection = (assetId: string) => {
-    setSelectedAssets(prev => 
+    setSelectedAssets(prev =>
       prev.includes(assetId)
         ? prev.filter(id => id !== assetId)
         : [...prev, assetId]
-    );
-  };
-  
+    )
+  }
+
   // Função para selecionar todos os assets filtrados
   const selectAllAssets = () => {
     if (selectedAssets.length === filteredAssets.length) {
       // Se todos já estão selecionados, desseleciona todos
-      setSelectedAssets([]);
+      setSelectedAssets([])
     } else {
       // Caso contrário, seleciona todos
-      setSelectedAssets(filteredAssets.map(asset => asset.id));
+      setSelectedAssets(filteredAssets.map(asset => asset.id))
     }
-  };
-  
+  }
+
   // Função para excluir múltiplos assets
   const deleteSelectedAssets = () => {
-    if (selectedAssets.length === 0) return;
-    
+    if (selectedAssets.length === 0) return
+
     selectedAssets.forEach(assetId => {
-      deleteAsset(assetId);
-    });
-    
-    addNotification(`${selectedAssets.length} assets removidos com sucesso`);
-    setSelectedAssets([]);
-  };
-  
+      deleteAsset(assetId)
+    })
+
+    addNotification(`${selectedAssets.length} assets removidos com sucesso`)
+    setSelectedAssets([])
+  }
+
   // Função para compartilhar múltiplos assets
   const shareSelectedAssets = (shouldShare: boolean) => {
-    if (selectedAssets.length === 0) return;
-    
+    if (selectedAssets.length === 0) return
+
     selectedAssets.forEach(assetId => {
-      updateAsset(assetId, { isShared: shouldShare });
-    });
-    
-    addNotification(`${selectedAssets.length} assets ${shouldShare ? 'compartilhados' : 'tornados privados'} com sucesso`);
-  };
-  
+      updateAsset(assetId, { isShared: shouldShare })
+    })
+
+    addNotification(
+      `${selectedAssets.length} assets ${shouldShare ? 'compartilhados' : 'tornados privados'} com sucesso`
+    )
+  }
+
   // Icone baseado no tipo de arquivo
   const getFileIcon = (category: string) => {
     switch (category) {
       case 'image':
-        return <FileImage className="h-5 w-5" />;
+        return <FileImage className="h-5 w-5" />
       case 'video':
-        return <FileVideo className="h-5 w-5" />;
+        return <FileVideo className="h-5 w-5" />
       case 'audio':
-        return <FileAudio className="h-5 w-5" />;
+        return <FileAudio className="h-5 w-5" />
       case 'document':
-        return <FileText className="h-5 w-5" />;
+        return <FileText className="h-5 w-5" />
       default:
-        return <File className="h-5 w-5" />;
+        return <File className="h-5 w-5" />
     }
-  };
-  
+  }
+
   // Formatar tamanho de arquivo
   const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
-    
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-  
+    if (bytes === 0) return '0 Bytes'
+
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
+
   // Renderizar o componente
   return (
     <Card className="w-full">
@@ -224,9 +261,9 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
           <div className="flex gap-2">
             {selectedAssets.length > 0 && (
               <>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={deleteSelectedAssets}
                   className="text-red-600"
                 >
@@ -244,7 +281,9 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
                     <DropdownMenuItem onClick={() => shareSelectedAssets(true)}>
                       Tornar Público
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => shareSelectedAssets(false)}>
+                    <DropdownMenuItem
+                      onClick={() => shareSelectedAssets(false)}
+                    >
                       Tornar Privado
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -252,9 +291,9 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
               </>
             )}
             {isEditable && (
-              <Button 
-                variant="default" 
-                size="sm" 
+              <Button
+                variant="default"
+                size="sm"
                 onClick={() => setIsUploadDialogOpen(true)}
               >
                 <Upload className="h-4 w-4 mr-1" />
@@ -267,7 +306,7 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
           Gerencie os arquivos relacionados ao projeto
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent>
         {/* Filtros */}
         <div className="flex items-center justify-between mb-4">
@@ -287,7 +326,8 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
               className="whitespace-nowrap"
             >
               <FileImage className="h-3.5 w-3.5 mr-1" />
-              Imagens ({projectAssets.filter(a => a.category === 'image').length})
+              Imagens (
+              {projectAssets.filter(a => a.category === 'image').length})
             </Button>
             <Button
               variant={assetCategory === 'video' ? 'default' : 'outline'}
@@ -296,7 +336,8 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
               className="whitespace-nowrap"
             >
               <FileVideo className="h-3.5 w-3.5 mr-1" />
-              Vídeos ({projectAssets.filter(a => a.category === 'video').length})
+              Vídeos ({projectAssets.filter(a => a.category === 'video').length}
+              )
             </Button>
             <Button
               variant={assetCategory === 'document' ? 'default' : 'outline'}
@@ -305,14 +346,18 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
               className="whitespace-nowrap"
             >
               <FileText className="h-3.5 w-3.5 mr-1" />
-              Documentos ({projectAssets.filter(a => a.category === 'document').length})
+              Documentos (
+              {projectAssets.filter(a => a.category === 'document').length})
             </Button>
           </div>
-          
+
           <div className="flex items-center">
             <Checkbox
               id="select-all"
-              checked={filteredAssets.length > 0 && selectedAssets.length === filteredAssets.length}
+              checked={
+                filteredAssets.length > 0 &&
+                selectedAssets.length === filteredAssets.length
+              }
               onCheckedChange={selectAllAssets}
               className="mr-2"
             />
@@ -321,7 +366,7 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
             </Label>
           </div>
         </div>
-        
+
         {/* Lista de assets */}
         <ScrollArea className="h-[300px] rounded-md border p-2">
           {filteredAssets.length === 0 ? (
@@ -329,8 +374,8 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
               <FolderOpen className="h-10 w-10 mb-2" />
               <p>Nenhum asset encontrado</p>
               {isEditable && (
-                <Button 
-                  variant="link" 
+                <Button
+                  variant="link"
                   onClick={() => setIsUploadDialogOpen(true)}
                   className="mt-2"
                 >
@@ -341,7 +386,7 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
           ) : (
             <div className="space-y-2">
               {filteredAssets.map(asset => (
-                <div 
+                <div
                   key={asset.id}
                   className={`flex items-center justify-between p-2 rounded-md border ${
                     selectedAssets.includes(asset.id) ? 'bg-muted' : ''
@@ -365,17 +410,29 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
                         )}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {formatFileSize(asset.size)} • {format(new Date(asset.uploadedAt), "dd/MM/yyyy", { locale: pt })}
+                        {formatFileSize(asset.size)} •{' '}
+                        {format(new Date(asset.uploadedAt), 'dd/MM/yyyy', {
+                          locale: pt,
+                        })}
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-1">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                            <a href={asset.url} target="_blank" rel="noopener noreferrer">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            asChild
+                          >
+                            <a
+                              href={asset.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
                               <ExternalLink className="h-4 w-4" />
                             </a>
                           </Button>
@@ -383,11 +440,16 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
                         <TooltipContent>Abrir</TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
-                    
+
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            asChild
+                          >
                             <a href={asset.url} download={asset.name}>
                               <DownloadCloud className="h-4 w-4" />
                             </a>
@@ -396,33 +458,39 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
                         <TooltipContent>Download</TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
-                    
+
                     {isEditable && (
                       <>
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 className="h-8 w-8"
-                                onClick={() => toggleAssetSharing(asset.id, asset.isShared)}
+                                onClick={() =>
+                                  toggleAssetSharing(asset.id, asset.isShared)
+                                }
                               >
-                                <Share2 className={`h-4 w-4 ${asset.isShared ? 'text-blue-500' : ''}`} />
+                                <Share2
+                                  className={`h-4 w-4 ${asset.isShared ? 'text-blue-500' : ''}`}
+                                />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
-                              {asset.isShared ? 'Tornar Privado' : 'Compartilhar'}
+                              {asset.isShared
+                                ? 'Tornar Privado'
+                                : 'Compartilhar'}
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
-                        
+
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 className="h-8 w-8 text-red-500"
                                 onClick={() => handleDeleteAsset(asset.id)}
                               >
@@ -441,14 +509,14 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
           )}
         </ScrollArea>
       </CardContent>
-      
+
       {/* Dialog para upload */}
       <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Upload de Arquivos</DialogTitle>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             <Label htmlFor="files">Selecione os arquivos</Label>
             <Input
@@ -462,16 +530,19 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
               Formatos aceitos: Imagens, Vídeos, Áudios, PDFs, DOC, DOCX
             </p>
           </div>
-          
+
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setIsUploadDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsUploadDialogOpen(false)}
+            >
               Cancelar
             </Button>
           </div>
         </DialogContent>
       </Dialog>
     </Card>
-  );
-};
+  )
+}
 
-export default AssetsWidget;
+export default AssetsWidget

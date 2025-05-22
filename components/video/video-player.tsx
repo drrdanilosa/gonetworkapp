@@ -1,15 +1,31 @@
+'use client'
+
+'use client'
+
 "use client"
 
-import { useRef, useState, useEffect, forwardRef } from "react"
-import { Button } from "@/components/ui/button"
-import { Slider } from "@/components/ui/slider"
-import { cn } from "@/lib/utils"
-import { Maximize2, Minimize2, Pause, Play, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react"
-import AnnotationCanvas, { type Annotation, type AnnotationTool } from "./annotation-canvas"
-import AnnotationToolbar from "./annotation-toolbar"
-import RemoteCursors from "@/components/collaboration/remote-cursors"
-import RemoteAnnotations from "@/components/collaboration/remote-annotations"
-import { useCollaboration } from "@/contexts/collaboration-context"
+import { useRef, useState, useEffect, forwardRef } from 'react'
+import { Button } from '@/components/ui/button'
+import { Slider } from '@/components/ui/slider'
+import { cn } from '@/lib/utils'
+import {
+  Maximize2,
+  Minimize2,
+  Pause,
+  Play,
+  SkipBack,
+  SkipForward,
+  Volume2,
+  VolumeX,
+} from 'lucide-react'
+import AnnotationCanvas, {
+  type Annotation,
+  type AnnotationTool,
+} from './annotation-canvas'
+import AnnotationToolbar from './annotation-toolbar'
+import RemoteCursors from '@/components/collaboration/remote-cursors'
+import RemoteAnnotations from '@/components/collaboration/remote-annotations'
+import { useCollaboration } from '@/contexts/collaboration-context'
 
 interface VideoPlayerProps {
   src: string
@@ -36,7 +52,7 @@ const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
       className,
       autoPlay = false,
     },
-    ref,
+    ref
   ) => {
     const videoRef = useRef<HTMLVideoElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -51,8 +67,8 @@ const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
 
     // Annotation state
     const [isAnnotationMode, setIsAnnotationMode] = useState(false)
-    const [selectedTool, setSelectedTool] = useState<AnnotationTool>("pen")
-    const [selectedColor, setSelectedColor] = useState("#ff0000")
+    const [selectedTool, setSelectedTool] = useState<AnnotationTool>('pen')
+    const [selectedColor, setSelectedColor] = useState('#ff0000')
     const [selectedThickness, setSelectedThickness] = useState(3)
 
     // Collaboration state
@@ -103,25 +119,25 @@ const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
         }
       }
 
-      video.addEventListener("timeupdate", handleTimeUpdate)
-      video.addEventListener("durationchange", handleDurationChange)
-      video.addEventListener("play", handlePlay)
-      video.addEventListener("pause", handlePause)
-      video.addEventListener("volumechange", handleVolumeChange)
-      video.addEventListener("loadedmetadata", handleResize)
-      window.addEventListener("resize", handleResize)
+      video.addEventListener('timeupdate', handleTimeUpdate)
+      video.addEventListener('durationchange', handleDurationChange)
+      video.addEventListener('play', handlePlay)
+      video.addEventListener('pause', handlePause)
+      video.addEventListener('volumechange', handleVolumeChange)
+      video.addEventListener('loadedmetadata', handleResize)
+      window.addEventListener('resize', handleResize)
 
       // Inicializar as dimensões
       handleResize()
 
       return () => {
-        video.removeEventListener("timeupdate", handleTimeUpdate)
-        video.removeEventListener("durationchange", handleDurationChange)
-        video.removeEventListener("play", handlePlay)
-        video.removeEventListener("pause", handlePause)
-        video.removeEventListener("volumechange", handleVolumeChange)
-        video.removeEventListener("loadedmetadata", handleResize)
-        window.removeEventListener("resize", handleResize)
+        video.removeEventListener('timeupdate', handleTimeUpdate)
+        video.removeEventListener('durationchange', handleDurationChange)
+        video.removeEventListener('play', handlePlay)
+        video.removeEventListener('pause', handlePause)
+        video.removeEventListener('volumechange', handleVolumeChange)
+        video.removeEventListener('loadedmetadata', handleResize)
+        window.removeEventListener('resize', handleResize)
       }
     }, [onTimeUpdate, isJoined, playPauseVideo])
 
@@ -130,9 +146,9 @@ const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
         setIsFullscreen(!!document.fullscreenElement)
       }
 
-      document.addEventListener("fullscreenchange", handleFullscreenChange)
+      document.addEventListener('fullscreenchange', handleFullscreenChange)
       return () => {
-        document.removeEventListener("fullscreenchange", handleFullscreenChange)
+        document.removeEventListener('fullscreenchange', handleFullscreenChange)
       }
     }, [])
 
@@ -158,14 +174,19 @@ const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
         const y = e.clientY
 
         // Verificar se o mouse está dentro do contêiner
-        if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+        if (
+          x >= rect.left &&
+          x <= rect.right &&
+          y >= rect.top &&
+          y <= rect.bottom
+        ) {
           updateCursorPosition({ x, y })
         }
       }
 
-      window.addEventListener("mousemove", handleMouseMove)
+      window.addEventListener('mousemove', handleMouseMove)
       return () => {
-        window.removeEventListener("mousemove", handleMouseMove)
+        window.removeEventListener('mousemove', handleMouseMove)
       }
     }, [isJoined, updateCursorPosition])
 
@@ -252,7 +273,7 @@ const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
       if (!containerRef.current) return
 
       if (!document.fullscreenElement) {
-        containerRef.current.requestFullscreen().catch((err) => {
+        containerRef.current.requestFullscreen().catch(err => {
           console.error(`Error attempting to enable fullscreen: ${err.message}`)
         })
       } else {
@@ -261,11 +282,11 @@ const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
     }
 
     const formatTime = (timeInSeconds: number) => {
-      if (isNaN(timeInSeconds)) return "00:00"
+      if (isNaN(timeInSeconds)) return '00:00'
 
       const minutes = Math.floor(timeInSeconds / 60)
       const seconds = Math.floor(timeInSeconds % 60)
-      return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+      return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
     }
 
     const handleAnnotationCreate = (annotation: Annotation) => {
@@ -300,18 +321,18 @@ const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
 
     return (
       <div
-        ref={(el) => {
+        ref={el => {
           containerRef.current = el
-          if (typeof ref === "function") {
+          if (typeof ref === 'function') {
             ref(el)
           } else if (ref) {
             ref.current = el
           }
         }}
         className={cn(
-          "relative overflow-hidden bg-black rounded-md",
-          isFullscreen ? "fixed inset-0 z-50" : "",
-          className,
+          'relative overflow-hidden bg-black rounded-md',
+          isFullscreen ? 'fixed inset-0 z-50' : '',
+          className
         )}
       >
         <video
@@ -339,7 +360,12 @@ const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
         />
 
         {/* Remote Annotations (for collaboration) */}
-        {isJoined && <RemoteAnnotations canvasWidth={videoWidth} canvasHeight={videoHeight} />}
+        {isJoined && (
+          <RemoteAnnotations
+            canvasWidth={videoWidth}
+            canvasHeight={videoHeight}
+          />
+        )}
 
         {/* Remote Cursors (for collaboration) */}
         {isJoined && <RemoteCursors containerRef={containerRef} />}
@@ -371,7 +397,12 @@ const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={skipBackward} className="text-white hover:bg-white/20">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={skipBackward}
+                  className="text-white hover:bg-white/20"
+                >
                   <SkipBack className="h-4 w-4" />
                 </Button>
 
@@ -381,10 +412,19 @@ const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
                   className="h-10 w-10 rounded-full text-white hover:bg-white/20"
                   onClick={togglePlay}
                 >
-                  {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+                  {isPlaying ? (
+                    <Pause className="h-5 w-5" />
+                  ) : (
+                    <Play className="h-5 w-5" />
+                  )}
                 </Button>
 
-                <Button variant="ghost" size="icon" onClick={skipForward} className="text-white hover:bg-white/20">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={skipForward}
+                  className="text-white hover:bg-white/20"
+                >
                   <SkipForward className="h-4 w-4" />
                 </Button>
 
@@ -394,8 +434,17 @@ const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
               </div>
 
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={toggleMute} className="text-white hover:bg-white/20">
-                  {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleMute}
+                  className="text-white hover:bg-white/20"
+                >
+                  {isMuted ? (
+                    <VolumeX className="h-4 w-4" />
+                  ) : (
+                    <Volume2 className="h-4 w-4" />
+                  )}
                 </Button>
 
                 <Slider
@@ -406,8 +455,17 @@ const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
                   className="w-24"
                 />
 
-                <Button variant="ghost" size="icon" onClick={toggleFullscreen} className="text-white hover:bg-white/20">
-                  {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleFullscreen}
+                  className="text-white hover:bg-white/20"
+                >
+                  {isFullscreen ? (
+                    <Minimize2 className="h-4 w-4" />
+                  ) : (
+                    <Maximize2 className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             </div>
@@ -415,9 +473,9 @@ const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
         </div>
       </div>
     )
-  },
+  }
 )
 
-VideoPlayer.displayName = "VideoPlayer"
+VideoPlayer.displayName = 'VideoPlayer'
 
 export default VideoPlayer

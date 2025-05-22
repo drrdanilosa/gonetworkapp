@@ -1,12 +1,24 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Switch } from "@/components/ui/switch"
-import { Separator } from "@/components/ui/separator"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Save } from "lucide-react"
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Switch } from '@/components/ui/switch'
+import { Separator } from '@/components/ui/separator'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Save } from 'lucide-react'
 
 export default function SettingsWidget() {
   return (
@@ -27,7 +39,9 @@ export default function SettingsWidget() {
           <Card>
             <CardHeader>
               <CardTitle>Informações do Perfil</CardTitle>
-              <CardDescription>Atualize suas informações pessoais e de contato</CardDescription>
+              <CardDescription>
+                Atualize suas informações pessoais e de contato
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -37,7 +51,11 @@ export default function SettingsWidget() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" defaultValue="admin@gonetwork.ai" />
+                  <Input
+                    id="email"
+                    type="email"
+                    defaultValue="admin@gonetwork.ai"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone">Telefone</Label>
@@ -61,7 +79,9 @@ export default function SettingsWidget() {
           <Card>
             <CardHeader>
               <CardTitle>Segurança</CardTitle>
-              <CardDescription>Gerencie sua senha e configurações de segurança</CardDescription>
+              <CardDescription>
+                Gerencie sua senha e configurações de segurança
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -85,8 +105,12 @@ export default function SettingsWidget() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-medium">Autenticação de Dois Fatores</h4>
-                    <p className="text-sm text-muted-foreground">Adicione uma camada extra de segurança à sua conta</p>
+                    <h4 className="font-medium">
+                      Autenticação de Dois Fatores
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      Adicione uma camada extra de segurança à sua conta
+                    </p>
                   </div>
                   <Switch />
                 </div>
@@ -94,7 +118,9 @@ export default function SettingsWidget() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">Sessões Ativas</h4>
-                    <p className="text-sm text-muted-foreground">Gerencie dispositivos onde você está conectado</p>
+                    <p className="text-sm text-muted-foreground">
+                      Gerencie dispositivos onde você está conectado
+                    </p>
                   </div>
                   <Button variant="outline">Gerenciar</Button>
                 </div>
@@ -114,7 +140,9 @@ export default function SettingsWidget() {
           <Card>
             <CardHeader>
               <CardTitle>Aparência</CardTitle>
-              <CardDescription>Personalize a aparência do sistema</CardDescription>
+              <CardDescription>
+                Personalize a aparência do sistema
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -173,7 +201,9 @@ export default function SettingsWidget() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">Animações</h4>
-                    <p className="text-sm text-muted-foreground">Ativar animações na interface</p>
+                    <p className="text-sm text-muted-foreground">
+                      Ativar animações na interface
+                    </p>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -181,7 +211,9 @@ export default function SettingsWidget() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">Modo Compacto</h4>
-                    <p className="text-sm text-muted-foreground">Reduzir espaçamento e tamanho dos elementos</p>
+                    <p className="text-sm text-muted-foreground">
+                      Reduzir espaçamento e tamanho dos elementos
+                    </p>
                   </div>
                   <Switch />
                 </div>
@@ -201,7 +233,9 @@ export default function SettingsWidget() {
           <Card>
             <CardHeader>
               <CardTitle>Notificações</CardTitle>
-              <CardDescription>Configure como e quando você deseja receber notificações</CardDescription>
+              <CardDescription>
+                Configure como e quando você deseja receber notificações
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-4">
@@ -211,7 +245,9 @@ export default function SettingsWidget() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-medium">Novos comentários</h4>
-                      <p className="text-sm text-muted-foreground">Quando alguém comentar em uma edição</p>
+                      <p className="text-sm text-muted-foreground">
+                        Quando alguém comentar em uma edição
+                      </p>
                     </div>
                     <Switch defaultChecked />
                   </div>
@@ -219,7 +255,9 @@ export default function SettingsWidget() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-medium">Novas entregas</h4>
-                      <p className="text-sm text-muted-foreground">Quando uma nova entrega for enviada</p>
+                      <p className="text-sm text-muted-foreground">
+                        Quando uma nova entrega for enviada
+                      </p>
                     </div>
                     <Switch defaultChecked />
                   </div>
@@ -227,7 +265,9 @@ export default function SettingsWidget() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-medium">Prazos próximos</h4>
-                      <p className="text-sm text-muted-foreground">Lembretes de prazos se aproximando</p>
+                      <p className="text-sm text-muted-foreground">
+                        Lembretes de prazos se aproximando
+                      </p>
                     </div>
                     <Switch defaultChecked />
                   </div>
@@ -235,7 +275,9 @@ export default function SettingsWidget() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-medium">Atualizações do sistema</h4>
-                      <p className="text-sm text-muted-foreground">Novidades e atualizações do GoNetwork AI</p>
+                      <p className="text-sm text-muted-foreground">
+                        Novidades e atualizações do GoNetwork AI
+                      </p>
                     </div>
                     <Switch />
                   </div>
@@ -250,7 +292,9 @@ export default function SettingsWidget() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium">Notificações em tempo real</h4>
+                      <h4 className="font-medium">
+                        Notificações em tempo real
+                      </h4>
                       <p className="text-sm text-muted-foreground">
                         Receber notificações enquanto estiver usando o sistema
                       </p>
@@ -261,7 +305,9 @@ export default function SettingsWidget() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-medium">Sons de notificação</h4>
-                      <p className="text-sm text-muted-foreground">Reproduzir sons ao receber notificações</p>
+                      <p className="text-sm text-muted-foreground">
+                        Reproduzir sons ao receber notificações
+                      </p>
                     </div>
                     <Switch />
                   </div>
@@ -282,7 +328,9 @@ export default function SettingsWidget() {
           <Card>
             <CardHeader>
               <CardTitle>Configurações do Sistema</CardTitle>
-              <CardDescription>Gerencie configurações gerais do sistema</CardDescription>
+              <CardDescription>
+                Gerencie configurações gerais do sistema
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -306,10 +354,18 @@ export default function SettingsWidget() {
                     <SelectValue placeholder="Selecione um fuso horário" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="america-sao_paulo">América/São Paulo (GMT-3)</SelectItem>
-                    <SelectItem value="america-new_york">América/New York (GMT-4)</SelectItem>
-                    <SelectItem value="europe-london">Europa/Londres (GMT+1)</SelectItem>
-                    <SelectItem value="asia-tokyo">Ásia/Tóquio (GMT+9)</SelectItem>
+                    <SelectItem value="america-sao_paulo">
+                      América/São Paulo (GMT-3)
+                    </SelectItem>
+                    <SelectItem value="america-new_york">
+                      América/New York (GMT-4)
+                    </SelectItem>
+                    <SelectItem value="europe-london">
+                      Europa/Londres (GMT+1)
+                    </SelectItem>
+                    <SelectItem value="asia-tokyo">
+                      Ásia/Tóquio (GMT+9)
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -320,7 +376,9 @@ export default function SettingsWidget() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">Iniciar automaticamente</h4>
-                    <p className="text-sm text-muted-foreground">Iniciar o GoNetwork AI ao ligar o computador</p>
+                    <p className="text-sm text-muted-foreground">
+                      Iniciar o GoNetwork AI ao ligar o computador
+                    </p>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -328,7 +386,9 @@ export default function SettingsWidget() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">Verificar atualizações</h4>
-                    <p className="text-sm text-muted-foreground">Verificar automaticamente por novas versões</p>
+                    <p className="text-sm text-muted-foreground">
+                      Verificar automaticamente por novas versões
+                    </p>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -337,7 +397,8 @@ export default function SettingsWidget() {
                   <div>
                     <h4 className="font-medium">Enviar relatórios de erro</h4>
                     <p className="text-sm text-muted-foreground">
-                      Ajude a melhorar o GoNetwork AI enviando relatórios anônimos
+                      Ajude a melhorar o GoNetwork AI enviando relatórios
+                      anônimos
                     </p>
                   </div>
                   <Switch defaultChecked />
@@ -351,7 +412,9 @@ export default function SettingsWidget() {
                 <div className="text-sm text-muted-foreground">
                   <p>Versão: 1.0.0</p>
                   <p>Build: 2025.05.20</p>
-                  <p className="mt-2">© 2025 GoNetwork. Todos os direitos reservados.</p>
+                  <p className="mt-2">
+                    © 2025 GoNetwork. Todos os direitos reservados.
+                  </p>
                 </div>
               </div>
 

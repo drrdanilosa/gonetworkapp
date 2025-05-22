@@ -1,7 +1,11 @@
+'use client'
+
+'use client'
+
 "use client"
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -9,15 +13,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Loader2, Download, Eye } from "lucide-react"
+} from '@/components/ui/dialog'
+import { Loader2, Download, Eye } from 'lucide-react'
 
 interface ExportPreviewProps {
   isOpen: boolean
   onClose: () => void
   previewUrl: string
   filename: string
-  format: "pdf" | "csv"
+  format: 'pdf' | 'csv'
   isLoading: boolean
 }
 
@@ -36,7 +40,7 @@ export default function ExportPreview({
       setIsDownloading(true)
 
       // Criar um link para download
-      const link = document.createElement("a")
+      const link = document.createElement('a')
       link.href = previewUrl
       link.download = `${filename}.${format}`
       document.body.appendChild(link)
@@ -48,7 +52,7 @@ export default function ExportPreview({
         onClose()
       }, 500)
     } catch (error) {
-      console.error("Erro ao fazer download:", error)
+      console.error('Erro ao fazer download:', error)
     } finally {
       setIsDownloading(false)
     }
@@ -64,11 +68,13 @@ export default function ExportPreview({
   }, [previewUrl])
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Prévia da Exportação</DialogTitle>
-          <DialogDescription>Visualize o arquivo antes de fazer o download.</DialogDescription>
+          <DialogDescription>
+            Visualize o arquivo antes de fazer o download.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="flex-1 min-h-0 overflow-hidden rounded-md border my-4">
@@ -76,7 +82,7 @@ export default function ExportPreview({
             <div className="w-full h-full flex items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-          ) : format === "pdf" ? (
+          ) : format === 'pdf' ? (
             <iframe src={previewUrl} className="w-full h-full" />
           ) : (
             <div className="bg-secondary/20 p-4 h-full overflow-auto">
@@ -89,8 +95,12 @@ export default function ExportPreview({
           <Button variant="outline" onClick={onClose} disabled={isDownloading}>
             Fechar
           </Button>
-          {format === "pdf" && (
-            <Button variant="outline" onClick={() => window.open(previewUrl, "_blank")} disabled={isDownloading}>
+          {format === 'pdf' && (
+            <Button
+              variant="outline"
+              onClick={() => window.open(previewUrl, '_blank')}
+              disabled={isDownloading}
+            >
               <Eye className="mr-2 h-4 w-4" />
               Abrir em Nova Aba
             </Button>

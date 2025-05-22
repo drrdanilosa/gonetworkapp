@@ -1,22 +1,26 @@
+'use client'
+
+'use client'
+
 "use client"
 
-import * as React from "react"
-import { Check, ChevronsUpDown } from "lucide-react"
+import * as React from 'react'
+import { Check, ChevronsUpDown } from 'lucide-react'
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import {
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
-} from "@/components/ui/command"
+} from '@/components/ui/command'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from '@/components/ui/popover'
 
 export interface CommentColorType {
   id: string
@@ -31,7 +35,11 @@ interface CommentTypeSelectProps {
   options: CommentColorType[]
 }
 
-export function CommentTypeSelect({ value, onValueChange, options }: CommentTypeSelectProps) {
+export function CommentTypeSelect({
+  value,
+  onValueChange,
+  options,
+}: CommentTypeSelectProps) {
   const [open, setOpen] = React.useState(false)
   const selectedOption = options.find(option => option.id === value)
 
@@ -45,11 +53,11 @@ export function CommentTypeSelect({ value, onValueChange, options }: CommentType
           className="w-full justify-between"
         >
           <div className="flex items-center">
-            <div 
-              className="w-3 h-3 rounded-full mr-2" 
-              style={{ backgroundColor: selectedOption?.color || '#BD93F9' }} 
+            <div
+              className="w-3 h-3 rounded-full mr-2"
+              style={{ backgroundColor: selectedOption?.color || '#BD93F9' }}
             />
-            {selectedOption?.name || "Selecione o tipo"}
+            {selectedOption?.name || 'Selecione o tipo'}
           </div>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -59,7 +67,7 @@ export function CommentTypeSelect({ value, onValueChange, options }: CommentType
           <CommandInput placeholder="Buscar tipo..." />
           <CommandEmpty>Nenhum tipo encontrado.</CommandEmpty>
           <CommandGroup>
-            {options.map((option) => (
+            {options.map(option => (
               <CommandItem
                 key={option.id}
                 value={option.id}
@@ -69,16 +77,16 @@ export function CommentTypeSelect({ value, onValueChange, options }: CommentType
                 }}
               >
                 <div className="flex items-center">
-                  <div 
-                    className="w-3 h-3 rounded-full mr-2" 
-                    style={{ backgroundColor: option.color }} 
+                  <div
+                    className="w-3 h-3 rounded-full mr-2"
+                    style={{ backgroundColor: option.color }}
                   />
                   {option.name}
                 </div>
                 <Check
                   className={cn(
-                    "ml-auto h-4 w-4",
-                    value === option.id ? "opacity-100" : "opacity-0"
+                    'ml-auto h-4 w-4',
+                    value === option.id ? 'opacity-100' : 'opacity-0'
                   )}
                 />
               </CommandItem>

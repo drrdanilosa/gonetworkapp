@@ -1,26 +1,53 @@
+'use client'
+
+'use client'
+
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useCollaboration } from "@/contexts/collaboration-context"
-import { Users, UserPlus, Link, Copy, Check } from "lucide-react"
-import ActiveUsersDisplay from "./active-users-display"
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { useCollaboration } from '@/contexts/collaboration-context'
+import { Users, UserPlus, Link, Copy, Check } from 'lucide-react'
+import ActiveUsersDisplay from './active-users-display'
 
 interface CollaborationPanelProps {
   videoId: string
   videoTitle: string
 }
 
-export default function CollaborationPanel({ videoId, videoTitle }: CollaborationPanelProps) {
-  const { isConnected, isJoined, sessionId, joinSession, leaveSession, activeUsers } = useCollaboration()
+export default function CollaborationPanel({
+  videoId,
+  videoTitle,
+}: CollaborationPanelProps) {
+  const {
+    isConnected,
+    isJoined,
+    sessionId,
+    joinSession,
+    leaveSession,
+    activeUsers,
+  } = useCollaboration()
 
-  const [userName, setUserName] = useState("")
-  const [userRole, setUserRole] = useState("editor")
+  const [userName, setUserName] = useState('')
+  const [userRole, setUserRole] = useState('editor')
   const [joinSessionId, setJoinSessionId] = useState(videoId)
   const [copied, setCopied] = useState(false)
 
@@ -35,7 +62,7 @@ export default function CollaborationPanel({ videoId, videoTitle }: Collaboratio
 
   const copySessionLink = () => {
     const url = new URL(window.location.href)
-    url.searchParams.set("session", sessionId || "")
+    url.searchParams.set('session', sessionId || '')
     navigator.clipboard.writeText(url.toString())
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
@@ -46,7 +73,10 @@ export default function CollaborationPanel({ videoId, videoTitle }: Collaboratio
       <Card>
         <CardHeader>
           <CardTitle>Colaboração em Tempo Real</CardTitle>
-          <CardDescription>Trabalhe em conjunto com outros usuários para revisar e anotar este vídeo.</CardDescription>
+          <CardDescription>
+            Trabalhe em conjunto com outros usuários para revisar e anotar este
+            vídeo.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="join">
@@ -62,7 +92,7 @@ export default function CollaborationPanel({ videoId, videoTitle }: Collaboratio
                   <Input
                     id="session-id"
                     value={joinSessionId}
-                    onChange={(e) => setJoinSessionId(e.target.value)}
+                    onChange={e => setJoinSessionId(e.target.value)}
                     placeholder="Digite o ID da sessão"
                   />
                 </div>
@@ -72,7 +102,7 @@ export default function CollaborationPanel({ videoId, videoTitle }: Collaboratio
                   <Input
                     id="user-name"
                     value={userName}
-                    onChange={(e) => setUserName(e.target.value)}
+                    onChange={e => setUserName(e.target.value)}
                     placeholder="Digite seu nome"
                   />
                 </div>
@@ -121,7 +151,7 @@ export default function CollaborationPanel({ videoId, videoTitle }: Collaboratio
                   <Input
                     id="creator-name"
                     value={userName}
-                    onChange={(e) => setUserName(e.target.value)}
+                    onChange={e => setUserName(e.target.value)}
                     placeholder="Digite seu nome"
                   />
                 </div>
@@ -147,11 +177,14 @@ export default function CollaborationPanel({ videoId, videoTitle }: Collaboratio
         <CardFooter className="flex justify-between">
           <Button variant="outline" disabled={!isConnected}>
             <Users className="mr-2 h-4 w-4" />
-            {isConnected ? "Conectado" : "Desconectado"}
+            {isConnected ? 'Conectado' : 'Desconectado'}
           </Button>
-          <Button onClick={handleJoinSession} disabled={!isConnected || !userName.trim()}>
+          <Button
+            onClick={handleJoinSession}
+            disabled={!isConnected || !userName.trim()}
+          >
             <UserPlus className="mr-2 h-4 w-4" />
-            {isConnected ? "Entrar na Sessão" : "Conectando..."}
+            {isConnected ? 'Entrar na Sessão' : 'Conectando...'}
           </Button>
         </CardFooter>
       </Card>
@@ -164,17 +197,21 @@ export default function CollaborationPanel({ videoId, videoTitle }: Collaboratio
         <div className="flex justify-between items-center">
           <CardTitle>Sessão Colaborativa</CardTitle>
           <Button variant="ghost" size="sm" onClick={copySessionLink}>
-            {copied ? <Check className="h-4 w-4 mr-2 text-green-500" /> : <Link className="h-4 w-4 mr-2" />}
-            {copied ? "Copiado!" : "Compartilhar"}
+            {copied ? (
+              <Check className="h-4 w-4 mr-2 text-green-500" />
+            ) : (
+              <Link className="h-4 w-4 mr-2" />
+            )}
+            {copied ? 'Copiado!' : 'Compartilhar'}
           </Button>
         </div>
         <CardDescription>
-          ID da Sessão: {sessionId}{" "}
+          ID da Sessão: {sessionId}{' '}
           <Button
             variant="ghost"
             size="icon"
             className="h-4 w-4 p-0"
-            onClick={() => navigator.clipboard.writeText(sessionId || "")}
+            onClick={() => navigator.clipboard.writeText(sessionId || '')}
           >
             <Copy className="h-3 w-3" />
           </Button>
@@ -184,7 +221,11 @@ export default function CollaborationPanel({ videoId, videoTitle }: Collaboratio
         <ActiveUsersDisplay />
       </CardContent>
       <CardFooter>
-        <Button variant="outline" className="w-full" onClick={handleLeaveSession}>
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={handleLeaveSession}
+        >
           Sair da Sessão
         </Button>
       </CardFooter>

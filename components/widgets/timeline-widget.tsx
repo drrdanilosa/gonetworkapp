@@ -1,7 +1,13 @@
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
-import { RefreshCcw, Download } from "lucide-react"
+import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
+import { RefreshCcw, Download } from 'lucide-react'
 
 export default function TimelineWidget() {
   return (
@@ -17,9 +23,15 @@ export default function TimelineWidget() {
                 <SelectValue placeholder="Selecione um evento" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="festival">Festival de Música - 18-20 Mai 2025</SelectItem>
-                <SelectItem value="lancamento">Lançamento de Produto - 25 Mai 2025</SelectItem>
-                <SelectItem value="conferencia">Conferência Tech - 01 Jun 2025</SelectItem>
+                <SelectItem value="festival">
+                  Festival de Música - 18-20 Mai 2025
+                </SelectItem>
+                <SelectItem value="lancamento">
+                  Lançamento de Produto - 25 Mai 2025
+                </SelectItem>
+                <SelectItem value="conferencia">
+                  Conferência Tech - 01 Jun 2025
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -109,7 +121,7 @@ export default function TimelineWidget() {
                 {/* Tarefa 1 */}
                 <div
                   className="absolute h-12 top-2 left-[12.5%] w-[16.7%] bg-primary rounded-md flex items-center justify-center text-xs text-primary-foreground px-2"
-                  style={{ left: "12.5%", width: "16.7%" }}
+                  style={{ left: '12.5%', width: '16.7%' }}
                 >
                   Captação - Palco Principal
                 </div>
@@ -117,7 +129,7 @@ export default function TimelineWidget() {
                 {/* Tarefa 2 */}
                 <div
                   className="absolute h-12 top-2 bg-primary rounded-md flex items-center justify-center text-xs text-primary-foreground px-2"
-                  style={{ left: "33.3%", width: "8.3%" }}
+                  style={{ left: '33.3%', width: '8.3%' }}
                 >
                   Patrocinador A - Stand
                 </div>
@@ -125,7 +137,7 @@ export default function TimelineWidget() {
                 {/* Tarefa 3 */}
                 <div
                   className="absolute h-12 top-2 bg-muted rounded-md flex items-center justify-center text-xs text-muted-foreground px-2"
-                  style={{ left: "62.5%", width: "12.5%" }}
+                  style={{ left: '62.5%', width: '12.5%' }}
                 >
                   Captação - Backstage
                 </div>
@@ -141,7 +153,7 @@ export default function TimelineWidget() {
                 {/* Tarefa 1 */}
                 <div
                   className="absolute h-12 top-2 bg-warning rounded-md flex items-center justify-center text-xs text-warning-foreground px-2"
-                  style={{ left: "16.7%", width: "12.5%" }}
+                  style={{ left: '16.7%', width: '12.5%' }}
                 >
                   Edição - Abertura
                 </div>
@@ -149,7 +161,7 @@ export default function TimelineWidget() {
                 {/* Tarefa 2 */}
                 <div
                   className="absolute h-12 top-2 bg-muted rounded-md flex items-center justify-center text-xs text-muted-foreground px-2"
-                  style={{ left: "41.7%", width: "4.2%" }}
+                  style={{ left: '41.7%', width: '4.2%' }}
                 >
                   Entrega - Reels
                 </div>
@@ -157,7 +169,7 @@ export default function TimelineWidget() {
                 {/* Tarefa 3 */}
                 <div
                   className="absolute h-12 top-2 bg-warning rounded-md flex items-center justify-center text-xs text-warning-foreground px-2"
-                  style={{ left: "66.7%", width: "16.7%" }}
+                  style={{ left: '66.7%', width: '16.7%' }}
                 >
                   Edição - Teaser Final
                 </div>
@@ -173,7 +185,7 @@ export default function TimelineWidget() {
                 {/* Tarefa 1 */}
                 <div
                   className="absolute h-12 top-2 bg-primary rounded-md flex items-center justify-center text-xs text-primary-foreground px-2"
-                  style={{ left: "25%", width: "8.3%" }}
+                  style={{ left: '25%', width: '8.3%' }}
                 >
                   Captação Drone - Área Externa
                 </div>
@@ -181,7 +193,7 @@ export default function TimelineWidget() {
                 {/* Tarefa 2 */}
                 <div
                   className="absolute h-12 top-2 bg-destructive rounded-md flex items-center justify-center text-xs text-destructive-foreground px-2"
-                  style={{ left: "50%", width: "4.2%" }}
+                  style={{ left: '50%', width: '4.2%' }}
                 >
                   Captação Drone - Vista Geral
                 </div>
@@ -197,7 +209,7 @@ export default function TimelineWidget() {
                 {/* Tarefa 1 */}
                 <div
                   className="absolute h-12 top-2 bg-cyan-500 rounded-md flex items-center justify-center text-xs text-primary-foreground px-2"
-                  style={{ left: "20.8%", width: "4.2%" }}
+                  style={{ left: '20.8%', width: '4.2%' }}
                 >
                   Aprovação - Material Inicial
                 </div>
@@ -205,7 +217,7 @@ export default function TimelineWidget() {
                 {/* Tarefa 2 */}
                 <div
                   className="absolute h-12 top-2 bg-success rounded-md flex items-center justify-center text-xs text-success-foreground px-2"
-                  style={{ left: "37.5%", width: "4.2%" }}
+                  style={{ left: '37.5%', width: '4.2%' }}
                 >
                   Entrega - Stories
                 </div>
@@ -213,7 +225,7 @@ export default function TimelineWidget() {
                 {/* Tarefa 3 */}
                 <div
                   className="absolute h-12 top-2 bg-cyan-500 rounded-md flex items-center justify-center text-xs text-primary-foreground px-2"
-                  style={{ left: "75%", width: "8.3%" }}
+                  style={{ left: '75%', width: '8.3%' }}
                 >
                   Aprovação - Teaser
                 </div>

@@ -1,8 +1,17 @@
+'use client'
+
+'use client'
+
 "use client"
 
-import { useState } from "react"
-import { cn } from "@/lib/utils"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useState } from 'react'
+import { cn } from '@/lib/utils'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 export interface CommentMarkerProps {
   id: string
@@ -31,32 +40,32 @@ export default function CommentMarker({
   const position = duration > 0 ? (time / duration) * 100 : 0
 
   // Determine color based on category and resolved status
-  let markerColor = "bg-primary";
-  
+  let markerColor = 'bg-primary'
+
   // Se resolvido, sempre usar verde
   if (isResolved) {
-    markerColor = "bg-success";
-  } 
+    markerColor = 'bg-success'
+  }
   // Caso contrário, usar a cor da categoria se disponível
   else {
     switch (colorCategory) {
-      case "creative":
-        markerColor = "bg-highlight";
-        break;
-      case "technical": 
-        markerColor = "bg-info";
-        break;
-      case "client":
-        markerColor = "bg-success";
-        break;
-      case "urgent":
-        markerColor = "bg-destructive";
-        break;
-      case "approved":
-        markerColor = "bg-warning";
-        break;
+      case 'creative':
+        markerColor = 'bg-highlight'
+        break
+      case 'technical':
+        markerColor = 'bg-info'
+        break
+      case 'client':
+        markerColor = 'bg-success'
+        break
+      case 'urgent':
+        markerColor = 'bg-destructive'
+        break
+      case 'approved':
+        markerColor = 'bg-warning'
+        break
       default:
-        markerColor = "bg-primary";
+        markerColor = 'bg-primary'
     }
   }
 
@@ -64,7 +73,7 @@ export default function CommentMarker({
   const formatTime = (timeInSeconds: number) => {
     const minutes = Math.floor(timeInSeconds / 60)
     const seconds = Math.floor(timeInSeconds % 60)
-    return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
   }
 
   return (
@@ -73,10 +82,10 @@ export default function CommentMarker({
         <TooltipTrigger asChild>
           <div
             className={cn(
-              "absolute h-full w-1.5 cursor-pointer transition-all",
-              isHovered ? "w-2 -translate-x-0.5" : "",
+              'absolute h-full w-1.5 cursor-pointer transition-all',
+              isHovered ? 'w-2 -translate-x-0.5' : '',
               markerColor,
-              className,
+              className
             )}
             style={{ left: `${position}%` }}
             onClick={() => onClick(id, time)}
@@ -89,7 +98,9 @@ export default function CommentMarker({
           <div className="space-y-1">
             <div className="font-medium">{formatTime(time)}</div>
             <p className="text-xs line-clamp-2">{commentText}</p>
-            <div className="text-xs text-muted-foreground">{isResolved ? "Resolvido" : "Pendente"}</div>
+            <div className="text-xs text-muted-foreground">
+              {isResolved ? 'Resolvido' : 'Pendente'}
+            </div>
           </div>
         </TooltipContent>
       </Tooltip>

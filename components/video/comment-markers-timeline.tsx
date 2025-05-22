@@ -1,7 +1,11 @@
+'use client'
+
+'use client'
+
 "use client"
 
-import { useRef } from "react"
-import CommentMarker from "./comment-marker"
+import { useRef } from 'react'
+import CommentMarker from './comment-marker'
 
 export interface Comment {
   id: string
@@ -29,8 +33,11 @@ export default function CommentMarkersTimeline({
   const containerRef = useRef<HTMLDivElement>(null)
 
   return (
-    <div ref={containerRef} className={`relative h-8 bg-secondary/30 rounded-md ${className || ""}`}>
-      {comments.map((comment) => (
+    <div
+      ref={containerRef}
+      className={`relative h-8 bg-secondary/30 rounded-md ${className || ''}`}
+    >
+      {comments.map(comment => (
         <CommentMarker
           key={comment.id}
           id={comment.id}

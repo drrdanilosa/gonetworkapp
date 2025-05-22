@@ -1,36 +1,37 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import type { User, AuthState } from '@/types/user';
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
-interface AuthStore extends AuthState {
-  user: Partial<User> | null; // Permitir valores opcionais para resolver o erro
-  login: (user: User) => void;
-  logout: () => void;
-  updateUser: (user: Partial<User>) => void;
+interface User {
+  id: string
+  name: string
+  email: string
+  role: 'admin' | 'editor' | 'client' | 'viewer'
+  avatar?: string
 }
 
-// Usando uma versão modificada para evitar problemas de atualização infinita com React 19
+interface AuthStore {
+  user: User | null
+  isAuthenticated: boolean
+  login: (user: User) => void
+  logout: () => void
+  updateUserRole: (role: User['role']) => void
+}
+
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set) => ({
       user: null,
       isAuthenticated: false,
-      isLoading: false,
-      
-      login: (user) => {
-        set(() => ({ user, isAuthenticated: true }));
-      },
-      logout: () => {
-        set(() => ({ user: null, isAuthenticated: false }));
-      },
-      updateUser: (user) => {
-        set((state) => ({ user: { ...state.user, ...user } }));
-      }
+      login: (user: User) => set({ user, isAuthenticated: true }),
+      logout: () => set({ user: null, isAuthenticated: false }),
+      updateUserRole: (role: User['role']) =>
+        set((state) => ({
+          user: state.user ? { ...state.user, role } : null,
+        })),
     }),
     {
       name: 'auth-storage',
-      // Configuração para melhorar compatibilidade e performance
       skipHydration: true,
     }
   )
-);
+)

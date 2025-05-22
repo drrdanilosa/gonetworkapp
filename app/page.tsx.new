@@ -1,0 +1,110 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useProjectsStore } from '@/store/useProjectsStore';
+import { FileVideo, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import SplashScreen from '@/components/splash-screen';
+import MainWindow from '@/components/main-window';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useMobile } from '@/hooks/use-mobile';
+import { EditingApprovalTab } from '@/features/projects/EditingApproval';
+
+export default function Home() {
+  const [showSplash, setShowSplash] = useState(true);
+  const user = useAuthStore((state) => state.user);
+  const isMobile = useMobile();
+  const router = useRouter();
+  
+  const projects = useProjectsStore(state => state.projects);
+  const createProject = useProjectsStore(state => state.createProject);
+  const selectProject = useProjectsStore(state => state.selectProject);
+
+  // Efeito para a splash screen
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 1000); // Reduzido para 1 segundo para desenvolvimento
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Criar um projeto de exemplo se não houver projetos
+  useEffect(() => {
+    if (projects.length === 0) {
+      createProject('Projeto Demonstração');
+    } else {
+      // Selecionar o primeiro projeto por padrão
+      selectProject(projects[0].id);
+    }
+  }, [projects.length, createProject, selectProject, projects]);
+
+  if (showSplash) {
+    return <SplashScreen />;
+  }
+
+  // Interface principal
+  return (
+    <main className="min-h-screen">
+      <MainWindow>
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-2xl font-bold">Projetos</h1>
+            <Button onClick={() => createProject('Novo Projeto')}>
+              <Plus className="mr-2 h-4 w-4" />
+              Novo Projeto
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {projects.map(project => (
+              <div key={project.id} className="border rounded-lg overflow-hidden hover:border-primary transition-colors">
+                <div 
+                  className="aspect-video bg-muted flex items-center justify-center cursor-pointer"
+                  onClick={() => {
+                    selectProject(project.id);
+                  }}
+                >
+                  <FileVideo className="h-16 w-16 text-muted-foreground" />
+                </div>
+                <div className="p-4">
+                  <h2 className="text-xl font-semibold mb-1">{project.name}</h2>
+                  <p className="text-muted-foreground truncate mb-2">
+                    {project.description || 'Sem descrição'}
+                  </p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium bg-secondary px-2 py-1 rounded-md">
+                      {project.status === 'draft' && 'Rascunho'}
+                      {project.status === 'in_progress' && 'Em Progresso'}
+                      {project.status === 'review' && 'Em Revisão'}
+                      {project.status === 'completed' && 'Concluído'}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {project.videos.length} {project.videos.length === 1 ? 'entrega' : 'entregas'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {projects.length === 0 && (
+              <div className="col-span-full flex items-center justify-center h-64 border border-dashed rounded-lg">
+                <div className="text-center">
+                  <FileVideo className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">Nenhum projeto encontrado. Crie seu primeiro projeto!</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Área de edição e aprovação de vídeos */}
+          <div className="mt-8">
+            <EditingApprovalTab />
+          </div>
+        </div>
+      </MainWindow>
+    </main>
+  );
+}

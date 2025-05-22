@@ -1,10 +1,15 @@
-"use client"
+'use client'
 
-import { useCollaboration } from "@/contexts/collaboration-context"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Edit, MessageSquare } from "lucide-react"
+import { useCollaboration } from '@/contexts/collaboration-context'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { Edit, MessageSquare } from 'lucide-react'
 
 export default function ActiveUsersDisplay() {
   const { activeUsers, typingUsers, activeAnnotators } = useCollaboration()
@@ -12,9 +17,9 @@ export default function ActiveUsersDisplay() {
   // Função para obter as iniciais do nome
   const getInitials = (name: string) => {
     return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
+      .split(' ')
+      .map(n => n[0])
+      .join('')
       .toUpperCase()
   }
 
@@ -31,7 +36,7 @@ export default function ActiveUsersDisplay() {
     const b = Number.parseInt(color.slice(5, 7), 16) / 255
     const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b
 
-    return luminance > 0.5 ? "#000000" : "#FFFFFF"
+    return luminance > 0.5 ? '#000000' : '#FFFFFF'
   }
 
   // Verificar se um usuário está digitando
@@ -46,16 +51,21 @@ export default function ActiveUsersDisplay() {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-medium">Usuários Ativos ({activeUsers.length})</h3>
+      <h3 className="text-sm font-medium">
+        Usuários Ativos ({activeUsers.length})
+      </h3>
 
       <div className="flex flex-wrap gap-2">
-        {activeUsers.map((user) => (
+        {activeUsers.map(user => (
           <TooltipProvider key={user.id}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex flex-col items-center">
                   <div className="relative">
-                    <Avatar className="h-10 w-10 border-2" style={{ borderColor: user.color }}>
+                    <Avatar
+                      className="h-10 w-10 border-2"
+                      style={{ borderColor: user.color }}
+                    >
                       <AvatarFallback
                         style={{
                           ...getAvatarColor(user.color),
@@ -82,7 +92,9 @@ export default function ActiveUsersDisplay() {
                       </Badge>
                     )}
                   </div>
-                  <span className="text-xs mt-1 max-w-[60px] truncate">{user.name}</span>
+                  <span className="text-xs mt-1 max-w-[60px] truncate">
+                    {user.name}
+                  </span>
                   <Badge
                     variant="outline"
                     className="text-[10px] h-4 px-1 mt-0.5"
@@ -96,8 +108,8 @@ export default function ActiveUsersDisplay() {
                 <div className="text-sm font-medium">{user.name}</div>
                 <div className="text-xs">{user.role}</div>
                 <div className="text-xs">
-                  {isTyping(user.id) && "Digitando..."}
-                  {isAnnotating(user.id) && "Anotando..."}
+                  {isTyping(user.id) && 'Digitando...'}
+                  {isAnnotating(user.id) && 'Anotando...'}
                 </div>
               </TooltipContent>
             </Tooltip>

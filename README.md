@@ -9,78 +9,65 @@ Este projeto é uma aplicação web para gerenciar entregas audiovisuais em even
 - **Tailwind CSS** (estilização)
 - **shadcn/UI** (componentes UI)
 - **Zustand** (gerenciamento de estado)
-- **React Query** (gerenciamento de dados e cache)
 - **React Hook Form + Zod** (formulários com validação)
-- **Socket.io** (comunicação em tempo real)
+
+## Funcionalidades Principais
+
+- **Gerenciamento de Projetos**: Criar e gerenciar projetos de vídeo
+- **Upload Manual de Vídeos**: Upload de arquivos .mp4 diretamente da interface
+- **Importação de Vídeos Estáticos**: Importar vídeos existentes da pasta `public/exports/[projectId]/`
+- **Versionamento de Vídeos**: Suporte a múltiplas versões de vídeo por entrega
+- **Aprovação de Vídeos**: Marcar versões específicas como aprovadas
 
 ## Estrutura do Projeto
 
 ```plaintext
 melhorapp/
 ├── app/                  # Next.js App Router
+│   ├── api/              # Rotas de API
 │   ├── globals.css       # Estilos globais
 │   ├── layout.tsx        # Layout raiz
 │   └── page.tsx          # Página inicial
 ├── components/           # Componentes React
 │   ├── ui/               # Componentes de UI (shadcn)
 │   ├── video/            # Componentes relacionados a vídeo
-│   ├── widgets/          # Widgets funcionais da aplicação
 │   └── ...               # Outros componentes
-├── contexts/             # Contextos React
 ├── features/             # Funcionalidades organizadas por domínio
-│   ├── auth/             # Autenticação
+│   ├── projects/         # Gerenciamento de projetos e vídeos
 │   └── ...               # Outras funcionalidades
 ├── hooks/                # Hooks customizados
-├── lib/                  # Código utilitário
-├── services/             # Serviços para chamadas de API
+├── public/               # Arquivos estáticos
+│   ├── exports/          # Pasta para vídeos estáticos de exemplo
 ├── store/                # Stores Zustand para gerenciamento de estado
-├── styles/               # Estilos adicionais
 └── types/                # Definições de tipos TypeScript
 ```
 
-## Configuração do Socket.io e CORS
+## Uso de Vídeos Estáticos de Exemplo
 
-Para resolver problemas de CORS ao conectar com o servidor Socket.io, o projeto utiliza um proxy configurado no Next.js:
+Para disponibilizar vídeos estáticos de exemplo:
 
-### Desenvolvimento
+1. Crie pastas dentro de `public/exports/` usando os IDs dos projetos como nomes das pastas
 
-- O servidor Socket.io deve estar rodando em `http://localhost:3001`
-- O front-end se conecta usando o caminho relativo `/socket.io`, que é redirecionado pelo proxy
-- Execute o servidor de teste com `npm run socket-server`
-- Inicie ambos (front-end e servidor Socket.io) com `npm run dev:all`
+   ```
+   public/exports/[projectId]/
+   ```
 
-### Produção
+2. Coloque arquivos .mp4 nas pastas correspondentes aos projetos
 
-- Configure a variável de ambiente `NEXT_PUBLIC_SOCKET_URL` apontando para o servidor Socket.io
-- O front-end se conectará diretamente a esta URL
-- Configure CORS no servidor para permitir conexões do domínio do front-end
+3. No aplicativo, use o botão "Importar Vídeos Existentes" na aba de Edição/Aprovação para importar esses vídeos
 
-### Diagnóstico de Conexão
+## Instalação e Execução Local
 
-- Acesse a página de diagnóstico em `/admin/diagnosticos` para verificar o status da conexão
-- Utilize o script de diagnóstico com `npm run check-socket` para testes em desenvolvimento
-- Para testar em produção, use `npm run check-socket:prod`
+1. **Requisitos**: Node.js 18+ e npm
+2. **Instalação**: Execute `npm install` na raiz do projeto
+3. **Execução**: Inicie o servidor de desenvolvimento com `npm run dev`
+4. **Acesso**: Abra `http://localhost:3000` no navegador
 
-Documentação detalhada sobre a configuração do Socket.io está disponível em:
-- `/docs/socket-io-cors.md` - Solução de problemas de CORS
-- `/docs/socket-io-melhorias.md` - Resumo das implementações de segurança e robustez
+## Notas sobre Funcionalidades
 
-### Variáveis de Ambiente
-
-- Copie `.env.local.example` para `.env.local` e configure conforme necessário
-- Para desenvolvimento, não defina `NEXT_PUBLIC_SOCKET_URL` para usar o proxy
-- Para produção, defina `NEXT_PUBLIC_SOCKET_URL` com a URL completa do servidor Socket.io
-
-## Fluxo de Trabalho Principal
-
-1. **Autenticação**: Login/registro de editores e clientes
-2. **Dashboard**: Visualização e gerenciamento dos projetos
-3. **Edição de Vídeo**: Upload, revisão e anotação de vídeos
-4. **Comentários**: Comentários com timestamp no vídeo
-5. **Aprovação**: Fluxo de aprovação de entregas
-6. **Exportação**: Exportação para redes sociais, etc.
-
-## Funcionalidades Principais
+- A aplicação não requer autenticação, permitindo o acesso direto às funcionalidades
+- Os vídeos são armazenados apenas durante a sessão (em localStorage para persistência entre recarregamentos)
+- A interface de Edição/Aprovação permite selecionar qual versão de vídeo está ativa e aprovar versões específicas
 
 - **Player de vídeo** com anotações e comentários contextuais
 - **Colaboração em tempo real** usando Socket.io
@@ -92,14 +79,17 @@ Documentação detalhada sobre a configuração do Socket.io está disponível e
 ## Melhorias Implementadas
 
 ### 1. Estrutura de Projeto Melhorada
+
 - Organização baseada em features para melhor escalabilidade
 - Separação clara de responsabilidades
 
 ### 2. TypeScript Aprimorado
+
 - Configurações mais rigorosas para capturar mais erros em tempo de desenvolvimento
 - Tipagem adequada para todas as entidades
 
 ### 3. Gerenciamento de Estado
+
 - Implementação do Zustand para estado global
 - Stores separadas para diferentes domínios:
   - `useAuthStore` para autenticação
@@ -108,15 +98,18 @@ Documentação detalhada sobre a configuração do Socket.io está disponível e
   - `useUIStore` para estado da interface
 
 ### 4. API e Integração Backend
+
 - Serviços abstraídos com React Query para cache e gerenciamento de estado de servidor
 - Simulações para desenvolvimento local
 - Estrutura pronta para integração com API real
 
 ### 5. Validação de Formulários
+
 - React Hook Form com Zod para validação robusta
 - Feedback de validação em tempo real para usuários
 
 ### 6. Responsividade
+
 - Detecção avançada de dispositivos
 - Adaptação de UI para diferentes tamanhos de tela
 
@@ -137,6 +130,7 @@ npm start
 ```
 
 ## Credenciais de Demo
+
 - **Email**: admin@gonetwork.ai
 - **Senha**: admin
 

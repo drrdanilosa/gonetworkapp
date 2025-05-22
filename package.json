@@ -1,5 +1,5 @@
 {
-  "name": "my-v0-project",
+  "name": "melhorapp_final02",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -12,7 +12,16 @@
     "check-socket": "node scripts/check-socket-connection.js",
     "check-socket:prod": "node scripts/check-socket-connection.js %NEXT_PUBLIC_SOCKET_URL%",
     "start:all": "concurrently \"npm run start\" \"npm run socket-server\"",
-    "build:all": "npm run build && echo Build concluído!"
+    "build:all": "npm run build && echo Build concluído!",
+    "audit": "tsx scripts/run-audit.ts",
+    "audit:fix": "tsx scripts/run-audit.ts --fix",
+    "audit:performance": "tsx scripts/performance-audit.ts",
+    "audit:simple": "tsx scripts/audit.ts",
+    "lint:fix": "next lint --fix",
+    "lint:audit": "next lint && npm run type-check",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -80,16 +89,22 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/uuid": "^10.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
     "autoprefixer": "^10.4.21",
     "colors": "^1.4.0",
     "concurrently": "^9.1.2",
     "cross-env": "^7.0.3",
     "dotenv": "^16.5.0",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.29",
     "http": "^0.0.1-security",
     "postcss": "^8.5.3",
+    "prettier": "^3.5.3",
     "socket.io": "^4.8.1",
     "tailwind-dracula": "^1.1.1",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5"
+    "tsx": "^4.19.4",
+    "typescript": "5.8.3"
   }
 }

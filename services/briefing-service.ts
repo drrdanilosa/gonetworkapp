@@ -1,24 +1,24 @@
-import { API_URL, getHeaders, handleApiError } from './api-config';
+import { API_URL, getHeaders, handleApiError } from './api-config'
 
 export type GeneralInfoData = {
-  eventId: string;
-  eventDate: string;
-  startTime: string;
-  endTime: string;
-  eventLocation: string;
-  hasCredentialing: 'sim' | 'não';
-  accessLocation?: string;
-  credentialingStart?: string;
-  credentialingEnd?: string;
-  credentialingResponsible?: string;
-  eventAccessLocation: string;
-  hasMediaRoom: 'sim' | 'não';
-  mediaRoomLocation?: string;
-  hasInternet: 'sim' | 'não';
-  internetLogin?: string;
-  internetPassword?: string;
-  generalInfo: string;
-};
+  eventId: string
+  eventDate: string
+  startTime: string
+  endTime: string
+  eventLocation: string
+  hasCredentialing: 'sim' | 'não'
+  accessLocation?: string
+  credentialingStart?: string
+  credentialingEnd?: string
+  credentialingResponsible?: string
+  eventAccessLocation: string
+  hasMediaRoom: 'sim' | 'não'
+  mediaRoomLocation?: string
+  hasInternet: 'sim' | 'não'
+  internetLogin?: string
+  internetPassword?: string
+  generalInfo: string
+}
 
 export const getBriefing = async (eventId: string) => {
   try {
@@ -26,19 +26,19 @@ export const getBriefing = async (eventId: string) => {
     // const response = await fetch(`${API_URL}/briefings/${eventId}`, {
     //   headers: getHeaders(),
     // });
-    
+
     // Por enquanto, simulamos um endpoint local
-    const response = await fetch(`/api/briefings/${eventId}`);
-    
+    const response = await fetch(`/api/briefings/${eventId}`)
+
     if (!response.ok) {
-      throw response;
+      throw response
     }
-    
-    return await response.json();
+
+    return await response.json()
   } catch (error) {
-    throw handleApiError(error);
+    throw handleApiError(error)
   }
-};
+}
 
 export const saveBriefing = async (data: GeneralInfoData) => {
   try {
@@ -48,7 +48,7 @@ export const saveBriefing = async (data: GeneralInfoData) => {
     //   headers: getHeaders(),
     //   body: JSON.stringify(data),
     // });
-    
+
     // Por enquanto, simulamos um endpoint local
     const response = await fetch('/api/briefings', {
       method: 'POST',
@@ -56,14 +56,14 @@ export const saveBriefing = async (data: GeneralInfoData) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
-    });
-    
+    })
+
     if (!response.ok) {
-      throw response;
+      throw response
     }
-    
-    return await response.json();
+
+    return await response.json()
   } catch (error) {
-    throw handleApiError(error);
+    throw handleApiError(error)
   }
-};
+}

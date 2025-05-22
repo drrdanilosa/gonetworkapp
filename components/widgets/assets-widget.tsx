@@ -1,71 +1,86 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Label } from "@/components/ui/label"
-import { Download, FileText, FolderOpen, ImageIcon, Plus, Search, Upload, Video } from "lucide-react"
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Label } from '@/components/ui/label'
+import {
+  Download,
+  FileText,
+  FolderOpen,
+  ImageIcon,
+  Plus,
+  Search,
+  Upload,
+  Video,
+} from 'lucide-react'
 
 export default function AssetsWidget() {
   const folders = [
     {
       id: 1,
-      name: "Festival de Música",
-      type: "folder",
+      name: 'Festival de Música',
+      type: 'folder',
       items: 24,
-      date: "19/05/2025",
+      date: '19/05/2025',
     },
     {
       id: 2,
-      name: "Lançamento de Produto",
-      type: "folder",
+      name: 'Lançamento de Produto',
+      type: 'folder',
       items: 12,
-      date: "15/05/2025",
+      date: '15/05/2025',
     },
     {
       id: 3,
-      name: "Conferência Tech",
-      type: "folder",
+      name: 'Conferência Tech',
+      type: 'folder',
       items: 8,
-      date: "10/05/2025",
+      date: '10/05/2025',
     },
   ]
 
   const files = [
     {
       id: 1,
-      name: "Teaser_Festival_v1.mp4",
-      type: "video",
-      size: "120 MB",
-      date: "19/05/2025",
+      name: 'Teaser_Festival_v1.mp4',
+      type: 'video',
+      size: '120 MB',
+      date: '19/05/2025',
     },
     {
       id: 2,
-      name: "Logo_Patrocinador_A.png",
-      type: "image",
-      size: "2.4 MB",
-      date: "18/05/2025",
+      name: 'Logo_Patrocinador_A.png',
+      type: 'image',
+      size: '2.4 MB',
+      date: '18/05/2025',
     },
     {
       id: 3,
-      name: "Briefing_Festival.pdf",
-      type: "document",
-      size: "1.2 MB",
-      date: "17/05/2025",
+      name: 'Briefing_Festival.pdf',
+      type: 'document',
+      size: '1.2 MB',
+      date: '17/05/2025',
     },
     {
       id: 4,
-      name: "Abertura_Stories.mp4",
-      type: "video",
-      size: "45 MB",
-      date: "19/05/2025",
+      name: 'Abertura_Stories.mp4',
+      type: 'video',
+      size: '45 MB',
+      date: '19/05/2025',
     },
     {
       id: 5,
-      name: "Programacao_Festival.xlsx",
-      type: "document",
-      size: "0.8 MB",
-      date: "16/05/2025",
+      name: 'Programacao_Festival.xlsx',
+      type: 'document',
+      size: '0.8 MB',
+      date: '16/05/2025',
     },
   ]
 
@@ -82,9 +97,15 @@ export default function AssetsWidget() {
                 <SelectValue placeholder="Selecione um evento" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="festival">Festival de Música - 18-20 Mai 2025</SelectItem>
-                <SelectItem value="lancamento">Lançamento de Produto - 25 Mai 2025</SelectItem>
-                <SelectItem value="conferencia">Conferência Tech - 01 Jun 2025</SelectItem>
+                <SelectItem value="festival">
+                  Festival de Música - 18-20 Mai 2025
+                </SelectItem>
+                <SelectItem value="lancamento">
+                  Lançamento de Produto - 25 Mai 2025
+                </SelectItem>
+                <SelectItem value="conferencia">
+                  Conferência Tech - 01 Jun 2025
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -128,14 +149,19 @@ export default function AssetsWidget() {
             <div>
               <h2 className="text-lg font-medium mb-4">Pastas</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {folders.map((folder) => (
-                  <Card key={folder.id} className="cursor-pointer hover:bg-secondary/10 transition-colors">
+                {folders.map(folder => (
+                  <Card
+                    key={folder.id}
+                    className="cursor-pointer hover:bg-secondary/10 transition-colors"
+                  >
                     <CardContent className="p-4 flex items-center gap-4">
                       <div className="bg-secondary/20 p-3 rounded-md">
                         <FolderOpen className="h-6 w-6 text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate">{folder.name}</div>
+                        <div className="font-medium truncate">
+                          {folder.name}
+                        </div>
                         <div className="text-xs text-muted-foreground">
                           {folder.items} itens • {folder.date}
                         </div>
@@ -156,13 +182,22 @@ export default function AssetsWidget() {
             <div>
               <h2 className="text-lg font-medium mb-4">Arquivos Recentes</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {files.map((file) => (
-                  <Card key={file.id} className="cursor-pointer hover:bg-secondary/10 transition-colors">
+                {files.map(file => (
+                  <Card
+                    key={file.id}
+                    className="cursor-pointer hover:bg-secondary/10 transition-colors"
+                  >
                     <CardContent className="p-4 flex items-center gap-4">
                       <div className="bg-secondary/20 p-3 rounded-md">
-                        {file.type === "video" && <Video className="h-6 w-6 text-warning" />}
-                        {file.type === "image" && <ImageIcon className="h-6 w-6 text-success" />}
-                        {file.type === "document" && <FileText className="h-6 w-6 text-primary" />}
+                        {file.type === 'video' && (
+                          <Video className="h-6 w-6 text-warning" />
+                        )}
+                        {file.type === 'image' && (
+                          <ImageIcon className="h-6 w-6 text-success" />
+                        )}
+                        {file.type === 'document' && (
+                          <FileText className="h-6 w-6 text-primary" />
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-medium truncate">{file.name}</div>
@@ -184,9 +219,12 @@ export default function AssetsWidget() {
         <TabsContent value="videos" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {files
-              .filter((file) => file.type === "video")
-              .map((file) => (
-                <Card key={file.id} className="cursor-pointer hover:bg-secondary/10 transition-colors">
+              .filter(file => file.type === 'video')
+              .map(file => (
+                <Card
+                  key={file.id}
+                  className="cursor-pointer hover:bg-secondary/10 transition-colors"
+                >
                   <CardContent className="p-4 flex items-center gap-4">
                     <div className="bg-secondary/20 p-3 rounded-md">
                       <Video className="h-6 w-6 text-warning" />
@@ -209,9 +247,12 @@ export default function AssetsWidget() {
         <TabsContent value="images" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {files
-              .filter((file) => file.type === "image")
-              .map((file) => (
-                <Card key={file.id} className="cursor-pointer hover:bg-secondary/10 transition-colors">
+              .filter(file => file.type === 'image')
+              .map(file => (
+                <Card
+                  key={file.id}
+                  className="cursor-pointer hover:bg-secondary/10 transition-colors"
+                >
                   <CardContent className="p-4 flex items-center gap-4">
                     <div className="bg-secondary/20 p-3 rounded-md">
                       <ImageIcon className="h-6 w-6 text-success" />
@@ -234,9 +275,12 @@ export default function AssetsWidget() {
         <TabsContent value="documents" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {files
-              .filter((file) => file.type === "document")
-              .map((file) => (
-                <Card key={file.id} className="cursor-pointer hover:bg-secondary/10 transition-colors">
+              .filter(file => file.type === 'document')
+              .map(file => (
+                <Card
+                  key={file.id}
+                  className="cursor-pointer hover:bg-secondary/10 transition-colors"
+                >
                   <CardContent className="p-4 flex items-center gap-4">
                     <div className="bg-secondary/20 p-3 rounded-md">
                       <FileText className="h-6 w-6 text-primary" />

@@ -1,41 +1,47 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Clock, Download, FileText, Plus, Upload, Video } from "lucide-react"
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import { Clock, Download, FileText, Plus, Upload, Video } from 'lucide-react'
 
 export default function DeliveryWidget() {
   const pendingDeliveries = [
     {
       id: 1,
-      title: "Teaser - Festival de Música",
-      event: "Festival de Música",
-      deadline: "Hoje, 18:00",
-      status: "Pendente",
-      editor: "Maria Souza",
-      type: "Teaser",
+      title: 'Teaser - Festival de Música',
+      event: 'Festival de Música',
+      deadline: 'Hoje, 18:00',
+      status: 'Pendente',
+      editor: 'Maria Souza',
+      type: 'Teaser',
       urgent: true,
     },
     {
       id: 2,
-      title: "Stories - Patrocinador A",
-      event: "Festival de Música",
-      deadline: "Amanhã, 10:00",
-      status: "Em edição",
-      editor: "Pedro Alves",
-      type: "Stories",
+      title: 'Stories - Patrocinador A',
+      event: 'Festival de Música',
+      deadline: 'Amanhã, 10:00',
+      status: 'Em edição',
+      editor: 'Pedro Alves',
+      type: 'Stories',
       urgent: false,
     },
     {
       id: 3,
-      title: "Reels - Abertura",
-      event: "Festival de Música",
-      deadline: "20/05/2025, 14:00",
-      status: "Em edição",
-      editor: "Maria Souza",
-      type: "Reels",
+      title: 'Reels - Abertura',
+      event: 'Festival de Música',
+      deadline: '20/05/2025, 14:00',
+      status: 'Em edição',
+      editor: 'Maria Souza',
+      type: 'Reels',
       urgent: false,
     },
   ]
@@ -43,19 +49,19 @@ export default function DeliveryWidget() {
   const completedDeliveries = [
     {
       id: 4,
-      title: "Stories - Abertura",
-      event: "Festival de Música",
-      completedDate: "19/05/2025, 12:30",
-      editor: "Maria Souza",
-      type: "Stories",
+      title: 'Stories - Abertura',
+      event: 'Festival de Música',
+      completedDate: '19/05/2025, 12:30',
+      editor: 'Maria Souza',
+      type: 'Stories',
     },
     {
       id: 5,
-      title: "Reels - Patrocinador B",
-      event: "Festival de Música",
-      completedDate: "19/05/2025, 15:00",
-      editor: "Pedro Alves",
-      type: "Reels",
+      title: 'Reels - Patrocinador B',
+      event: 'Festival de Música',
+      completedDate: '19/05/2025, 15:00',
+      editor: 'Pedro Alves',
+      type: 'Reels',
     },
   ]
 
@@ -72,9 +78,15 @@ export default function DeliveryWidget() {
                 <SelectValue placeholder="Selecione um evento" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="festival">Festival de Música - 18-20 Mai 2025</SelectItem>
-                <SelectItem value="lancamento">Lançamento de Produto - 25 Mai 2025</SelectItem>
-                <SelectItem value="conferencia">Conferência Tech - 01 Jun 2025</SelectItem>
+                <SelectItem value="festival">
+                  Festival de Música - 18-20 Mai 2025
+                </SelectItem>
+                <SelectItem value="lancamento">
+                  Lançamento de Produto - 25 Mai 2025
+                </SelectItem>
+                <SelectItem value="conferencia">
+                  Conferência Tech - 01 Jun 2025
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -94,12 +106,17 @@ export default function DeliveryWidget() {
 
         <TabsContent value="pending" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {pendingDeliveries.map((delivery) => (
-              <Card key={delivery.id} className={delivery.urgent ? "border-destructive" : ""}>
+            {pendingDeliveries.map(delivery => (
+              <Card
+                key={delivery.id}
+                className={delivery.urgent ? 'border-destructive' : ''}
+              >
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex justify-between items-start">
                     <span>{delivery.title}</span>
-                    {delivery.urgent && <Badge variant="destructive">Urgente</Badge>}
+                    {delivery.urgent && (
+                      <Badge variant="destructive">Urgente</Badge>
+                    )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -121,11 +138,11 @@ export default function DeliveryWidget() {
                   <div className="flex items-center justify-between">
                     <Badge
                       variant={
-                        delivery.status === "Pendente"
-                          ? "outline"
-                          : delivery.status === "Em edição"
-                            ? "secondary"
-                            : "default"
+                        delivery.status === 'Pendente'
+                          ? 'outline'
+                          : delivery.status === 'Em edição'
+                            ? 'secondary'
+                            : 'default'
                       }
                     >
                       {delivery.status}
@@ -150,7 +167,7 @@ export default function DeliveryWidget() {
 
         <TabsContent value="completed" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {completedDeliveries.map((delivery) => (
+            {completedDeliveries.map(delivery => (
               <Card key={delivery.id}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex justify-between items-start">

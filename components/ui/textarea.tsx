@@ -1,26 +1,33 @@
-import * as React from "react"
+'use client'
 
-import { cn } from "@/lib/utils"
+"use client"
+
+import * as React from 'react'
+
+import { cn } from '@/lib/utils'
 
 const Textarea = React.forwardRef<
   HTMLTextAreaElement,
-  React.ComponentProps<"textarea">
->(({ className, value, ...props }, ref) => {
-  // Garantindo que o valor nunca seja undefined para evitar o erro de uncontrolled para controlled
-  const safeValue = value === undefined ? "" : value;
-  
+  React.ComponentProps<'textarea'>
+>(({ className, value, onChange, defaultValue, ...props }, ref) => {
+  // Se tem onChange, usa value, senão usa defaultValue
+  const textareaProps = onChange
+    ? { value: value === undefined ? '' : value }
+    : { defaultValue: value === undefined ? defaultValue : value }
+
   return (
     <textarea
       className={cn(
-        "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+        'flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
         className
       )}
-      value={safeValue}
       ref={ref}
+      onChange={onChange}
+      {...textareaProps}
       {...props}
     />
   )
 })
-Textarea.displayName = "Textarea"
+Textarea.displayName = 'Textarea'
 
 export { Textarea }

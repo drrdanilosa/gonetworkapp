@@ -1,13 +1,17 @@
+'use client'
+
+'use client'
+
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
-import { formatDistanceToNow } from "date-fns"
-import { ptBR } from "date-fns/locale"
-import { Check, Clock, Edit2, MessageSquare, Trash2, X } from "lucide-react"
-import type { Comment } from "./comment-markers-timeline"
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Textarea } from '@/components/ui/textarea'
+import { formatDistanceToNow } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+import { Check, Clock, Edit2, MessageSquare, Trash2, X } from 'lucide-react'
+import type { Comment } from './comment-markers-timeline'
 
 interface CommentItemProps {
   comment: Comment
@@ -32,7 +36,7 @@ export default function CommentItem({
   const formatTime = (timeInSeconds: number) => {
     const minutes = Math.floor(timeInSeconds / 60)
     const seconds = Math.floor(timeInSeconds % 60)
-    return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
   }
 
   const handleSaveEdit = () => {
@@ -48,7 +52,7 @@ export default function CommentItem({
   }
 
   return (
-    <Card className={comment.isResolved ? "border-success bg-success/5" : ""}>
+    <Card className={comment.isResolved ? 'border-success bg-success/5' : ''}>
       <CardContent className="p-3 space-y-2">
         <div className="flex justify-between">
           <div className="font-medium">{comment.author}</div>
@@ -65,7 +69,7 @@ export default function CommentItem({
           <div className="space-y-2">
             <Textarea
               value={editText}
-              onChange={(e) => setEditText(e.target.value)}
+              onChange={e => setEditText(e.target.value)}
               className="min-h-[80px]"
               autoFocus
             />
@@ -89,17 +93,27 @@ export default function CommentItem({
               addSuffix: true,
               locale: ptBR,
             })}
-            {comment.isResolved && " (Resolvido)"}
+            {comment.isResolved && ' (Resolvido)'}
           </div>
 
           <div className="flex gap-1">
             {!isEditing && (
               <>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsEditing(true)}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => setIsEditing(true)}
+                >
                   <Edit2 className="h-3.5 w-3.5" />
                 </Button>
 
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onDelete(comment.id)}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => onDelete(comment.id)}
+                >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
 
@@ -113,7 +127,11 @@ export default function CommentItem({
                     Reabrir
                   </Button>
                 ) : (
-                  <Button variant="outline" size="sm" onClick={() => onResolve(comment.id)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onResolve(comment.id)}
+                  >
                     Resolver
                   </Button>
                 )}

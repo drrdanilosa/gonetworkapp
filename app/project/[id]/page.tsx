@@ -1,135 +1,407 @@
-'use client';
+'use client'
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useProjectsStore } from '@/store/useProjectsStore';
-import { Button } from '@/components/ui/button';
-import { FileVideo, Clock, CheckCircle, ArrowLeft } from 'lucide-react';
+'use client'
 
-export default function ProjectPage({ params }: { params: { id: string } }) {
-  const router = useRouter();
-  const { id } = params;
-  const currentProject = useProjectsStore(state => state.currentProject);
-  const setCurrentProject = useProjectsStore(state => state.setCurrentProject);
-  const projects = useProjectsStore(state => state.projects);
+"use client"
+
+import type React from 'react'
+import { useState, useEffect } from 'react'
+import { useAuthStore } from '@/store/useAuthStore'
+import { useProjectsStore } from '@/store/useProjectsStoreUnified'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
+import { useToast } from '@/hooks/use-toast'
+import { VideoPlayerWithComments } from '@/components/video/video-player-with-comments'
+
+import type { Comment } from '@/types/project'
+
+export default function EditingPage({ params }: { params: { id: string } }) {
+  const { user } = useAuthStore()
+  const {
+    currentProject,
+    selectProject,
+    addVideoVersion,
+    approveVideoVersion,
+    addComment,
+    markCommentResolved,
+    requestChanges,
+    markVideoReady,
+  } = useProjectsStore()
+  const { toast } = useToast()
+
+  const [selectedDeliverableId, setSelectedDeliverableId] = useState<
+    string | null
+  >(null)
+  const [commentText, setCommentText] = useState('')
+  const [feedbackText, setFeedbackText] = useState('')
+  const [activeTab, setActiveTab] = useState('videos')
 
   useEffect(() => {
-    if (id && projects.length) {
-      const project = projects.find(p => p.id === id);
-      if (project) {
-        setCurrentProject(project);
-      }
+    // Carrega o projeto com base no ID da URL
+    if (params.id) {
+      selectProject(params.id)
     }
-  }, [id, projects, setCurrentProject]);
+  }, [params.id, selectProject])
 
+  // Se não houver projeto selecionado, mostra mensagem de carregamento
   if (!currentProject) {
-    return <div className="p-8 text-center">Carregando projeto...</div>;
+    return <div className="p-4">Carregando projeto...</div>
+  }
+
+  // Seleciona o primeiro deliverable se nenhum estiver selecionado
+  useEffect(() => {
+    if (
+      currentProject &&
+      currentProject.videos.length > 0 &&
+      !selectedDeliverableId
+    ) {
+      setSelectedDeliverableId(currentProject.videos[0].id)
+    }
+  }, [currentProject, selectedDeliverableId])
+
+  // Obtém o deliverable ativo
+  const activeDeliverable = selectedDeliverableId
+    ? currentProject.videos.find(v => v.id === selectedDeliverableId)
+    : currentProject.videos[0]
+
+  if (!activeDeliverable) {
+    return <div className="p-4">Nenhum vídeo encontrado neste projeto.</div>
+  }
+
+  // Obtém a versão ativa do vídeo
+  const activeVersion =
+    activeDeliverable.versions.find(v => v.active) ||
+    (activeDeliverable.versions.length > 0
+      ? activeDeliverable.versions[activeDeliverable.versions.length - 1]
+      : null)
+
+  const handleAddComment = (timestamp: number) => {
+    if (!commentText.trim()) return
+
+    const newComment: Comment = {
+      id: `comment-${Date.now()}`,
+      projectId: currentProject.id,
+      deliverableId: activeDeliverable.id,
+      userId: user?.id || 'unknown',
+      userName: user?.name || 'Usuário',
+      timestamp,
+      content: commentText,
+      createdAt: new Date().toISOString(),
+      resolved: false,
+    }
+
+    addComment(newComment)
+    setCommentText('')
+    toast({
+      title: 'Comentário adicionado',
+      description: 'Seu comentário foi adicionado com sucesso ao vídeo.',
+    })
+  }
+
+  const handleResolveComment = (commentId: string) => {
+    markCommentResolved(currentProject.id, activeDeliverable.id, commentId)
+    toast({
+      title: 'Comentário resolvido',
+      description: 'O comentário foi marcado como resolvido.',
+    })
+  }
+
+  const handleRequestChanges = () => {
+    requestChanges(currentProject.id, activeDeliverable.id, feedbackText)
+    setFeedbackText('')
+    toast({
+      title: 'Alterações solicitadas',
+      description: 'Sua solicitação de alterações foi enviada com sucesso.',
+    })
+  }
+
+  const handleApprove = () => {
+    if (activeVersion) {
+      approveVideoVersion(
+        currentProject.id,
+        activeDeliverable.id,
+        activeVersion.id,
+        user?.name
+      )
+      toast({
+        title: 'Vídeo aprovado',
+        description: 'O vídeo foi aprovado com sucesso!',
+      })
+    }
+  }
+
+  const handleMarkReady = () => {
+    markVideoReady(currentProject.id, activeDeliverable.id)
+    toast({
+      title: 'Vídeo pronto para revisão',
+      description: 'O vídeo foi marcado como pronto para revisão pelo cliente.',
+    })
+  }
+
+  const getStatusBadge = (status?: string) => {
+    switch (status) {
+      case 'editing':
+        return (
+          <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
+            Em edição
+          </Badge>
+        )
+      case 'ready_for_review':
+        return (
+          <Badge variant="outline" className="bg-blue-100 text-blue-800">
+            Pronto para revisão
+          </Badge>
+        )
+      case 'changes_requested':
+        return (
+          <Badge variant="outline" className="bg-red-100 text-red-800">
+            Alterações solicitadas
+          </Badge>
+        )
+      case 'approved':
+        return (
+          <Badge variant="outline" className="bg-green-100 text-green-800">
+            Aprovado
+          </Badge>
+        )
+      default:
+        return <Badge variant="outline">Status desconhecido</Badge>
+    }
   }
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <Button 
-        variant="ghost"
-        size="sm"
-        className="mb-4"
-        onClick={() => router.push('/')}
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Voltar aos projetos
-      </Button>
-
-      <h1 className="text-2xl font-bold mb-6">{currentProject.title}</h1>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="col-span-full">
-          <h2 className="text-xl font-semibold mb-4">Vídeos do Projeto</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {currentProject.videos.map(video => {
-              // Encontrar a versão ativa ou a mais recente
-              const activeVersion = video.versions.find(v => v.active);
-              const latestVersion = video.versions.length > 0 
-                ? video.versions[video.versions.length - 1] 
-                : null;
-              const displayVersion = activeVersion || latestVersion;
-
-              return (
-                <Link 
-                  key={video.id} 
-                  href={`/project/video/${id}`}
-                  className="block"
-                >
-                  <div className="border rounded-lg overflow-hidden hover:border-primary transition-colors">
-                    <div className="aspect-video relative bg-muted flex items-center justify-center">
-                      {displayVersion?.thumbnailUrl ? (
-                        <img 
-                          src={displayVersion.thumbnailUrl} 
-                          alt={video.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : displayVersion ? (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <FileVideo className="h-12 w-12 text-muted-foreground" />
-                        </div>
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <FileVideo className="h-12 w-12 text-muted-foreground" />
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="text-sm text-muted-foreground">Sem versões</div>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Status do vídeo */}
-                      {video.status && (
-                        <div className="absolute top-2 right-2 px-2 py-1 rounded text-xs font-medium bg-black/70 text-white">
-                          {video.status === 'editing' && (
-                            <span className="flex items-center">
-                              <Clock className="h-3 w-3 mr-1" />
-                              Em edição
-                            </span>
-                          )}
-                          {video.status === 'ready_for_review' && (
-                            <span className="flex items-center">
-                              <Clock className="h-3 w-3 mr-1" />
-                              Pronto para revisão
-                            </span>
-                          )}
-                          {video.status === 'changes_requested' && (
-                            <span className="flex items-center">
-                              <Clock className="h-3 w-3 mr-1" />
-                              Alterações solicitadas
-                            </span>
-                          )}
-                          {video.status === 'approved' && (
-                            <span className="flex items-center">
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Aprovado
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-3">
-                      <h3 className="font-medium truncate">{video.title}</h3>
-                      <div className="flex justify-between items-center mt-1">
-                        <span className="text-xs text-muted-foreground">
-                          {video.versions.length} {video.versions.length === 1 ? 'versão' : 'versões'}
-                        </span>
-                        {displayVersion?.active && (
-                          <span className="text-xs bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300 px-1.5 py-0.5 rounded">
-                            Ativa: {displayVersion.name}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+    <div className="container mx-auto py-6 px-4">
+      <div className="flex flex-col space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold">{currentProject.name}</h1>
+            <p className="text-gray-500">
+              Criado em{' '}
+              {new Date(currentProject.createdAt).toLocaleDateString()}
+            </p>
           </div>
         </div>
+
+        <Tabs
+          defaultValue="videos"
+          className="w-full"
+          value={activeTab}
+          onValueChange={setActiveTab}
+        >
+          <TabsList className="mb-4">
+            <TabsTrigger value="videos">Vídeos</TabsTrigger>
+            <TabsTrigger value="review">Revisão & Aprovação</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="videos" className="space-y-4">
+            {activeVersion ? (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-2">
+                  <VideoPlayerWithComments
+                    videoSrc={activeVersion.url}
+                    comments={activeDeliverable.comments || []}
+                    onAddComment={handleAddComment}
+                    onResolveComment={handleResolveComment}
+                  />
+                  <div className="mt-4">
+                    <Textarea
+                      placeholder="Digite seu comentário sobre o vídeo..."
+                      value={commentText}
+                      onChange={e => setCommentText(e.target.value)}
+                      className="w-full"
+                    />
+                    <div className="mt-2 flex justify-end">
+                      <Button onClick={() => handleAddComment(0)}>
+                        Adicionar Comentário Geral
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Informações do Vídeo</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="font-medium">Título:</span>
+                          <span>{activeDeliverable.title}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium">Versão:</span>
+                          <span>{activeVersion.name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium">Status:</span>
+                          <span>
+                            {getStatusBadge(activeDeliverable.status)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium">Enviado em:</span>
+                          <span>
+                            {new Date(
+                              activeVersion.uploadedAt
+                            ).toLocaleString()}
+                          </span>
+                        </div>
+                        {activeVersion.approved && (
+                          <div className="flex justify-between">
+                            <span className="font-medium">Aprovado por:</span>
+                            <span>
+                              {activeVersion.approvedBy} em{' '}
+                              {new Date(
+                                activeVersion.approvedAt!
+                              ).toLocaleString()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Versões Disponíveis</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {activeDeliverable.versions.map(version => (
+                          <div
+                            key={version.id}
+                            className="flex items-center space-x-2"
+                          >
+                            <Button
+                              variant={version.active ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => {
+                                // Selecionar esta versão
+                                setActiveVideoVersion(
+                                  currentProject.id,
+                                  activeDeliverable.id,
+                                  version.id
+                                )
+                              }}
+                            >
+                              {version.name}
+                            </Button>
+                            {version.approved && (
+                              <CheckCircle className="h-4 w-4 text-green-500" />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <FileVideo className="h-16 w-16 mx-auto text-gray-400" />
+                <h3 className="mt-4 text-lg font-medium">
+                  Nenhuma versão disponível
+                </h3>
+                <p className="mt-2 text-gray-500">
+                  Este entregável ainda não possui nenhuma versão de vídeo.
+                </p>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="review" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Revisão e Aprovação</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">Status Atual</h3>
+                    <div className="flex items-center space-x-2 mb-4">
+                      {getStatusBadge(activeDeliverable.status)}
+                      {activeDeliverable.status === 'approved' && (
+                        <span className="text-green-600 flex items-center">
+                          <CheckCircle className="h-4 w-4 mr-1" />
+                          Aprovado
+                        </span>
+                      )}
+                      {activeDeliverable.status === 'ready_for_review' && (
+                        <span className="text-blue-600 flex items-center">
+                          <Clock className="h-4 w-4 mr-1" />
+                          Aguardando aprovação
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 className="text-lg font-medium mb-2">Ações</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {activeDeliverable.status === 'editing' && (
+                        <Button onClick={handleMarkReady}>
+                          Marcar como Pronto para Revisão
+                        </Button>
+                      )}
+                      {activeDeliverable.status === 'ready_for_review' && (
+                        <>
+                          <Button
+                            variant="default"
+                            onClick={handleApprove}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            Aprovar Vídeo
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => setActiveTab('feedback')}
+                          >
+                            Solicitar Alterações
+                          </Button>
+                        </>
+                      )}
+                      {activeDeliverable.status === 'changes_requested' && (
+                        <Button disabled>
+                          Aguardando Implementação de Alterações
+                        </Button>
+                      )}
+                      {activeDeliverable.status === 'approved' && (
+                        <Button disabled className="bg-green-600">
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          Aprovado
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">Feedback</h3>
+                    <Textarea
+                      placeholder="Descreva seu feedback ou solicitações de alterações aqui..."
+                      value={feedbackText}
+                      onChange={e => setFeedbackText(e.target.value)}
+                      className="min-h-[150px]"
+                    />
+                    <div className="mt-2 flex justify-end">
+                      <Button
+                        onClick={handleRequestChanges}
+                        disabled={
+                          !feedbackText ||
+                          activeDeliverable.status === 'approved'
+                        }
+                      >
+                        Enviar Solicitação de Alterações
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
-  );
+  )
 }

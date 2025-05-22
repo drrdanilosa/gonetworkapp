@@ -1,6 +1,12 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Calendar, Clock, FileText, Users, Video } from "lucide-react"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Calendar, Clock, FileText, Users, Video } from 'lucide-react'
 
 export default function DashboardWidget() {
   return (
@@ -57,7 +63,9 @@ export default function DashboardWidget() {
             </div>
             <div className="flex-1">
               <h3 className="font-medium">Nova edição enviada</h3>
-              <p className="text-sm text-muted-foreground">Festival de Música - Teaser Dia 1</p>
+              <p className="text-sm text-muted-foreground">
+                Festival de Música - Teaser Dia 1
+              </p>
             </div>
             <div className="text-sm text-muted-foreground">Há 2 horas</div>
           </CardContent>
@@ -70,7 +78,9 @@ export default function DashboardWidget() {
             </div>
             <div className="flex-1">
               <h3 className="font-medium">Briefing atualizado</h3>
-              <p className="text-sm text-muted-foreground">Lançamento de Produto - 25 Mai 2025</p>
+              <p className="text-sm text-muted-foreground">
+                Lançamento de Produto - 25 Mai 2025
+              </p>
             </div>
             <div className="text-sm text-muted-foreground">Há 5 horas</div>
           </CardContent>
@@ -83,7 +93,9 @@ export default function DashboardWidget() {
             </div>
             <div className="flex-1">
               <h3 className="font-medium">Novo evento criado</h3>
-              <p className="text-sm text-muted-foreground">Conferência Tech - 01 Jun 2025</p>
+              <p className="text-sm text-muted-foreground">
+                Conferência Tech - 01 Jun 2025
+              </p>
             </div>
             <div className="text-sm text-muted-foreground">Há 1 dia</div>
           </CardContent>
@@ -96,7 +108,9 @@ export default function DashboardWidget() {
             </div>
             <div className="flex-1">
               <h3 className="font-medium">Membro adicionado à equipe</h3>
-              <p className="text-sm text-muted-foreground">Carlos Lima - Drone</p>
+              <p className="text-sm text-muted-foreground">
+                Carlos Lima - Drone
+              </p>
             </div>
             <div className="text-sm text-muted-foreground">Há 2 dias</div>
           </CardContent>
@@ -112,9 +126,13 @@ export default function DashboardWidget() {
             </div>
             <div className="flex-1">
               <h3 className="font-medium">Entrega de Teaser</h3>
-              <p className="text-sm text-muted-foreground">Festival de Música</p>
+              <p className="text-sm text-muted-foreground">
+                Festival de Música
+              </p>
             </div>
-            <div className="text-sm font-medium text-destructive">Hoje, 18:00</div>
+            <div className="text-sm font-medium text-destructive">
+              Hoje, 18:00
+            </div>
           </CardContent>
         </Card>
 
@@ -125,9 +143,13 @@ export default function DashboardWidget() {
             </div>
             <div className="flex-1">
               <h3 className="font-medium">Aprovação de Material</h3>
-              <p className="text-sm text-muted-foreground">Lançamento de Produto</p>
+              <p className="text-sm text-muted-foreground">
+                Lançamento de Produto
+              </p>
             </div>
-            <div className="text-sm font-medium text-warning">Amanhã, 10:00</div>
+            <div className="text-sm font-medium text-warning">
+              Amanhã, 10:00
+            </div>
           </CardContent>
         </Card>
       </div>

@@ -1,59 +1,132 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect, useRef } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
-import { 
-  FileText, 
-  Plus, 
-  Users, 
-  Share, 
-  Upload, 
-  Mic, 
-  Hash, 
-  Image, 
-  Download, 
-  Facebook, 
-  Instagram, 
-  Youtube, 
-  Twitter, 
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  Volume2,
+  Maximize,
+  Download,
+  Scissors,
+  ZoomIn,
+  ZoomOut,
+  Move,
+  Type,
+  Palette,
+  Layers,
+  Music,
+  Settings,
+  Eye,
+  EyeOff,
+  Save,
+  Undo,
+  Redo,
+  Plus,
+  X,
+  Check,
   MessageSquare,
-  Trash
-} from "lucide-react"
-import VideoPlayer from "@/components/video/video-player"
-import CommentMarkersTimeline, { type Comment } from "@/components/video/comment-markers-timeline"
-import CommentItem from "@/components/video/comment-item"
-import AnnotationList from "@/components/video/annotation-list"
-import ExportModal, { type ExportOptions } from "@/components/export/export-modal"
-import ExportPreview from "@/components/export/export-preview"
-import CollaborationPanel from "@/components/collaboration/collaboration-panel"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { v4 as uuidv4 } from "uuid"
-import type { Annotation } from "@/components/video/annotation-canvas"
-import { exportToCSV, exportToPDF, captureVideoScreenshots } from "@/lib/export-utils"
-import { CollaborationProvider, useCollaboration } from "@/contexts/collaboration-context"
-import { Badge } from "@/components/ui/badge" 
-import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { useToast } from "@/hooks/use-toast"
-import { useMobile } from "@/hooks/use-mobile"
+  FilePlus,
+  Clock,
+  Filter,
+  SquarePen,
+  Share2,
+  Lock,
+  Unlock
+} from 'lucide-react'
+import { Slider } from '@/components/ui/slider'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Progress } from '@/components/ui/progress'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
-// Tipos para a versão melhorada
+// Definir interfaces necessárias
+interface TimelineClip {
+  id: string
+  name: string
+  start: number
+  end: number
+  layer: string
+  color: string
+}
+
+interface TimelineMarker {
+  id: string
+  time: number
+  label: string
+  type: 'comment' | 'chapter' | 'issue'
+}
+
+interface VideoVersion {
+  id: string
+  name: string
+  url: string
+  uploadedAt: Date
+  createdBy?: string
+}
+
 interface Asset {
   id: string
   name: string
-  type: "image" | "video" | "audio" | "document"
+  type: 'audio' | 'image' | 'video'
   url: string
-  thumbnailUrl?: string
-  uploadedBy: string
+  duration?: number
+  size: number
   uploadedAt: string
+}
+
+interface Comment {
+  id: string
+  time: number
+  text: string
+  isResolved: boolean
+  author: string
+  createdAt: string
+  colorCategory: string
 }
 
 interface CommentColor {
@@ -63,84 +136,205 @@ interface CommentColor {
   description: string
 }
 
-interface VideoVersion {
-  id: string
-  versionNumber: number
-  title: string
-  src: string
-  createdAt: string
-  createdBy: string
-  comments: Comment[]
+interface Point {
+  x: number
+  y: number
 }
 
-// Dados de vídeo para projetos reais
-const SAMPLE_VIDEOS = [
+interface Annotation {
+  id: string
+  timeStart: number
+  timeEnd: number
+  tool: string
+  color: string
+  thickness: number
+  points: Point[]
+  text?: string
+  completed: boolean
+}
+
+interface Layer {
+  id: string
+  name: string
+  type: 'video' | 'audio' | 'text' | 'image'
+  visible: boolean
+  locked: boolean
+}
+
+// Dados de amostra para o componente
+const SAMPLE_CLIPS: TimelineClip[] = [
   {
-    id: "video1",
-    title: "GoNetwork Summit 2025 - Teaser",
-    src: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    id: 'clip1',
+    name: 'Introdução',
+    start: 0,
+    end: 15,
+    layer: 'video1',
+    color: '#4ade80',
   },
   {
-    id: "video2",
-    title: "Lançamento GoNetflix Plus - Apresentação",
-    src: "https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+    id: 'clip2',
+    name: 'Entrevista',
+    start: 15,
+    end: 45,
+    layer: 'video1',
+    color: '#60a5fa',
   },
   {
-    id: "video3",
-    title: "GoNetwork DevCon 2025 - Highlights",
-    src: "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    id: 'clip3',
+    name: 'Conclusão',
+    start: 45,
+    end: 60,
+    layer: 'video1',
+    color: '#f87171',
+  },
+]
+
+const SAMPLE_MARKERS: TimelineMarker[] = [
+  {
+    id: 'marker1',
+    time: 5,
+    label: 'Início da introdução',
+    type: 'chapter',
+  },
+  {
+    id: 'marker2',
+    time: 25,
+    label: 'Questão importante',
+    type: 'comment',
+  },
+  {
+    id: 'marker3',
+    time: 50,
+    label: 'Problema de áudio',
+    type: 'issue',
+  },
+]
+
+const SAMPLE_VERSIONS: VideoVersion[] = [
+  {
+    id: 'version1',
+    name: 'Versão inicial',
+    url: '/videos/sample.mp4',
+    uploadedAt: new Date('2023-05-10'),
+    createdBy: 'João Silva',
+  },
+  {
+    id: 'version2',
+    name: 'Versão revisada',
+    url: '/videos/sample2.mp4',
+    uploadedAt: new Date('2023-05-15'),
+    createdBy: 'Maria Oliveira',
+  },
+]
+
+const SAMPLE_ASSETS: Asset[] = [
+  {
+    id: 'asset1',
+    name: 'Logo da empresa.png',
+    type: 'image',
+    url: '/assets/logo.png',
+    size: 256000,
+    uploadedAt: '2023-05-05T12:00:00Z',
+  },
+  {
+    id: 'asset2',
+    name: 'Música de fundo.mp3',
+    type: 'audio',
+    url: '/assets/background.mp3',
+    duration: 120,
+    size: 2560000,
+    uploadedAt: '2023-05-06T12:00:00Z',
+  },
+  {
+    id: 'asset3',
+    name: 'Vídeo institucional.mp4',
+    type: 'video',
+    url: '/assets/institutional.mp4',
+    duration: 180,
+    size: 25600000,
+    uploadedAt: '2023-05-07T12:00:00Z',
   },
 ]
 
 // Comentários iniciais com nomes definidos
 const INITIAL_COMMENTS: Comment[] = [
   {
-    id: "comment1",
+    id: 'comment1',
     time: 15.5,
-    text: "Podemos ajustar o brilho nesta cena? Está um pouco escuro para a marca.",
+    text: 'Podemos ajustar o brilho nesta cena? Está um pouco escuro para a marca.',
     isResolved: false,
-    author: "Regina Duarte",
+    author: 'Regina Duarte',
     createdAt: new Date(Date.now() - 7200000).toISOString(), // 2 horas atrás
-    colorCategory: "creative"
+    colorCategory: 'creative',
   },
   {
-    id: "comment2",
+    id: 'comment2',
     time: 45.2,
-    text: "Cortar esta parte e ir direto para a apresentação do GoNetwork Plus.",
+    text: 'Cortar esta parte e ir direto para a apresentação do GoNetwork Plus.',
     isResolved: true,
-    author: "Carlos Drummond",
+    author: 'Carlos Drummond',
     createdAt: new Date(Date.now() - 10800000).toISOString(), // 3 horas atrás
-    colorCategory: "technical"
+    colorCategory: 'technical',
   },
   {
-    id: "comment3",
+    id: 'comment3',
     time: 92.7,
-    text: "Adicionar legenda com o nome do CEO Pedro Cardoso nesta parte.",
+    text: 'Adicionar legenda com o nome do CEO Pedro Cardoso nesta parte.',
     isResolved: false,
-    author: "Marina Lima",
+    author: 'Marina Lima',
     createdAt: new Date(Date.now() - 3600000).toISOString(), // 1 hora atrás
-    colorCategory: "client"
+    colorCategory: 'client',
   },
 ]
 
 // Cores para categorização de comentários (Paleta Dracula)
 const COMMENT_COLORS: CommentColor[] = [
-  { id: "general", name: "Geral", color: "#BD93F9", description: "Comentários gerais" }, // Roxo
-  { id: "creative", name: "Criativo", color: "#FF79C6", description: "Sugestões criativas" }, // Rosa
-  { id: "technical", name: "Técnico", color: "#8BE9FD", description: "Questões técnicas" }, // Ciano
-  { id: "client", name: "Cliente", color: "#50FA7B", description: "Feedback do cliente" }, // Verde
-  { id: "urgent", name: "Urgente", color: "#FF5555", description: "Questões urgentes" }, // Vermelho
-  { id: "approved", name: "Aprovado", color: "#F1FA8C", description: "Conteúdo aprovado" }, // Amarelo
+  {
+    id: 'general',
+    name: 'Geral',
+    color: '#BD93F9',
+    description: 'Comentários gerais',
+  }, // Roxo
+  {
+    id: 'creative',
+    name: 'Criativo',
+    color: '#FF79C6',
+    description: 'Sugestões criativas',
+  }, // Rosa
+  {
+    id: 'technical',
+    name: 'Técnico',
+    color: '#8BE9FD',
+    description: 'Questões técnicas',
+  }, // Ciano
+  {
+    id: 'client',
+    name: 'Cliente',
+    color: '#50FA7B',
+    description: 'Feedback do cliente',
+  }, // Verde
+  {
+    id: 'urgent',
+    name: 'Urgente',
+    color: '#FF5555',
+    description: 'Questões urgentes',
+  }, // Vermelho
+  {
+    id: 'approved',
+    name: 'Aprovado',
+    color: '#F1FA8C',
+    description: 'Conteúdo aprovado',
+  }, // Amarelo
 ]
 
 // Exemplo de anotações iniciais
 const INITIAL_ANNOTATIONS: Annotation[] = [
   {
-    id: "annotation1",
+    id: 'annotation1',
     timeStart: 10.2,
     timeEnd: 15.2,
-    tool: "rectangle",
-    color: "#ff0000",
+    tool: 'rectangle',
+    color: '#ff0000',
     thickness: 3,
     points: [
       { x: 100, y: 100 },
@@ -149,11 +343,11 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
     completed: true,
   },
   {
-    id: "annotation2",
+    id: 'annotation2',
     timeStart: 30.5,
     timeEnd: 35.5,
-    tool: "arrow",
-    color: "#00ff00",
+    tool: 'arrow',
+    color: '#00ff00',
     thickness: 2,
     points: [
       { x: 200, y: 150 },
@@ -162,716 +356,1302 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
     completed: true,
   },
   {
-    id: "annotation3",
+    id: 'annotation3',
     timeStart: 60.0,
     timeEnd: 65.0,
-    tool: "text",
-    color: "#0000ff",
+    tool: 'text',
+    color: '#0000ff',
     thickness: 3,
     points: [{ x: 250, y: 180 }],
-    text: "Adicionar transição aqui",
+    text: 'Adicionar transição aqui',
     completed: true,
   },
 ]
 
-// Exemplo de library de assets
-const SAMPLE_ASSETS: Asset[] = [
-  {
-    id: "asset1",
-    name: "Logo GoNetwork (Transparente)",
-    type: "image",
-    url: "/logo_gonetwork.png",
-    thumbnailUrl: "/logo_gonetwork.png",
-    uploadedBy: "Pedro Cardoso",
-    uploadedAt: new Date(Date.now() - 604800000).toISOString() // 7 dias atrás
-  },
-  {
-    id: "asset2",
-    name: "Música tema - GoNetwork",
-    type: "audio",
-    url: "https://example.com/audio.mp3",
-    uploadedBy: "Daniel Ribeiro",
-    uploadedAt: new Date(Date.now() - 259200000).toISOString() // 3 dias atrás
-  },
-  {
-    id: "asset3",
-    name: "Manual de marca GoNetwork",
-    type: "document",
-    url: "https://example.com/document.pdf",
-    thumbnailUrl: "/placeholder.jpg",
-    uploadedBy: "Regina Duarte",
-    uploadedAt: new Date(Date.now() - 86400000).toISOString() // 1 dia atrás
-  }
+// Camadas de exemplo
+const INITIAL_LAYERS: Layer[] = [
+  { id: 'video1', name: 'Vídeo principal', type: 'video', visible: true, locked: false },
+  { id: 'audio1', name: 'Áudio principal', type: 'audio', visible: true, locked: false },
+  { id: 'text1', name: 'Legendas', type: 'text', visible: true, locked: false },
+  { id: 'image1', name: 'Overlays', type: 'image', visible: true, locked: false },
 ]
 
-// Versões de vídeo
-const SAMPLE_VERSIONS: VideoVersion[] = [
-  {
-    id: "version1",
-    versionNumber: 1,
-    title: "GoNetwork Summit 2025 - Primeira versão",
-    src: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-    createdAt: new Date(Date.now() - 604800000).toISOString(),
-    createdBy: "Editor Principal",
-    comments: [],
-  },
-  {
-    id: "version2",
-    versionNumber: 2,
-    title: "GoNetwork Summit 2025 - Revisão 1",
-    src: "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-    createdAt: new Date(Date.now() - 259200000).toISOString(),
-    createdBy: "Editor Principal",
-    comments: [],
-  }
-]
+// Tipagem para ações de desfazer/refazer
+type UndoAction = 
+  | { type: 'add-clip'; data: TimelineClip }
+  | { type: 'delete-clip'; data: TimelineClip }
+  | { type: 'add-comment'; data: Comment }
+  | { type: 'delete-comment'; data: Comment }
+  | { type: 'add-marker'; data: TimelineMarker }
+  | { type: 'delete-marker'; data: TimelineMarker };
 
-function EditingWidgetContent() {
-  // Estado para vídeos e versões
-  const [currentVideo, setCurrentVideo] = useState(SAMPLE_VIDEOS[0])
-  const [versions, setVersions] = useState<VideoVersion[]>(SAMPLE_VERSIONS)
-  const [currentVersionId, setCurrentVersionId] = useState<string>("version2")
-  
-  // Estado para comentários e anotações
-  const [comments, setComments] = useState<Comment[]>(INITIAL_COMMENTS)
-  const [annotations, setAnnotations] = useState<Annotation[]>(INITIAL_ANNOTATIONS)
-  const [filteredComments, setFilteredComments] = useState<Comment[]>(INITIAL_COMMENTS)
-  const [showResolved, setShowResolved] = useState(true)
-  const [showPending, setShowPending] = useState(true)
-  const [commentColor, setCommentColor] = useState<string>("general")
-  const [filterByColor, setFilterByColor] = useState<string | null>(null)
+export interface EditingWidgetProps {
+  projectId?: string
+  videoId?: string
+}
 
-  // Estado para o player e interatividade
+/**
+ * A comprehensive video editing interface that provides a full suite of editing tools.
+ * 
+ * This component offers a complete video editing experience including:
+ * - Video playback controls with timeline navigation
+ * - Multi-layer timeline editing with clips and markers
+ * - Comment and annotation system for collaborative feedback
+ * - Asset management for videos, images, and audio files
+ * - Export functionality with configurable settings
+ * 
+ * The editing widget is organized into tabs (timeline, comments, assets, export) to provide
+ * a clean interface while maintaining powerful functionality.
+ * 
+ * @param {Object} props - Component props
+ * @param {string} props.projectId - ID of the current project being edited
+ * @param {string} props.videoId - ID of the video being edited
+ * 
+ * @returns A complex video editing interface with playback controls, timeline, and asset management
+ */
+export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
+  // Estado principal
+  const [activeTab, setActiveTab] = useState('timeline')
+  const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(0)
-  const [newCommentText, setNewCommentText] = useState("")
-  const [isAdding, setIsAdding] = useState(false)
-  const [activeTab, setActiveTab] = useState("comments")
-  const [showCollaboration, setShowCollaboration] = useState(false)
-  
-  // Estado para assets
+  const [duration] = useState(120) // Total duration in seconds
+  const [volume, setVolume] = useState(80)
+  const [selectedTool, setSelectedTool] = useState('select')
+  const [zoomLevel, setZoomLevel] = useState(100)
+
+  // Timeline e estado de edição
+  const [clips, setClips] = useState<TimelineClip[]>(SAMPLE_CLIPS)
+  const [timelinePosition, setTimelinePosition] = useState(0)
+  const [selectedClip, setSelectedClip] = useState<string | null>(null)
+  const [markers, setMarkers] = useState<TimelineMarker[]>(SAMPLE_MARKERS)
+  const [selectedLayer, setSelectedLayer] = useState<string>('video1')
+  const [layers, setLayers] = useState<Layer[]>(INITIAL_LAYERS)
+
+  // Comentários
+  const [comments, setComments] = useState<Comment[]>(INITIAL_COMMENTS)
+  const [newComment, setNewComment] = useState('')
+  const [selectedCommentCategory, setSelectedCommentCategory] = useState('general')
+  const [showResolvedComments, setShowResolvedComments] = useState(true)
+
+  // Anotações
+  const [annotations, setAnnotations] = useState<Annotation[]>(INITIAL_ANNOTATIONS)
+  const [selectedAnnotation, setSelectedAnnotation] = useState<string | null>(null)
+
+  // Assets
   const [assets, setAssets] = useState<Asset[]>(SAMPLE_ASSETS)
+  const [searchAssetQuery, setSearchAssetQuery] = useState('')
+  const [selectedAssetType, setSelectedAssetType] = useState<string | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [isUploading, setIsUploading] = useState(false)
-  
-  // Estado para legendas automáticas
-  const [captions, setCaptions] = useState<string[]>([])
-  const [isGeneratingCaptions, setIsGeneratingCaptions] = useState(false)
-  
-  // Estado para compartilhamento
-  const [shareUrl, setShareUrl] = useState<string>("")
-  
-  // Toast para notificações
-  const { toast } = useToast()
-  
-  // Detecção de dispositivo móvel
-  const isMobile = useMobile()
 
-  // Refs para o vídeo e canvas
-  const videoRef = useRef<HTMLVideoElement | null>(null)
-  const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const videoPlayerRef = useRef<HTMLDivElement | null>(null)
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  // Exportação
+  const [exportFormat, setExportFormat] = useState('mp4')
+  const [exportQuality, setExportQuality] = useState('1080p')
+  const [isExporting, setIsExporting] = useState(false)
+  const [exportProgress, setExportProgress] = useState(0)
 
-  // Estado para os modais de exportação
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
-  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false)
-  const [exportPreviewUrl, setExportPreviewUrl] = useState("")
-  const [exportFormat, setExportFormat] = useState<"pdf" | "csv">("pdf")
-  const [exportFilename, setExportFilename] = useState("")
-  const [isExportLoading, setIsExportLoading] = useState(false)
+  // Histórico e clipboard com tipagem correta
+  const [undoStack, setUndoStack] = useState<UndoAction[]>([])
+  const [redoStack, setRedoStack] = useState<UndoAction[]>([])
+  const [clipboard, setClipboard] = useState<any>(null)
 
-  // Collaboration context
-  const {
-    isJoined,
-    comments: collaborationComments,
-    annotations: collaborationAnnotations,
-    addComment,
-    updateComment,
-    deleteComment,
-    setTyping,
-  } = useCollaboration()
+  // Refs
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const timelineRef = useRef<HTMLDivElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  // Usar comentários e anotações da colaboração quando estiver em uma sessão
-  useEffect(() => {
-    if (isJoined) {
-      if (collaborationComments.length > 0) {
-        setComments(collaborationComments)
-      }
-      if (collaborationAnnotations.length > 0) {
-        setAnnotations(collaborationAnnotations)
-      }
-    }
-  }, [isJoined, collaborationComments, collaborationAnnotations])
-
-  // Filtrar comentários com base nas configurações
-  useEffect(() => {
-    let filtered = [...comments]
-
-    if (!showResolved) {
-      filtered = filtered.filter((comment) => !comment.isResolved)
-    }
-
-    if (!showPending) {
-      filtered = filtered.filter((comment) => comment.isResolved)
-    }
-    
-    if (filterByColor) {
-      filtered = filtered.filter((comment) => comment.colorCategory === filterByColor)
-    }
-
-    setFilteredComments(filtered)
-  }, [comments, showResolved, showPending, filterByColor])
-
-  // Manipuladores de eventos para comentários
-  const handleAddComment = () => {
-    if (!newCommentText.trim()) return
-
-    const newComment: Comment = {
-      id: uuidv4(),
-      time: currentTime,
-      text: newCommentText,
-      isResolved: false,
-      author: "Você", // Em um app real, seria o usuário atual
-      createdAt: new Date().toISOString(),
-      colorCategory: commentColor
-    }
-
-    if (isJoined) {
-      addComment(newComment)
-    } else {
-      setComments((prev) => [...prev, newComment])
-    }
-    
-    // Notificar usuário sobre o comentário adicionado
-    toast({
-      title: "Comentário adicionado",
-      description: "Seu comentário foi adicionado com sucesso."
+  // Filtrar assets usando useMemo para evitar re-renderizações
+  const filteredAssets = useMemo(() => {
+    return assets.filter((asset) => {
+      const matchesSearch = asset.name.toLowerCase().includes(searchAssetQuery.toLowerCase())
+      const matchesType = !selectedAssetType || asset.type === selectedAssetType
+      return matchesSearch && matchesType
     })
+  }, [assets, searchAssetQuery, selectedAssetType])
 
-    setNewCommentText("")
-    setIsAdding(false)
-  }
-
-  const handleResolveComment = (id: string) => {
-    const updatedComment = comments.find((c) => c.id === id)
-    if (!updatedComment) return
-
-    const resolvedComment = { ...updatedComment, isResolved: true }
-
-    if (isJoined) {
-      updateComment(resolvedComment)
-    } else {
-      setComments((prev) => prev.map((comment) => (comment.id === id ? resolvedComment : comment)))
-    }
-  }
-
-  const handleReopenComment = (id: string) => {
-    const updatedComment = comments.find((c) => c.id === id)
-    if (!updatedComment) return
-
-    const reopenedComment = { ...updatedComment, isResolved: false }
-
-    if (isJoined) {
-      updateComment(reopenedComment)
-    } else {
-      setComments((prev) => prev.map((comment) => (comment.id === id ? reopenedComment : comment)))
-    }
-  }
-
-  const handleEditComment = (id: string, newText: string) => {
-    const updatedComment = comments.find((c) => c.id === id)
-    if (!updatedComment) return
-
-    const editedComment = { ...updatedComment, text: newText }
-
-    if (isJoined) {
-      updateComment(editedComment)
-    } else {
-      setComments((prev) => prev.map((comment) => (comment.id === id ? editedComment : comment)))
-    }
-  }
-
-  const handleDeleteComment = (id: string) => {
-    if (isJoined) {
-      deleteComment(id)
-    } else {
-      setComments((prev) => prev.filter((comment) => comment.id !== id))
-    }
-  }
-
-  const handleMarkerClick = (id: string, time: number) => {
-    // Navegar para o tempo do comentário
-    setCurrentTime(time)
-  }
-
-  const handleTimeUpdate = (currentTime: number, duration: number) => {
-    setCurrentTime(currentTime)
-    setDuration(duration)
-  }
-
-  const handleVideoChange = (videoId: string) => {
-    const video = SAMPLE_VIDEOS.find((v) => v.id === videoId)
-    if (video) {
-      setCurrentVideo(video)
-    }
-  }
-
-  // Manipuladores de eventos para anotações
-  const handleAnnotationCreate = (annotation: Annotation) => {
-    setAnnotations((prev) => [...prev, annotation])
-  }
-
-  const handleAnnotationUpdate = (annotation: Annotation) => {
-    setAnnotations((prev) => prev.map((a) => (a.id === annotation.id ? annotation : a)))
-  }
-
-  const handleAnnotationDelete = (id: string) => {
-    setAnnotations((prev) => prev.filter((a) => a.id !== id))
-  }
-
-  // Manipuladores para exportação
-  const handleOpenExportModal = () => {
-    setIsExportModalOpen(true)
-  }
-
-  const handleExport = async (format: "pdf" | "csv", options: ExportOptions) => {
-    try {
-      setIsExportLoading(true)
-      setExportFormat(format)
-      setExportFilename(options.filename)
-
-      if (format === "csv") {
-        // Exportar para CSV
-        const csvContent = await exportToCSV(comments, annotations, options, currentVideo.title)
-        setExportPreviewUrl(csvContent)
+  // Funções de controle otimizadas com useCallback
+  const handlePlayPause = useCallback(() => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause()
       } else {
-        // Exportar para PDF
-        let screenshots: { time: number; dataUrl: string }[] = []
-
-        // Capturar screenshots se necessário
-        if (options.includeScreenshots && videoRef.current && canvasRef.current) {
-          screenshots = await captureVideoScreenshots(videoRef.current, canvasRef.current, annotations)
-        }
-
-        const pdfBlob = await exportToPDF(comments, annotations, options, currentVideo.title, screenshots)
-        const pdfUrl = URL.createObjectURL(pdfBlob)
-        setExportPreviewUrl(pdfUrl)
+        videoRef.current.play()
       }
+      setIsPlaying(!isPlaying)
+    }
+  }, [isPlaying])
 
-      setIsPreviewModalOpen(true)
-    } catch (error) {
-      console.error("Erro ao exportar:", error)
-    } finally {
-      setIsExportLoading(false)
+  const handleTimeUpdate = useCallback((value: number) => {
+    setCurrentTime(value)
+    setTimelinePosition(value)
+    if (videoRef.current) {
+      videoRef.current.currentTime = value
+    }
+  }, [])
+
+  const handleSkipBack = () => {
+    const newTime = Math.max(0, currentTime - 5)
+    handleTimeUpdate(newTime)
+  }
+
+  const handleSkipForward = () => {
+    const newTime = Math.min(duration, currentTime + 5)
+    handleTimeUpdate(newTime)
+  }
+
+  const handleVolumeChange = (value: number[]) => {
+    const newVolume = value[0]
+    setVolume(newVolume)
+    if (videoRef.current) {
+      videoRef.current.volume = newVolume / 100
     }
   }
 
-  // Manipulador para digitação em colaboração
-  const handleCommentInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setNewCommentText(e.target.value)
+  const handleToolSelect = (tool: string) => {
+    setSelectedTool(tool)
+  }
 
-    if (isJoined) {
-      setTyping(e.target.value.length > 0)
+  const handleZoomIn = () => {
+    setZoomLevel((prev) => Math.min(prev + 10, 200))
+  }
+
+  const handleZoomOut = () => {
+    setZoomLevel((prev) => Math.max(prev - 10, 50))
+  }
+
+  // Manipulação de clips
+  const handleClipSelect = (clipId: string) => {
+    setSelectedClip(clipId === selectedClip ? null : clipId)
+  }
+
+  const handleClipAdd = () => {
+    const newClip: TimelineClip = {
+      id: `clip${clips.length + 1}`,
+      name: `Novo clipe ${clips.length + 1}`,
+      start: timelinePosition,
+      end: timelinePosition + 10,
+      layer: selectedLayer,
+      color: '#60a5fa',
+    }
+    
+    setClips([...clips, newClip])
+    // Adicionar à pilha de desfazer
+    setUndoStack([...undoStack, { type: 'add-clip', data: newClip }])
+  }
+
+  const handleClipDelete = (clipId: string) => {
+    const clipToDelete = clips.find((clip) => clip.id === clipId)
+    setClips(clips.filter((clip) => clip.id !== clipId))
+    setSelectedClip(null)
+    // Adicionar à pilha de desfazer
+    if (clipToDelete) {
+      setUndoStack([...undoStack, { type: 'delete-clip', data: clipToDelete }])
     }
   }
+
+  // Manipulação de comentários
+  const handleAddComment = () => {
+    if (newComment.trim()) {
+      const newCommentObj: Comment = {
+        id: `comment${comments.length + 1}`,
+        time: currentTime,
+        text: newComment,
+        isResolved: false,
+        author: 'Usuário Atual', // Normalmente seria obtido de um contexto de autenticação
+        createdAt: new Date().toISOString(),
+        colorCategory: selectedCommentCategory,
+      }
+      
+      setComments([...comments, newCommentObj])
+      setNewComment('')
+      
+      // Adicionar marcador para o comentário
+      const newMarker: TimelineMarker = {
+        id: `marker-comment-${newCommentObj.id}`,
+        time: currentTime,
+        label: newComment.substring(0, 20) + (newComment.length > 20 ? '...' : ''),
+        type: 'comment',
+      }
+      
+      setMarkers([...markers, newMarker])
+    }
+  }
+
+  const handleToggleCommentResolution = (commentId: string) => {
+    setComments(
+      comments.map((comment) =>
+        comment.id === commentId
+          ? { ...comment, isResolved: !comment.isResolved }
+          : comment
+      )
+    )
+  }
+
+  const handleDeleteComment = (commentId: string) => {
+    setComments(comments.filter((comment) => comment.id !== commentId))
+    // Remover o marcador associado
+    setMarkers(markers.filter((marker) => marker.id !== `marker-comment-${commentId}`))
+  }
+
+  // Manipulação de marcadores
+  const handleMarkerClick = (_id: string, time: number) => {
+    handleTimeUpdate(time)
+  }
+
+  const handleAddMarker = (type: TimelineMarker['type']) => {
+    const newMarker: TimelineMarker = {
+      id: `marker${markers.length + 1}`,
+      time: currentTime,
+      label: `Marcador ${markers.length + 1}`,
+      type,
+    }
+    
+    setMarkers([...markers, newMarker])
+  }
+
+  const handleDeleteMarker = (markerId: string) => {
+    setMarkers(markers.filter((marker) => marker.id !== markerId))
+  }
+
+  // Manipulação de assets
+  const handleAssetUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    setIsUploading(true)
+    
+    // Simular upload
+    let progress = 0
+    const interval = setInterval(() => {
+      progress += 10
+      setUploadProgress(progress)
+      
+      if (progress >= 100) {
+        clearInterval(interval)
+        setIsUploading(false)
+        
+        // Adicionar novo asset
+        const file = files[0]
+        const newAsset: Asset = {
+          id: `asset${assets.length + 1}`,
+          name: file.name,
+          type: file.type.startsWith('image/') 
+            ? 'image' 
+            : file.type.startsWith('audio/') 
+              ? 'audio' 
+              : 'video',
+          url: URL.createObjectURL(file),
+          duration: file.type.startsWith('video/') || file.type.startsWith('audio/') ? 60 : undefined,
+          size: file.size,
+          uploadedAt: new Date().toISOString(),
+        }
+        
+        setAssets([...assets, newAsset])
+      }
+    }, 300)
+  }
+
+  const handleDeleteAsset = (assetId: string) => {
+    setAssets(assets.filter((asset) => asset.id !== assetId))
+  }
+
+  // Exportação
+  const handleExport = () => {
+    setIsExporting(true)
+    setExportProgress(0)
+    
+    // Simular exportação
+    let progress = 0
+    const interval = setInterval(() => {
+      progress += 5
+      setExportProgress(progress)
+      
+      if (progress >= 100) {
+        clearInterval(interval)
+        setIsExporting(false)
+      }
+    }, 200)
+  }
+
+  // Formatar tempo
+  const formatTime = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = Math.floor(seconds % 60)
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+  }
+
+  // Histórico
+  const handleUndo = () => {
+    if (undoStack.length === 0) return
+    
+    const action = undoStack[undoStack.length - 1]
+    const newUndoStack = undoStack.slice(0, -1)
+    
+    setUndoStack(newUndoStack)
+    setRedoStack([...redoStack, action])
+    
+    // Desfazer a ação específica
+    switch (action.type) {
+      case 'add-clip':
+        setClips(clips.filter((clip) => clip.id !== action.data.id))
+        break
+      case 'delete-clip':
+        setClips([...clips, action.data])
+        break
+      // Adicionar outros casos conforme necessário
+    }
+  }
+
+  const handleRedo = () => {
+    if (redoStack.length === 0) return
+    
+    const action = redoStack[redoStack.length - 1]
+    const newRedoStack = redoStack.slice(0, -1)
+    
+    setRedoStack(newRedoStack)
+    setUndoStack([...undoStack, action])
+    
+    // Refazer a ação específica
+    switch (action.type) {
+      case 'add-clip':
+        setClips([...clips, action.data])
+        break
+      case 'delete-clip':
+        setClips(clips.filter((clip) => clip.id !== action.data.id))
+        break
+      // Adicionar outros casos conforme necessário
+    }
+  }
+
+  // Atualizar posição do timeline durante reprodução
+  useEffect(() => {
+    if (isPlaying) {
+      const interval = setInterval(() => {
+        setCurrentTime((prevTime) => {
+          const newTime = prevTime + 0.1
+          setTimelinePosition(newTime)
+          
+          if (newTime >= duration) {
+            setIsPlaying(false)
+            return duration
+          }
+          
+          return newTime
+        })
+      }, 100)
+      
+      return () => clearInterval(interval)
+    }
+  }, [isPlaying, duration])
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Edições de Vídeo</h1>
-
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Label>Evento:</Label>
-            <Select defaultValue="festival">
-              <SelectTrigger className="w-[250px]">
-                <SelectValue placeholder="Selecione um evento" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="festival">Festival de Música - 18-20 Mai 2025</SelectItem>
-                <SelectItem value="lancamento">Lançamento de Produto - 25 Mai 2025</SelectItem>
-                <SelectItem value="conferencia">Conferência Tech - 01 Jun 2025</SelectItem>
-              </SelectContent>
-            </Select>
+    <div className="flex flex-col space-y-4">
+      {/* Área do Player de Vídeo */}
+      <Card className="w-full">
+        <CardContent className="p-4">
+          <div className="relative aspect-video bg-black rounded-md overflow-hidden mb-2">
+            {/* Player de vídeo */}
+            <video
+              ref={videoRef}
+              className="w-full h-full object-contain"
+              src="/sample-video.mp4"
+              poster="/thumbnail.jpg"
+            />
+            
+            {/* Canvas para anotações */}
+            <canvas
+              ref={canvasRef}
+              className="absolute top-0 left-0 w-full h-full pointer-events-none"
+            />
+            
+            {/* Feedback de anotações temporárias */}
+            {selectedTool !== 'select' && (
+              <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-1 rounded-md text-sm">
+                {selectedTool === 'pen' && 'Desenho livre'}
+                {selectedTool === 'rectangle' && 'Retângulo'}
+                {selectedTool === 'arrow' && 'Seta'}
+                {selectedTool === 'text' && 'Texto'}
+              </div>
+            )}
           </div>
-
-          <div className="flex items-center gap-2">
-            <Label>Editor:</Label>
-            <Select defaultValue="maria">
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Selecione um editor" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="maria">Maria Souza</SelectItem>
-                <SelectItem value="pedro">Pedro Alves</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Button variant="outline" onClick={() => setShowCollaboration(!showCollaboration)}>
-            <Users className="h-4 w-4 mr-2" />
-            Colaboração
-          </Button>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-6">
-        <div>
-          Cliente: <span className="font-medium">Empresa XYZ</span>
-        </div>
-        <div>
-          Status: <span className="text-warning font-medium">Em revisão</span>
-        </div>
-        <div>
-          <Select value={currentVideo.id} onValueChange={handleVideoChange}>
-            <SelectTrigger className="w-[300px]">
-              <SelectValue placeholder="Selecione um vídeo" />
-            </SelectTrigger>
-            <SelectContent>
-              {SAMPLE_VIDEOS.map((video) => (
-                <SelectItem key={video.id} value={video.id}>
-                  {video.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2 space-y-4">
-          {/* Video Player with Annotations */}
-          <VideoPlayer
-            src={currentVideo.src}
-            onTimeUpdate={handleTimeUpdate}
-            onSeek={(time) => setCurrentTime(time)}
-            onAnnotationCreate={handleAnnotationCreate}
-            onAnnotationUpdate={handleAnnotationUpdate}
-            onAnnotationDelete={handleAnnotationDelete}
-            annotations={annotations}
-            className="aspect-video"
-            ref={videoPlayerRef}
-          />
-
-          {/* Comment markers */}
-          <CommentMarkersTimeline comments={comments} duration={duration} onMarkerClick={handleMarkerClick} />
-        </div>
-
-        <div className="col-span-1">
-          {showCollaboration && (
-            <div className="mb-4">
-              <CollaborationPanel videoId={currentVideo.id} videoTitle={currentVideo.title} />
+          
+          {/* Controles de reprodução */}
+          <div className="flex items-center space-x-2">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={handleSkipBack}
+              aria-label="Voltar 5 segundos"
+            >
+              <SkipBack className="h-4 w-4" />
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={handlePlayPause}
+              aria-label={isPlaying ? 'Pausar' : 'Reproduzir'}
+            >
+              {isPlaying ? (
+                <Pause className="h-4 w-4" />
+              ) : (
+                <Play className="h-4 w-4" />
+              )}
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={handleSkipForward}
+              aria-label="Avançar 5 segundos"
+            >
+              <SkipForward className="h-4 w-4" />
+            </Button>
+            
+            <div className="text-sm font-mono">
+              {formatTime(currentTime)} / {formatTime(duration)}
             </div>
-          )}
+            
+            <div className="flex-1 mx-4">
+              <Slider
+                value={[timelinePosition]}
+                min={0}
+                max={duration}
+                step={0.1}
+                onValueChange={(value) => handleTimeUpdate(value[0])}
+              />
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Volume2 className="h-4 w-4" />
+              <div className="w-24">
+                <Slider
+                  value={[volume]}
+                  min={0}
+                  max={100}
+                  step={1}
+                  onValueChange={handleVolumeChange}
+                />
+              </div>
+            </div>
+            
+            <Button variant="outline" size="icon" aria-label="Tela cheia">
+              <Maximize className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
+      {/* Principal área de edição */}
+      <Card className="w-full">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Edição de Vídeo</CardTitle>
+            <div className="flex items-center space-x-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      onClick={handleUndo}
+                      disabled={undoStack.length === 0}
+                    >
+                      <Undo className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Desfazer</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      onClick={handleRedo}
+                      disabled={redoStack.length === 0}
+                    >
+                      <Redo className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Refazer</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              <Separator orientation="vertical" className="h-6" />
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="icon">
+                      <Save className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Salvar projeto</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="icon">
+                      <Share2 className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Compartilhar</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="p-4">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="w-full">
-              <TabsTrigger value="comments" className="flex-1">
-                Comentários
-              </TabsTrigger>
-              <TabsTrigger value="annotations" className="flex-1">
-                Anotações
-              </TabsTrigger>
-              <TabsTrigger value="deliveries" className="flex-1">
-                Entregas
-              </TabsTrigger>
-              <TabsTrigger value="edits" className="flex-1">
-                Edições
-              </TabsTrigger>
+            <TabsList className="grid grid-cols-4 mb-4">
+              <TabsTrigger value="timeline">Linha do Tempo</TabsTrigger>
+              <TabsTrigger value="comments">Comentários</TabsTrigger>
+              <TabsTrigger value="assets">Assets</TabsTrigger>
+              <TabsTrigger value="export">Exportar</TabsTrigger>
             </TabsList>
-
-            <TabsContent value="comments" className="space-y-4 mt-4">
-              <div className="space-y-4">
-                <div className="flex gap-2">
-                  <Textarea
-                    placeholder="Digite seu comentário sobre este ponto do vídeo..."
-                    className="min-h-[80px]"
-                    value={newCommentText}
-                    onChange={handleCommentInputChange}
-                    onBlur={() => isJoined && setTyping(false)}
-                  />
-                  <Button onClick={handleAddComment}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Adicionar
-                  </Button>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Label>Filtrar:</Label>
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        id="resolved"
-                        checked={showResolved}
-                        onCheckedChange={(checked) => setShowResolved(!!checked)}
-                      />
-                      <Label htmlFor="resolved" className="cursor-pointer">
-                        Resolvidos
-                      </Label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        id="pending"
-                        checked={showPending}
-                        onCheckedChange={(checked) => setShowPending(!!checked)}
-                      />
-                      <Label htmlFor="pending" className="cursor-pointer">
-                        Pendentes
-                      </Label>
-                    </div>
-                  </div>
-
-                  <Button variant="outline" size="sm" onClick={handleOpenExportModal}>
-                    <FileText className="h-4 w-4 mr-2" />
-                    Exportar
-                  </Button>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Label>Cor:</Label>
-                  <Select
-                    value={commentColor}
-                    onValueChange={setCommentColor}
-                    className="w-[150px]"
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma cor" />
+            
+            {/* ABA: LINHA DO TEMPO */}
+            <TabsContent value="timeline" className="space-y-4">
+              {/* Ferramenta e controles de visualização */}
+              <div className="flex justify-between items-center">
+                <div className="flex space-x-1">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant={selectedTool === 'select' ? 'default' : 'outline'}
+                          size="icon"
+                          onClick={() => handleToolSelect('select')}
+                        >
+                          <Move className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Selecionar</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant={selectedTool === 'cut' ? 'default' : 'outline'}
+                          size="icon"
+                          onClick={() => handleToolSelect('cut')}
+                        >
+                          <Scissors className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Cortar</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant={selectedTool === 'pen' ? 'default' : 'outline'}
+                          size="icon"
+                          onClick={() => handleToolSelect('pen')}
+                        >
+                          <SquarePen className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Desenhar</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant={selectedTool === 'text' ? 'default' : 'outline'}
+                          size="icon"
+                          onClick={() => handleToolSelect('text')}
+                        >
+                          <Type className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Texto</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  
+                  <Separator orientation="vertical" className="h-8 mx-1" />
+                  
+                  <Select defaultValue="video1" onValueChange={setSelectedLayer}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Selecionar camada" />
                     </SelectTrigger>
                     <SelectContent>
-                      {COMMENT_COLORS.map((color) => (
-                        <SelectItem key={color.id} value={color.id}>
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-4 h-4 rounded-full"
-                              style={{ backgroundColor: color.color }}
+                      {layers.map((layer) => (
+                        <SelectItem key={layer.id} value={layer.id}>
+                          {layer.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex items-center space-x-1">
+                  <Button variant="outline" size="icon" onClick={handleZoomOut}>
+                    <ZoomOut className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm font-medium">{zoomLevel}%</span>
+                  <Button variant="outline" size="icon" onClick={handleZoomIn}>
+                    <ZoomIn className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Área da linha do tempo */}
+              <div 
+                ref={timelineRef} 
+                className="border rounded-md p-4 h-64 overflow-x-auto"
+                style={{
+                  backgroundSize: `${zoomLevel / 10}px 10px`,
+                  backgroundImage: 'repeating-linear-gradient(90deg, #444, #444 1px, transparent 1px, transparent 100%)',
+                }}
+              >
+                {/* Régua de tempo */}
+                <div className="h-8 mb-2 relative">
+                  {Array.from({ length: Math.ceil(duration / 5) + 1 }).map((_, index) => (
+                    <div 
+                      key={`tick-${index}`} 
+                      className="absolute top-0 text-xs"
+                      style={{ left: `${(index * 5 * zoomLevel) / 5}px` }}
+                    >
+                      {formatTime(index * 5)}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Indicador de posição atual */}
+                <div 
+                  className="absolute top-8 bottom-0 w-[2px] bg-red-500 z-10"
+                  style={{ 
+                    left: `${(timelinePosition * zoomLevel) / 5}px`,
+                    height: 'calc(100% - 3rem)',
+                  }}
+                />
+                
+                {/* Camadas e clips */}
+                {layers.map((layer, layerIndex) => (
+                  <div 
+                    key={layer.id}
+                    className="flex items-center h-12 mb-2 relative"
+                  >
+                    <div className="flex items-center justify-between w-32 pr-2">
+                      <div className="flex items-center">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 mr-1"
+                          onClick={() => {
+                            setLayers(
+                              layers.map((l) =>
+                                l.id === layer.id ? { ...l, visible: !l.visible } : l
+                              )
+                            )
+                          }}
+                          aria-label={layer.visible ? "Esconder camada" : "Mostrar camada"}
+                        >
+                          {layer.visible ? (
+                            <Eye className="h-4 w-4" />
+                          ) : (
+                            <EyeOff className="h-4 w-4" />
+                          )}
+                        </Button>
+                        
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => {
+                            setLayers(
+                              layers.map((l) =>
+                                l.id === layer.id ? { ...l, locked: !l.locked } : l
+                              )
+                            )
+                          }}
+                          aria-label={layer.locked ? "Desbloquear camada" : "Bloquear camada"}
+                        >
+                          {layer.locked ? (
+                            <Lock className="h-4 w-4" />
+                          ) : (
+                            <Unlock className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                      <span className="text-xs font-medium truncate">
+                        {layer.name}
+                      </span>
+                    </div>
+                    
+                    {/* Clipes nesta camada */}
+                    <div className="flex-1 relative h-full">
+                      {clips
+                        .filter((clip) => clip.layer === layer.id)
+                        .map((clip) => (
+                          <div
+                            key={clip.id}
+                            className={`absolute top-0 h-full rounded-md flex items-center justify-center text-xs font-medium text-white cursor-pointer transition-all ${
+                              selectedClip === clip.id ? 'ring-2 ring-white' : ''
+                            }`}
+                            style={{
+                              left: `${(clip.start * zoomLevel) / 5}px`,
+                              width: `${((clip.end - clip.start) * zoomLevel) / 5}px`,
+                              backgroundColor: clip.color,
+                            }}
+                            onClick={() => handleClipSelect(clip.id)}
+                          >
+                            <span className="truncate px-2">{clip.name}</span>
+                            
+                            {selectedClip === clip.id && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 absolute right-0"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleClipDelete(clip.id)
+                                }}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Marcadores */}
+                <div className="flex-1 relative h-4 mt-4">
+                  {markers.map((marker) => (
+                    <div
+                      key={marker.id}
+                      className={`absolute top-0 h-4 w-4 -translate-x-1/2 cursor-pointer ${
+                        marker.type === 'chapter'
+                          ? 'bg-green-500'
+                          : marker.type === 'comment'
+                          ? 'bg-blue-500'
+                          : 'bg-red-500'
+                      } rounded-full`}
+                      style={{
+                        left: `${(marker.time * zoomLevel) / 5}px`,
+                      }}
+                      onClick={() => handleMarkerClick(marker.id, marker.time)}
+                    >
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="w-full h-full"></div>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">
+                            <span className="font-medium">
+                              {marker.type === 'chapter' ? 'Capítulo: ' : 
+                               marker.type === 'comment' ? 'Comentário: ' : 'Problema: '}
+                              {marker.label}
+                            </span>
+                            <div className="text-xs opacity-70">{formatTime(marker.time)}</div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Controles da linha do tempo */}
+              <div className="flex justify-between">
+                <div className="flex space-x-2">
+                  <Button variant="outline" size="sm" onClick={handleClipAdd}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Clip
+                  </Button>
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Adicionar Marcador
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem onClick={() => handleAddMarker('chapter')}>
+                        Capítulo
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleAddMarker('comment')}>
+                        Comentário
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleAddMarker('issue')}>
+                        Problema
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Label htmlFor="layer-visibility" className="text-sm">Camadas:</Label>
+                  <Select defaultValue="all">
+                    <SelectTrigger className="w-[150px]" id="layer-visibility">
+                      <SelectValue placeholder="Visualização" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Mostrar todas</SelectItem>
+                      <SelectItem value="video">Apenas vídeo</SelectItem>
+                      <SelectItem value="audio">Apenas áudio</SelectItem>
+                      <SelectItem value="text">Apenas texto</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </TabsContent>
+            
+            {/* ABA: COMENTÁRIOS */}
+            <TabsContent value="comments" className="space-y-4">
+              {/* Adicionar comentário */}
+              <div className="flex space-x-2">
+                <div className="flex-1">
+                  <Textarea
+                    placeholder="Adicionar comentário..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col space-y-2">
+                  <Select
+                    value={selectedCommentCategory}
+                    onValueChange={setSelectedCommentCategory}
+                  >
+                    <SelectTrigger className="w-[150px]">
+                      <SelectValue placeholder="Categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COMMENT_COLORS.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          <div className="flex items-center">
+                            <div 
+                              className="w-3 h-3 rounded-full mr-2"
+                              style={{ backgroundColor: category.color }}
                             />
-                            {color.name}
+                            {category.name}
                           </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setFilterByColor(null)}
-                  >
-                    <Hash className="h-4 w-4 mr-2" />
-                    Limpar filtro
+                  <Button onClick={handleAddComment}>
+                    Adicionar no {formatTime(currentTime)}
                   </Button>
                 </div>
-
-                <ScrollArea className="h-[400px] pr-4">
-                  <div className="space-y-3">
-                    {filteredComments.length > 0 ? (
-                      filteredComments.map((comment) => (
-                        <CommentItem
+              </div>
+              
+              {/* Filtros e visualização */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Label htmlFor="comment-filter" className="text-sm">Filtrar:</Label>
+                  <Select defaultValue="all">
+                    <SelectTrigger className="w-[150px]" id="comment-filter">
+                      <SelectValue placeholder="Categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas categorias</SelectItem>
+                      {COMMENT_COLORS.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Label className="text-sm cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      className="mr-2"
+                      checked={showResolvedComments}
+                      onChange={() => setShowResolvedComments(!showResolvedComments)}
+                    />
+                    Mostrar resolvidos
+                  </Label>
+                </div>
+              </div>
+              
+              {/* Lista de comentários */}
+              <ScrollArea className="h-[400px] pr-4">
+                <div className="space-y-4">
+                  {comments
+                    .filter((comment) => showResolvedComments || !comment.isResolved)
+                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                    .map((comment) => {
+                      const commentCategory = COMMENT_COLORS.find(
+                        (c) => c.id === comment.colorCategory
+                      ) || COMMENT_COLORS[0]
+                      
+                      return (
+                        <div
                           key={comment.id}
-                          comment={comment}
-                          onResolve={handleResolveComment}
-                          onReopen={handleReopenComment}
-                          onEdit={handleEditComment}
-                          onDelete={handleDeleteComment}
-                          onJumpToTime={(time) => setCurrentTime(time)}
-                        />
-                      ))
-                    ) : (
-                      <Card>
-                        <CardContent className="p-4 text-center text-muted-foreground">
-                          Nenhum comentário encontrado com os filtros atuais.
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-                </ScrollArea>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="annotations" className="space-y-4 mt-4">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    Use as ferramentas de anotação no player de vídeo para adicionar marcações visuais.
-                  </p>
-                </div>
-
-                <AnnotationList
-                  annotations={annotations}
-                  onDeleteAnnotation={handleAnnotationDelete}
-                  onJumpToTime={(time) => setCurrentTime(time)}
-                  onExport={handleOpenExportModal}
-                />
-
-                <div className="space-y-2 mt-4">
-                  <h3 className="text-sm font-medium">Dicas de uso:</h3>
-                  <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
-                    <li>Pause o vídeo antes de adicionar anotações</li>
-                    <li>Clique no botão de lápis para ativar o modo de anotação</li>
-                    <li>Selecione a ferramenta, cor e espessura desejada</li>
-                    <li>Clique e arraste para desenhar no vídeo</li>
-                    <li>As anotações são visíveis por 5 segundos a partir do ponto onde foram criadas</li>
-                  </ul>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="deliveries" className="space-y-4 mt-4">
-              <Card className="bg-secondary/20">
-                <CardContent className="p-4 space-y-2">
-                  <h3 className="font-medium">Versão atual: v1.2</h3>
-                  <div className="text-sm">Enviada por: Maria Souza</div>
-                  <div className="text-sm">Data: 19/05/2025 14:30</div>
-                  <div className="text-sm">Status: Em revisão</div>
-                </CardContent>
-              </Card>
-
-              <ScrollArea className="h-[300px] pr-4">
-                <div className="space-y-3">
-                  <Card>
-                    <CardContent className="p-3 space-y-2">
-                      <div className="flex justify-between">
-                        <div className="font-medium">Versão 1.2</div>
-                        <div className="text-warning">Em revisão</div>
-                      </div>
-                      <p className="text-sm">Ajustes de cor e cortes solicitados</p>
-                      <div className="text-xs text-muted-foreground">19/05/2025 14:30</div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className="p-3 space-y-2">
-                      <div className="flex justify-between">
-                        <div className="font-medium">Versão 1.1</div>
-                        <div className="text-destructive">Rejeitada</div>
-                      </div>
-                      <p className="text-sm">Primeira revisão com ajustes de áudio</p>
-                      <div className="text-xs text-muted-foreground">18/05/2025 16:45</div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className="p-3 space-y-2">
-                      <div className="flex justify-between">
-                        <div className="font-medium">Versão 1.0</div>
-                        <div className="text-destructive">Rejeitada</div>
-                      </div>
-                      <p className="text-sm">Primeira versão do vídeo</p>
-                      <div className="text-xs text-muted-foreground">17/05/2025 10:20</div>
-                    </CardContent>
-                  </Card>
+                          className={`border rounded-lg p-3 transition-opacity ${
+                            comment.isResolved ? 'opacity-60' : ''
+                          }`}
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex items-center">
+                              <Avatar className="h-6 w-6 mr-2">
+                                <AvatarFallback>
+                                  {comment.author.slice(0, 2).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="font-medium text-sm">{comment.author}</span>
+                              <Badge 
+                                variant="outline" 
+                                className="ml-2 text-xs"
+                                style={{ 
+                                  borderColor: commentCategory.color,
+                                  color: commentCategory.color,
+                                }}
+                              >
+                                {commentCategory.name}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <Clock className="h-3 w-3" />
+                              <span>{formatTime(comment.time)}</span>
+                              <Button 
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 ml-1"
+                                onClick={() => handleTimeUpdate(comment.time)}
+                              >
+                                <Play className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                          <p className="text-sm mb-2">{comment.text}</p>
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(comment.createdAt).toLocaleDateString()} {new Date(comment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => handleToggleCommentResolution(comment.id)}
+                                aria-label={comment.isResolved ? "Marcar como não resolvido" : "Marcar como resolvido"}
+                              >
+                                {comment.isResolved ? (
+                                  <MessageSquare className="h-4 w-4" />
+                                ) : (
+                                  <Check className="h-4 w-4" />
+                                )}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-destructive"
+                                onClick={() => handleDeleteComment(comment.id)}
+                                aria-label="Excluir comentário"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                    
+                  {comments.length === 0 && (
+                    <div className="p-8 text-center text-muted-foreground">
+                      <MessageSquare className="h-10 w-10 mx-auto opacity-20 mb-2" />
+                      <p>Nenhum comentário adicionado.</p>
+                      <p className="text-sm">Adicione o primeiro comentário acima.</p>
+                    </div>
+                  )}
                 </div>
               </ScrollArea>
-
-              <div className="space-y-4">
-                <Card className="border-primary/50 bg-primary/5">
-                  <CardContent className="p-4 space-y-2">
-                    <h3 className="font-medium text-primary">Ação de aprovação:</h3>
-                    <div className="flex gap-2">
-                      <Button className="bg-success hover:bg-success/80 text-success-foreground">Aprovar</Button>
-                      <Button variant="destructive">Solicitar ajustes</Button>
+            </TabsContent>
+            
+            {/* ABA: ASSETS */}
+            <TabsContent value="assets" className="space-y-4">
+              {/* Upload e filtros */}
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-2">
+                  <Input 
+                    placeholder="Buscar assets..." 
+                    className="w-80"
+                    value={searchAssetQuery}
+                    onChange={(e) => setSearchAssetQuery(e.target.value)}
+                  />
+                  <Button variant="outline" onClick={() => setSearchAssetQuery('')}>
+                    <Filter className="h-4 w-4 mr-2" />
+                    Limpar
+                  </Button>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Select
+                    value={selectedAssetType || 'all'}
+                    onValueChange={(value) => setSelectedAssetType(value === 'all' ? null : value)}
+                  >
+                    <SelectTrigger className="w-[150px]">
+                      <SelectValue placeholder="Tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos tipos</SelectItem>
+                      <SelectItem value="video">Vídeos</SelectItem>
+                      <SelectItem value="audio">Áudios</SelectItem>
+                      <SelectItem value="image">Imagens</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="default"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                  >
+                    <FilePlus className="h-4 w-4 mr-2" />
+                    Adicionar
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    className="hidden"
+                    onChange={handleAssetUpload}
+                    accept="image/*,audio/*,video/*"
+                  />
+                </div>
+              </div>
+              
+              {/* Progresso de upload */}
+              {isUploading && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Enviando arquivo...</span>
+                    <span>{uploadProgress}%</span>
+                  </div>
+                  <Progress value={uploadProgress} />
+                </div>
+              )}
+              
+              {/* Lista de assets */}
+              <div className="grid grid-cols-3 gap-4">
+                {filteredAssets.map((asset) => (
+                  <Card key={asset.id}>
+                    <CardContent className="p-3">
+                      <div className="aspect-video bg-muted rounded flex items-center justify-center overflow-hidden mb-2">
+                        {asset.type === 'image' ? (
+                          <img
+                            src={asset.url}
+                            alt={asset.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : asset.type === 'audio' ? (
+                          <Music className="h-10 w-10 text-muted-foreground" />
+                        ) : (
+                          <div className="relative w-full h-full bg-black">
+                            <video
+                              src={asset.url}
+                              className="w-full h-full object-cover"
+                              controls={false}
+                              muted
+                              playsInline
+                            />
+                            <Play className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-8 w-8 text-white/80" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-medium text-sm truncate" title={asset.name}>
+                            {asset.name}
+                          </h4>
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <span className="capitalize">{asset.type}</span>
+                            <span className="mx-1">•</span>
+                            <span>{(asset.size / 1024 / 1024).toFixed(1)} MB</span>
+                            {asset.duration && (
+                              <>
+                                <span className="mx-1">•</span>
+                                <span>{formatTime(asset.duration)}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Opções do asset">
+                              <Settings className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => {}}>
+                              Adicionar à timeline
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {}}>
+                              Download
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="text-destructive"
+                              onClick={() => handleDeleteAsset(asset.id)}
+                            >
+                              Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                
+                {filteredAssets.length === 0 && (
+                  <div className="col-span-3 p-8 text-center text-muted-foreground">
+                    <FilePlus className="h-10 w-10 mx-auto opacity-20 mb-2" />
+                    <p>Nenhum asset encontrado.</p>
+                    <p className="text-sm">
+                      {searchAssetQuery || selectedAssetType ? 
+                        'Tente mudar os filtros.' : 
+                        'Adicione arquivos para começar.'}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+            
+            {/* ABA: EXPORTAR */}
+            <TabsContent value="export" className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Configurações de Exportação</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="export-format">Formato</Label>
+                      <Select
+                        value={exportFormat}
+                        onValueChange={setExportFormat}
+                      >
+                        <SelectTrigger id="export-format">
+                          <SelectValue placeholder="Selecione o formato" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="mp4">MP4 (H.264)</SelectItem>
+                          <SelectItem value="webm">WebM (VP9)</SelectItem>
+                          <SelectItem value="mov">MOV (ProRes)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="export-quality">Qualidade</Label>
+                      <Select
+                        value={exportQuality}
+                        onValueChange={setExportQuality}
+                      >
+                        <SelectTrigger id="export-quality">
+                          <SelectValue placeholder="Selecione a qualidade" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="720p">HD (720p)</SelectItem>
+                          <SelectItem value="1080p">Full HD (1080p)</SelectItem>
+                          <SelectItem value="2160p">4K (2160p)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="export-range">Intervalo de tempo</Label>
+                      <div className="flex items-center space-x-2">
+                        <Input 
+                          id="export-range-start"
+                          type="text"
+                          placeholder="00:00"
+                          defaultValue="00:00"
+                        />
+                        <span>até</span>
+                        <Input 
+                          id="export-range-end"
+                          type="text"
+                          placeholder="02:00"
+                          defaultValue={formatTime(duration)}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="pt-2">
+                      <Button 
+                        className="w-full" 
+                        onClick={handleExport}
+                        disabled={isExporting}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        {isExporting ? 'Exportando...' : 'Exportar vídeo'}
+                      </Button>
+                      
+                      {isExporting && (
+                        <div className="mt-2 space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span>Progresso</span>
+                            <span>{exportProgress}%</span>
+                          </div>
+                          <Progress value={exportProgress} />
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
-
-                <Button className="w-full">Nova Entrega</Button>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="edits" className="space-y-4 mt-4">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-bold">Edições de Vídeo</h2>
-                  <Button onClick={() => setIsExportModalOpen(true)}>
-                    <Upload className="h-4 w-4 mr-2" />
-                    Enviar Edição
-                  </Button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <Card>
-                    <CardContent className="p-4">
-                      <h3 className="font-medium">Versão 1.2</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Ajustes de cor e cortes solicitados pelo cliente.
-                      </p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <Button variant="outline" size="sm">
-                          <Download className="h-4 w-4 mr-2" />
-                          Baixar
-                        </Button>
-                        <Button variant="destructive" size="sm">
-                          <Trash className="h-4 w-4 mr-2" />
-                          Excluir
-                        </Button>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Versões Anteriores</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Nome</TableHead>
+                          <TableHead>Data</TableHead>
+                          <TableHead>Autor</TableHead>
+                          <TableHead></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {SAMPLE_VERSIONS.map((version) => (
+                          <TableRow key={version.id}>
+                            <TableCell className="font-medium">{version.name}</TableCell>
+                            <TableCell>
+                              {version.uploadedAt.toLocaleDateString()}
+                            </TableCell>
+                            <TableCell>{version.createdBy}</TableCell>
+                            <TableCell>
+                              <Button variant="ghost" size="icon">
+                                <Download className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    
+                    {SAMPLE_VERSIONS.length === 0 && (
+                      <div className="p-4 text-center text-muted-foreground">
+                        <p>Nenhuma versão anterior disponível.</p>
                       </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className="p-4">
-                      <h3 className="font-medium">Versão 1.1</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Primeira revisão com ajustes de áudio.
-                      </p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <Button variant="outline" size="sm">
-                          <Download className="h-4 w-4 mr-2" />
-                          Baixar
-                        </Button>
-                        <Button variant="destructive" size="sm">
-                          <Trash className="h-4 w-4 mr-2" />
-                          Excluir
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <Button className="flex-1">
-                    <Share className="h-4 w-4 mr-2" />
-                    Compartilhar link
-                  </Button>
-                  <Button variant="outline" className="flex-1">
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Solicitar feedback
-                  </Button>
-                </div>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
           </Tabs>
-        </div>
-      </div>
-
-      {/* Modais de exportação */}
-      <ExportModal
-        isOpen={isExportModalOpen}
-        onClose={() => setIsExportModalOpen(false)}
-        comments={comments}
-        annotations={annotations}
-        videoTitle={currentVideo.title}
-        onExport={handleExport}
-      />
-
-      <ExportPreview
-        isOpen={isPreviewModalOpen}
-        onClose={() => setIsPreviewModalOpen(false)}
-        previewUrl={exportPreviewUrl}
-        filename={exportFilename}
-        format={exportFormat}
-        isLoading={isExportLoading}
-      />
+        </CardContent>
+      </Card>
     </div>
-  )
-}
-
-// Componente wrapper com o provider de colaboração
-export default function EditingWidget() {
-  return (
-    <CollaborationProvider>
-      <EditingWidgetContent />
-    </CollaborationProvider>
   )
 }

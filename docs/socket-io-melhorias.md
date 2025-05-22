@@ -48,12 +48,15 @@ Este documento resume as melhorias implementadas no sistema de comunicação em 
 ## Como Testar
 
 1. **Conexão local via proxy:**
+
    ```
    npm run dev:all
    ```
+
    Acesse `http://localhost:3000/admin/diagnosticos`
 
 2. **Conexão direta em produção:**
+
    ```
    NEXT_PUBLIC_SOCKET_URL=https://seu-socket-server.com npm run dev
    ```

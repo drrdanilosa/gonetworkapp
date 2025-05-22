@@ -1,14 +1,21 @@
+'use client'
+
+'use client'
+
 "use client"
 
-import { useCollaboration } from "@/contexts/collaboration-context"
-import { useEffect, useRef } from "react"
+import { useCollaboration } from '@/contexts/collaboration-context'
+import { useEffect, useRef } from 'react'
 
 interface RemoteAnnotationsProps {
   canvasWidth: number
   canvasHeight: number
 }
 
-export default function RemoteAnnotations({ canvasWidth, canvasHeight }: RemoteAnnotationsProps) {
+export default function RemoteAnnotations({
+  canvasWidth,
+  canvasHeight,
+}: RemoteAnnotationsProps) {
   const { activeAnnotators, activeUsers } = useCollaboration()
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -17,7 +24,7 @@ export default function RemoteAnnotations({ canvasWidth, canvasHeight }: RemoteA
     const canvas = canvasRef.current
     if (!canvas) return
 
-    const ctx = canvas.getContext("2d")
+    const ctx = canvas.getContext('2d')
     if (!ctx) return
 
     // Limpar o canvas
@@ -25,34 +32,40 @@ export default function RemoteAnnotations({ canvasWidth, canvasHeight }: RemoteA
 
     // Desenhar todas as anotações ativas
     Object.entries(activeAnnotators).forEach(([userId, annotation]) => {
-      const user = activeUsers.find((u) => u.id === userId)
+      const user = activeUsers.find(u => u.id === userId)
       if (!user) return
 
       ctx.strokeStyle = annotation.color
       ctx.fillStyle = annotation.color
       ctx.lineWidth = annotation.thickness
-      ctx.lineCap = "round"
-      ctx.lineJoin = "round"
+      ctx.lineCap = 'round'
+      ctx.lineJoin = 'round'
 
       switch (annotation.tool) {
-        case "pen":
+        case 'pen':
           drawPen(ctx, annotation.points)
           break
-        case "highlighter":
+        case 'highlighter':
           drawHighlighter(ctx, annotation.points, annotation.thickness)
           break
-        case "arrow":
+        case 'arrow':
           drawArrow(ctx, annotation.points)
           break
-        case "rectangle":
+        case 'rectangle':
           drawRectangle(ctx, annotation.points)
           break
-        case "ellipse":
+        case 'ellipse':
           drawEllipse(ctx, annotation.points)
           break
-        case "text":
+        case 'text':
           if (annotation.text) {
-            drawText(ctx, annotation.points[0], annotation.text, annotation.color, annotation.thickness)
+            drawText(
+              ctx,
+              annotation.points[0],
+              annotation.text,
+              annotation.color,
+              annotation.thickness
+            )
           }
           break
       }
@@ -60,7 +73,7 @@ export default function RemoteAnnotations({ canvasWidth, canvasHeight }: RemoteA
       // Desenhar o nome do usuário próximo à última posição da anotação
       if (annotation.points.length > 0) {
         const lastPoint = annotation.points[annotation.points.length - 1]
-        ctx.font = "12px sans-serif"
+        ctx.font = '12px sans-serif'
         ctx.fillStyle = user.color
         ctx.fillText(user.name, lastPoint.x + 10, lastPoint.y + 10)
       }
@@ -77,7 +90,10 @@ export default function RemoteAnnotations({ canvasWidth, canvasHeight }: RemoteA
   }, [canvasWidth, canvasHeight])
 
   // Funções de desenho para diferentes ferramentas
-  const drawPen = (ctx: CanvasRenderingContext2D, points: { x: number; y: number }[]) => {
+  const drawPen = (
+    ctx: CanvasRenderingContext2D,
+    points: { x: number; y: number }[]
+  ) => {
     if (points.length < 2) return
 
     ctx.beginPath()
@@ -90,7 +106,11 @@ export default function RemoteAnnotations({ canvasWidth, canvasHeight }: RemoteA
     ctx.stroke()
   }
 
-  const drawHighlighter = (ctx: CanvasRenderingContext2D, points: { x: number; y: number }[], thickness: number) => {
+  const drawHighlighter = (
+    ctx: CanvasRenderingContext2D,
+    points: { x: number; y: number }[],
+    thickness: number
+  ) => {
     if (points.length < 2) return
 
     const originalGlobalAlpha = ctx.globalAlpha
@@ -105,7 +125,10 @@ export default function RemoteAnnotations({ canvasWidth, canvasHeight }: RemoteA
     ctx.lineWidth = originalLineWidth
   }
 
-  const drawArrow = (ctx: CanvasRenderingContext2D, points: { x: number; y: number }[]) => {
+  const drawArrow = (
+    ctx: CanvasRenderingContext2D,
+    points: { x: number; y: number }[]
+  ) => {
     if (points.length < 2) return
 
     const start = points[0]
@@ -123,13 +146,22 @@ export default function RemoteAnnotations({ canvasWidth, canvasHeight }: RemoteA
 
     ctx.beginPath()
     ctx.moveTo(end.x, end.y)
-    ctx.lineTo(end.x - headLength * Math.cos(angle - Math.PI / 6), end.y - headLength * Math.sin(angle - Math.PI / 6))
+    ctx.lineTo(
+      end.x - headLength * Math.cos(angle - Math.PI / 6),
+      end.y - headLength * Math.sin(angle - Math.PI / 6)
+    )
     ctx.moveTo(end.x, end.y)
-    ctx.lineTo(end.x - headLength * Math.cos(angle + Math.PI / 6), end.y - headLength * Math.sin(angle + Math.PI / 6))
+    ctx.lineTo(
+      end.x - headLength * Math.cos(angle + Math.PI / 6),
+      end.y - headLength * Math.sin(angle + Math.PI / 6)
+    )
     ctx.stroke()
   }
 
-  const drawRectangle = (ctx: CanvasRenderingContext2D, points: { x: number; y: number }[]) => {
+  const drawRectangle = (
+    ctx: CanvasRenderingContext2D,
+    points: { x: number; y: number }[]
+  ) => {
     if (points.length < 2) return
 
     const start = points[0]
@@ -143,7 +175,10 @@ export default function RemoteAnnotations({ canvasWidth, canvasHeight }: RemoteA
     ctx.stroke()
   }
 
-  const drawEllipse = (ctx: CanvasRenderingContext2D, points: { x: number; y: number }[]) => {
+  const drawEllipse = (
+    ctx: CanvasRenderingContext2D,
+    points: { x: number; y: number }[]
+  ) => {
     if (points.length < 2) return
 
     const start = points[0]
@@ -164,7 +199,7 @@ export default function RemoteAnnotations({ canvasWidth, canvasHeight }: RemoteA
     position: { x: number; y: number },
     text: string,
     color: string,
-    size: number,
+    size: number
   ) => {
     ctx.font = `${Math.max(12, size * 5)}px sans-serif`
     ctx.fillStyle = color

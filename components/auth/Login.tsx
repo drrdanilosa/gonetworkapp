@@ -1,21 +1,25 @@
-import React, { useState } from 'react';
-import { authenticateUser } from '../../features/auth/authService';
+'use client'
+
+"use client"
+
+import React, { useState } from 'react'
+import { authenticateUser } from '../../features/auth/authService'
 
 const Login = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const isAuthenticated = authenticateUser(username, password);
+    e.preventDefault()
+    const isAuthenticated = authenticateUser(username, password)
     if (isAuthenticated) {
-      alert('Login successful!');
+      alert('Login successful!')
       // Redirect to dashboard or other page
     } else {
-      setError('Invalid username or password');
+      setError('Invalid username or password')
     }
-  };
+  }
 
   return (
     <div className="login-container">
@@ -26,7 +30,7 @@ const Login = () => {
           <input
             type="text"
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={e => setUsername(e.target.value)}
             required
           />
         </div>
@@ -35,7 +39,7 @@ const Login = () => {
           <input
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={e => setPassword(e.target.value)}
             required
           />
         </div>
@@ -43,7 +47,7 @@ const Login = () => {
         <button type="submit">Login</button>
       </form>
     </div>
-  );
-};
+  )
+}
 
-export default Login;
+export default Login

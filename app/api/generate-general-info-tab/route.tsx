@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
-import { GeneralInfoTab } from '@/features/briefing/components/GeneralInfoTab';
-import { ReactElement } from 'react';
+import { NextResponse } from 'next/server'
+import { GeneralInfoTab } from '@/features/briefing/components/GeneralInfoTab'
+import { ReactElement } from 'react'
 
 // Esta função serve apenas como um wrapper para renderizar o GeneralInfoTab como uma página completa
 export async function GET() {
@@ -23,17 +23,17 @@ export async function GET() {
       <script type="module">
         import { createRoot } from 'react-dom/client';
         import { GeneralInfoTab } from '/features/briefing/components/GeneralInfoTab.js';
-        
+
         const root = createRoot(document.getElementById('root'));
         root.render(<GeneralInfoTab />);
       </script>
     </body>
     </html>
-  `;
+  `
 
   return new NextResponse(html, {
     headers: {
       'Content-Type': 'text/html',
     },
-  });
+  })
 }
