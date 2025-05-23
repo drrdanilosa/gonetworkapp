@@ -248,9 +248,9 @@ export default function CommentList({
             <span>{comment.userName || 'Usuário'}</span>
             <span className="mx-1">•</span>
             <span>
-              {format(new Date(comment.createdAt), 'dd/MM/yy HH:mm', {
+              {comment.createdAt ? format(new Date(comment.createdAt), 'dd/MM/yy HH:mm', {
                 locale: ptBR,
-              })}
+              }) : 'Data desconhecida'}
             </span>
           </div>
         </div>

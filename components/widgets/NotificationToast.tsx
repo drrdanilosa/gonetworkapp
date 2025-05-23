@@ -1,19 +1,17 @@
 'use client'
 
-'use client'
-
-"use client"
-
 import React from 'react'
 import { useUIStore } from '@/store/useUIStore'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export default function NotificationToast() {
-  const notifications = useUIStore(state => state.notifications)
+  const notifications = useUIStore(state => state.notifications) || []
   const removeNotification = useUIStore(state => state.removeNotification)
 
-  if (notifications.length === 0) return null
+  // Verificação de segurança
+  if (!notifications || notifications.length === 0) return null
+
   return (
     <div className="fixed bottom-4 right-4 space-y-2 z-50 pointer-events-none max-w-md">
       {notifications.map(note => (
@@ -33,10 +31,15 @@ export default function NotificationToast() {
               'bg-card text-card-foreground border-border'
           )}
         >
-          <span>{note.message}</span>
+          <div className="flex-1">
+            {note.title && (
+              <div className="font-semibold text-sm">{note.title}</div>
+            )}
+            <span className="text-sm">{note.message}</span>
+          </div>
           <button
             onClick={() => removeNotification(note.id)}
-            className="ml-4 p-1 rounded-full hover:bg-muted"
+            className="ml-4 p-1 rounded-full hover:bg-muted flex-shrink-0"
             aria-label="Fechar notificação"
           >
             <X size={16} />

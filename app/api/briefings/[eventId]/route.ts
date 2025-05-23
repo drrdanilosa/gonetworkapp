@@ -1,67 +1,102 @@
+// app/api/briefings/[eventId]/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { useProjectsStore } from '@/store/useProjectsStoreUnified'
+import fs from 'fs/promises'
+import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
-import type { VideoDeliverable } from '@/types/project'
 
+const DATA_FILE = path.join(process.cwd(), 'data', 'briefings.json')
+
+// Função auxiliar para ler dados de briefing
+async function readBriefingData() {
+  try {
+    const dir = path.dirname(DATA_FILE)
+    await fs.mkdir(dir, { recursive: true })
+    
+    try {
+      const data = await fs.readFile(DATA_FILE, 'utf-8')
+      return JSON.parse(data)
+    } catch (error) {
+      // Se o arquivo não existir, retorna objeto vazio
+      return {}
+    }
+  } catch (error) {
+    console.error('Erro ao ler dados de briefing:', error)
+    return {}
+  }
+}
+
+// Função auxiliar para salvar dados de briefing
+async function saveBriefingData(data: Record<string, any>) {
+  try {
+    const dir = path.dirname(DATA_FILE)
+    await fs.mkdir(dir, { recursive: true })
+    await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2))
+  } catch (error) {
+    console.error('Erro ao salvar dados de briefing:', error)
+    throw error
+  }
+}
+
+// Interface para o Briefing
+interface BriefingData {
+  id: string
+  eventId: string
+  projectName?: string
+  client?: string
+  briefingDate?: string
+  eventDate?: string
+  location?: string
+  description?: string
+  objectives?: string[]
+  targetAudience?: string
+  budget?: number
+  specialRequirements?: string
+  team?: any[]
+  editorialInfo?: any
+  deliveries?: any[]
+  createdAt: string
+  updatedAt: string
+  [key: string]: any
+}
+
+/**
+ * GET - Buscar briefing de um evento específico
+ */
 export async function GET(
-  req: Request,
-  context: { params: { eventId: string } }
+  request: NextRequest,
+  { params }: { params: { eventId: string } }
 ) {
   try {
-    // Verifica e valida o eventId
-    const eventId = context.params?.eventId
+    const { eventId } = params
+    
     if (!eventId) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'ID de evento inválido',
-        },
+        { error: 'ID do evento é obrigatório' },
         { status: 400 }
       )
     }
-
-    // Acessar o estado global do Zustand
-    const store = useProjectsStore.getState()
-
-    // Buscar o projeto pelo ID
-    const project = store.projects.find(p => p.id === eventId)
-    if (!project) {
+    
+    const briefingData = await readBriefingData()
+    const briefing = briefingData[eventId]
+    
+    if (!briefing) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Projeto não encontrado',
+        { 
+          error: 'Briefing não encontrado para este evento',
+          eventId 
         },
         { status: 404 }
       )
     }
-
-    // Verificar se o projeto tem briefing
-    if (!project.briefing) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Briefing não encontrado para este projeto',
-        },
-        { status: 404 }
-      )
-    }
-
-    // Retornar o briefing do projeto
-    return NextResponse.json(
-      {
-        success: true,
-        projectId: eventId,
-        briefing: project.briefing,
-      },
-      { status: 200 }
-    )
+    
+    console.log(`[GET /api/briefings/${eventId}] Briefing encontrado`)
+    return NextResponse.json(briefing, { status: 200 })
   } catch (error) {
     console.error('Erro ao buscar briefing:', error)
     return NextResponse.json(
-      {
-        success: false,
-        error: 'Erro interno ao buscar briefing',
-        details: error instanceof Error ? error.message : String(error),
+      { 
+        error: 'Erro ao processar requisição',
+        details: error instanceof Error ? error.message : String(error)
       },
       { status: 500 }
     )
@@ -69,15 +104,22 @@ export async function GET(
 }
 
 /**
- * POST - Criar ou atualizar o briefing de um evento
+ * POST - Criar ou atualizar briefing de um evento
  */
 export async function POST(
-  req: Request,
-  context: { params: { eventId: string } }
+  request: NextRequest,
+  { params }: { params: { eventId: string } }
 ) {
   try {
-    const { eventId } = context.params
-    const data = await req.json()
+    const { eventId } = params
+    const data = await request.json()
+
+    if (!eventId) {
+      return NextResponse.json(
+        { error: 'ID do evento é obrigatório' },
+        { status: 400 }
+      )
+    }
 
     // Validar dados mínimos
     if (!data || Object.keys(data).length === 0) {
@@ -90,48 +132,34 @@ export async function POST(
       )
     }
 
-    // Acessar o estado global do Zustand
-    const store = useProjectsStore.getState()
-
-    // Buscar o projeto pelo ID
-    const project = store.projects.find(p => p.id === eventId)
-    if (!project) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Projeto não encontrado',
-        },
-        { status: 404 }
-      )
-    }
-
+    // Ler dados existentes
+    const briefingData = await readBriefingData()
+    const existingBriefing = briefingData[eventId]
+    
     // Preparar objeto do briefing
-    const briefingData = {
-      id: data.id || uuidv4(),
+    const now = new Date().toISOString()
+    const briefingRecord: BriefingData = {
+      id: existingBriefing?.id || data.id || uuidv4(),
+      eventId,
       ...data,
-      updatedAt: new Date().toISOString(),
-      createdAt: project.briefing?.createdAt || new Date().toISOString(),
+      createdAt: existingBriefing?.createdAt || now,
+      updatedAt: now,
     }
 
-    // Atualizar o projeto com o novo briefing
-    store.updateProject(eventId, {
-      briefing: briefingData,
-      updatedAt: new Date().toISOString(),
-    })
+    // Salvar briefing atualizado
+    briefingData[eventId] = briefingRecord
+    await saveBriefingData(briefingData)
 
-    // Log de auditoria
-    console.log(
-      `[POST /api/briefings/${eventId}] Briefing atualizado para o projeto ${eventId}`
-    )
+    console.log(`[POST /api/briefings/${eventId}] Briefing ${existingBriefing ? 'atualizado' : 'criado'}`)
 
     return NextResponse.json(
       {
         success: true,
-        message: 'Briefing salvo com sucesso',
-        projectId: eventId,
-        briefing: briefingData,
+        message: `Briefing ${existingBriefing ? 'atualizado' : 'criado'} com sucesso`,
+        eventId,
+        briefing: briefingRecord,
       },
-      { status: 200 }
+      { status: existingBriefing ? 200 : 201 }
     )
   } catch (error) {
     console.error('Erro ao salvar briefing:', error)
@@ -147,57 +175,192 @@ export async function POST(
 }
 
 /**
- * DELETE - Remover o briefing de um evento
+ * PUT - Atualizar briefing completo (substitui dados existentes)
  */
-export async function DELETE(
-  req: Request,
-  context: { params: { eventId: string } }
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { eventId: string } }
 ) {
   try {
-    const { eventId } = context.params
+    const { eventId } = params
+    const data = await request.json()
 
-    // Acessar o estado global do Zustand
-    const store = useProjectsStore.getState()
+    if (!eventId) {
+      return NextResponse.json(
+        { error: 'ID do evento é obrigatório' },
+        { status: 400 }
+      )
+    }
 
-    // Buscar o projeto pelo ID
-    const project = store.projects.find(p => p.id === eventId)
-    if (!project) {
+    // Ler dados existentes
+    const briefingData = await readBriefingData()
+    const existingBriefing = briefingData[eventId]
+    
+    if (!existingBriefing) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Projeto não encontrado',
+          error: 'Briefing não encontrado para atualização',
         },
         { status: 404 }
       )
     }
 
-    // Verificar se o projeto tem briefing
-    if (!project.briefing) {
+    // Substituir dados completamente (manter apenas id, eventId, createdAt)
+    const now = new Date().toISOString()
+    const briefingRecord: BriefingData = {
+      id: existingBriefing.id,
+      eventId,
+      ...data,
+      createdAt: existingBriefing.createdAt,
+      updatedAt: now,
+    }
+
+    briefingData[eventId] = briefingRecord
+    await saveBriefingData(briefingData)
+
+    console.log(`[PUT /api/briefings/${eventId}] Briefing substituído completamente`)
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Briefing atualizado completamente com sucesso',
+        eventId,
+        briefing: briefingRecord,
+      },
+      { status: 200 }
+    )
+  } catch (error) {
+    console.error('Erro ao atualizar briefing:', error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Erro interno ao atualizar briefing',
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 }
+    )
+  }
+}
+
+/**
+ * PATCH - Atualizar parcialmente o briefing (merge com dados existentes)
+ */
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { eventId: string } }
+) {
+  try {
+    const { eventId } = params
+    const updates = await request.json()
+
+    if (!eventId) {
+      return NextResponse.json(
+        { error: 'ID do evento é obrigatório' },
+        { status: 400 }
+      )
+    }
+
+    // Ler dados existentes
+    const briefingData = await readBriefingData()
+    const existingBriefing = briefingData[eventId]
+    
+    if (!existingBriefing) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Briefing não encontrado para este projeto',
+          error: 'Briefing não encontrado para atualização',
+        },
+        { status: 404 }
+      )
+    }
+
+    // Fazer merge dos dados (preservar dados existentes)
+    const now = new Date().toISOString()
+    const briefingRecord: BriefingData = {
+      ...existingBriefing,
+      ...updates,
+      id: existingBriefing.id, // Não permitir alterar ID
+      eventId, // Garantir consistência
+      createdAt: existingBriefing.createdAt, // Preservar data de criação
+      updatedAt: now,
+    }
+
+    briefingData[eventId] = briefingRecord
+    await saveBriefingData(briefingData)
+
+    console.log(`[PATCH /api/briefings/${eventId}] Briefing atualizado parcialmente`)
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Briefing atualizado parcialmente com sucesso',
+        eventId,
+        briefing: briefingRecord,
+        updatedFields: Object.keys(updates),
+      },
+      { status: 200 }
+    )
+  } catch (error) {
+    console.error('Erro ao atualizar briefing parcialmente:', error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Erro interno ao atualizar briefing',
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 }
+    )
+  }
+}
+
+/**
+ * DELETE - Remover briefing de um evento
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { eventId: string } }
+) {
+  try {
+    const { eventId } = params
+
+    if (!eventId) {
+      return NextResponse.json(
+        { error: 'ID do evento é obrigatório' },
+        { status: 400 }
+      )
+    }
+
+    // Ler dados existentes
+    const briefingData = await readBriefingData()
+    const existingBriefing = briefingData[eventId]
+    
+    if (!existingBriefing) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Briefing não encontrado para remoção',
         },
         { status: 404 }
       )
     }
 
     // Remover o briefing
-    store.updateProject(eventId, {
-      briefing: null,
-      updatedAt: new Date().toISOString(),
-    })
+    delete briefingData[eventId]
+    await saveBriefingData(briefingData)
 
-    // Log de auditoria
-    console.log(
-      `[DELETE /api/briefings/${eventId}] Briefing removido do projeto ${eventId}`
-    )
+    console.log(`[DELETE /api/briefings/${eventId}] Briefing removido`)
 
     return NextResponse.json(
       {
         success: true,
         message: 'Briefing removido com sucesso',
-        projectId: eventId,
+        eventId,
+        deletedBriefing: {
+          id: existingBriefing.id,
+          createdAt: existingBriefing.createdAt,
+          updatedAt: existingBriefing.updatedAt
+        }
       },
       { status: 200 }
     )
@@ -212,22 +375,4 @@ export async function DELETE(
       { status: 500 }
     )
   }
-}
-
-// Adicionando a propriedade briefing ao tipo Project
-interface Project {
-  id: string
-  name: string
-  description?: string
-  clientId?: string
-  eventDate?: string
-  finalDueDate?: string
-  createdAt: string
-  updatedAt?: string
-  status: 'draft' | 'in_progress' | 'review' | 'completed' | 'archived'
-  videos: VideoDeliverable[]
-  briefing?: {
-    createdAt: string
-    content: string
-  } | null
 }

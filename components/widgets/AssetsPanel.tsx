@@ -366,9 +366,9 @@ export default function AssetsPanel() {
                         {asset.name}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {format(new Date(asset.createdAt), 'dd/MM/yy', {
+                        {asset.createdAt ? format(new Date(asset.createdAt), 'dd/MM/yy', {
                           locale: ptBR,
-                        })}
+                        }) : 'Data desconhecida'}
                         {asset.fileSize &&
                           ` • ${(asset.fileSize / 1024 / 1024).toFixed(1)}MB`}
                       </p>

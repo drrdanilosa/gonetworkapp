@@ -1,0 +1,619 @@
+Analisando o documento fornecido, vou criar as correções necessárias para resolver o problema de carregamento inconsistente de eventos nas abas. O documento identifica corretamente que o problema está na falta de persistência adequada dos dados e na inconsistência entre as diferentes abas.
+
+
+
+// 1. app/api/briefings/route.ts - Implementação de persistência real
+import { NextRequest, NextResponse } from 'next/server'
+import fs from 'fs/promises'
+import path from 'path'
+
+// Caminho para armazenar os dados (em produção, usar banco de dados)
+const DATA_FILE = path.join(process.cwd(), 'data', 'briefings.json')
+
+// Função para ler os dados existentes
+async function readBriefingData() {
+  try {
+    const dir = path.dirname(DATA_FILE)
+    await fs.mkdir(dir, { recursive: true })
+    
+    try {
+      const data = await fs.readFile(DATA_FILE, 'utf-8')
+      return JSON.parse(data)
+    } catch (error) {
+      // Se o arquivo não existir, retorna objeto vazio
+      return {}
+    }
+  } catch (error) {
+    console.error('Erro ao ler dados de briefing:', error)
+    return {}
+  }
+}
+
+// Função para salvar os dados
+async function saveBriefingData(data: Record<string, any>) {
+  try {
+    const dir = path.dirname(DATA_FILE)
+    await fs.mkdir(dir, { recursive: true })
+    await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2))
+  } catch (error) {
+    console.error('Erro ao salvar dados de briefing:', error)
+    throw error
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const data = await request.json()
+    const { eventId } = data
+
+    if (!eventId) {
+      return NextResponse.json(
+        { error: 'ID do evento é obrigatório' },
+        { status: 400 }
+      )
+    }
+
+    // Ler dados existentes
+    const briefingData = await readBriefingData()
+    
+    // Atualizar com os novos dados
+    briefingData[eventId] = {
+      ...data,
+      updatedAt: new Date().toISOString()
+    }
+    
+    // Salvar os dados atualizados
+    await saveBriefingData(briefingData)
+
+    return NextResponse.json(
+      { success: true, message: 'Briefing salvo com sucesso', data: briefingData[eventId] },
+      { status: 200 }
+    )
+  } catch (error) {
+    console.error('Erro ao processar requisição:', error)
+    return NextResponse.json(
+      { error: 'Erro interno do servidor' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const eventId = searchParams.get('eventId')
+    
+    // Ler todos os briefings
+    const briefingData = await readBriefingData()
+    
+    // Se foi solicitado um eventId específico
+    if (eventId) {
+      const briefing = briefingData[eventId]
+      if (!briefing) {
+        return NextResponse.json(
+          { error: 'Briefing não encontrado para este evento' },
+          { status: 404 }
+        )
+      }
+      return NextResponse.json(briefing, { status: 200 })
+    }
+    
+    // Retorna todos os briefings
+    return NextResponse.json(briefingData, { status: 200 })
+  } catch (error) {
+    console.error('Erro ao buscar briefings:', error)
+    return NextResponse.json(
+      { error: 'Erro ao processar requisição' },
+      { status: 500 }
+    )
+  }
+}
+
+// ===================================================================
+
+// 2. app/api/briefings/[eventId]/route.ts - Rota específica por evento
+import { NextRequest, NextResponse } from 'next/server'
+import fs from 'fs/promises'
+import path from 'path'
+
+const DATA_FILE = path.join(process.cwd(), 'data', 'briefings.json')
+
+async function readBriefingData() {
+  try {
+    const data = await fs.readFile(DATA_FILE, 'utf-8')
+    return JSON.parse(data)
+  } catch (error) {
+    return {}
+  }
+}
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { eventId: string } }
+) {
+  try {
+    const { eventId } = params
+    
+    if (!eventId) {
+      return NextResponse.json(
+        { error: 'ID do evento é obrigatório' },
+        { status: 400 }
+      )
+    }
+    
+    const briefingData = await readBriefingData()
+    const briefing = briefingData[eventId]
+    
+    if (!briefing) {
+      return NextResponse.json(
+        { error: 'Briefing não encontrado para este evento' },
+        { status: 404 }
+      )
+    }
+    
+    return NextResponse.json(briefing, { status: 200 })
+  } catch (error) {
+    console.error('Erro ao buscar briefing:', error)
+    return NextResponse.json(
+      { error: 'Erro ao processar requisição' },
+      { status: 500 }
+    )
+  }
+}
+
+// ===================================================================
+
+// 3. hooks/useBriefing.ts - Hook personalizado para gerenciar briefings
+import { useState, useEffect, useCallback } from 'react'
+
+interface BriefingData {
+  eventId: string
+  projectName?: string
+  client?: string
+  briefingDate?: string
+  eventDate?: string
+  location?: string
+  description?: string
+  objectives?: string[]
+  targetAudience?: string
+  budget?: number
+  specialRequirements?: string
+  updatedAt?: string
+  [key: string]: any
+}
+
+interface UseBriefingReturn {
+  briefing: BriefingData | null
+  loading: boolean
+  error: string | null
+  refetch: () => Promise<void>
+  saveBriefing: (data: Partial<BriefingData>) => Promise<boolean>
+}
+
+export function useBriefing(eventId: string): UseBriefingReturn {
+  const [briefing, setBriefing] = useState<BriefingData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchBriefing = useCallback(async () => {
+    if (!eventId) {
+      setLoading(false)
+      return
+    }
+    
+    try {
+      setLoading(true)
+      setError(null)
+      
+      const response = await fetch(`/api/briefings/${eventId}`)
+      
+      if (response.status === 404) {
+        // Briefing não existe ainda, isso é normal
+        setBriefing(null)
+        return
+      }
+      
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`)
+      }
+      
+      const data = await response.json()
+      setBriefing(data)
+    } catch (err) {
+      console.error('Erro ao buscar briefing:', err)
+      setError(err instanceof Error ? err.message : 'Erro desconhecido')
+    } finally {
+      setLoading(false)
+    }
+  }, [eventId])
+
+  const saveBriefing = useCallback(async (data: Partial<BriefingData>): Promise<boolean> => {
+    if (!eventId) {
+      setError('ID do evento é obrigatório')
+      return false
+    }
+
+    try {
+      setError(null)
+      
+      const payload = {
+        ...data,
+        eventId
+      }
+      
+      const response = await fetch('/api/briefings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Erro ao salvar briefing')
+      }
+      
+      const result = await response.json()
+      setBriefing(result.data)
+      return true
+    } catch (err) {
+      console.error('Erro ao salvar briefing:', err)
+      setError(err instanceof Error ? err.message : 'Erro ao salvar')
+      return false
+    }
+  }, [eventId])
+
+  useEffect(() => {
+    fetchBriefing()
+  }, [fetchBriefing])
+
+  return { 
+    briefing, 
+    loading, 
+    error, 
+    refetch: fetchBriefing,
+    saveBriefing 
+  }
+}
+
+// ===================================================================
+
+// 4. components/timeline-widget.tsx - Correção do erro de data
+import React from 'react'
+import { format, isValid, parseISO } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+
+// Função auxiliar para formatar datas de forma segura
+const formatProjectDate = (dateValue: any): string => {
+  if (!dateValue) return 'Data não informada'
+  
+  try {
+    const date = typeof dateValue === 'string' ? parseISO(dateValue) : new Date(dateValue)
+    return isValid(date) ? format(date, 'dd MMM yyyy', { locale: ptBR }) : 'Data inválida'
+  } catch {
+    return 'Data não disponível'
+  }
+}
+
+// No seu componente TimelineWidget, substitua a linha 159:
+// De:
+// {project.name} - {format(new Date(project.startDate), 'dd MMM yyyy', { locale: ptBR })}
+
+// Para:
+// {project.name} - {formatProjectDate(project.startDate)}
+
+// ===================================================================
+
+// 5. components/BriefingTab.tsx - Exemplo de uso do hook
+import React from 'react'
+import { useBriefing } from '../hooks/useBriefing'
+
+interface BriefingTabProps {
+  eventId: string
+}
+
+export default function BriefingTab({ eventId }: BriefingTabProps) {
+  const { briefing, loading, error, saveBriefing } = useBriefing(eventId)
+  
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p>Carregando briefing...</p>
+        </div>
+      </div>
+    )
+  }
+  
+  if (error) {
+    return (
+      <div className="p-8 text-center">
+        <div className="bg-red-50 border border-red-200 rounded-md p-4">
+          <h3 className="text-red-800 font-medium">Erro ao carregar briefing</h3>
+          <p className="text-red-600 text-sm mt-1">{error}</p>
+        </div>
+      </div>
+    )
+  }
+  
+  return (
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-6">Briefing do Evento</h2>
+      
+      {briefing ? (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nome do Projeto
+              </label>
+              <p className="text-gray-900 bg-gray-50 p-3 rounded-md">
+                {briefing.projectName || 'Não informado'}
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Cliente
+              </label>
+              <p className="text-gray-900 bg-gray-50 p-3 rounded-md">
+                {briefing.client || 'Não informado'}
+              </p>
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Descrição
+            </label>
+            <p className="text-gray-900 bg-gray-50 p-3 rounded-md">
+              {briefing.description || 'Não informado'}
+            </p>
+          </div>
+          
+          {briefing.updatedAt && (
+            <div className="text-sm text-gray-500">
+              Última atualização: {formatProjectDate(briefing.updatedAt)}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-6">
+            <h3 className="text-blue-800 font-medium mb-2">Nenhum briefing encontrado</h3>
+            <p className="text-blue-600 text-sm">
+              Crie um novo briefing para este evento para começar.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+
+
+
+# Guia de Implementação das Correções
+
+## Resumo das Correções Implementadas
+
+### 1. **Correção do Erro "Invalid time value"**
+- **Problema**: `new Date(project.startDate)` falhava quando `startDate` era inválido
+- **Solução**: Criada função `formatProjectDate()` que valida e trata erros de data
+- **Localização**: `components/timeline-widget.tsx` linha 159
+
+### 2. **Sistema de Persistência de Briefings**
+- **Problema**: Dados armazenados apenas em memória, causando inconsistência entre abas
+- **Solução**: Implementação de persistência em arquivo JSON com APIs robustas
+
+## Arquivos a Serem Criados/Modificados
+
+### Novos Arquivos:
+1. `hooks/useBriefing.ts` - Hook personalizado para gerenciar briefings
+2. `app/api/briefings/[eventId]/route.ts` - API para briefings específicos
+
+### Arquivos a Modificar:
+1. `app/api/briefings/route.ts` - Adicionar persistência real
+2. `components/timeline-widget.tsx` - Corrigir formatação de datas
+3. Todos os componentes de abas - Usar o hook `useBriefing`
+
+## Passos de Implementação
+
+### Passo 1: Criar Estrutura de Dados
+```bash
+# Criar diretório para dados (se não existir)
+mkdir -p data
+```
+
+### Passo 2: Implementar as APIs
+1. Substitua o conteúdo de `app/api/briefings/route.ts`
+2. Crie `app/api/briefings/[eventId]/route.ts`
+
+### Passo 3: Criar o Hook Personalizado
+1. Crie `hooks/useBriefing.ts` (ou `lib/hooks/useBriefing.ts`)
+
+### Passo 4: Corrigir o Widget Timeline
+1. Modifique `components/timeline-widget.tsx`
+2. Substitua a linha 159 problemática
+
+### Passo 5: Atualizar Componentes das Abas
+Para cada aba (BRIEFING, EQUIPE, EDIÇÃO/APROVAÇÃO, ENTREGAS):
+
+```typescript
+// Exemplo de como atualizar qualquer componente de aba
+import { useBriefing } from '../hooks/useBriefing'
+
+export default function MinhaAba({ eventId }) {
+  const { briefing, loading, error, saveBriefing } = useBriefing(eventId)
+  
+  // Usar os dados de briefing em vez de dados hardcode
+  // ...resto do componente
+}
+```
+
+## Verificações de Qualidade
+
+### ✅ Checklist de Implementação:
+
+1. **APIs funcionando**:
+   - [ ] `POST /api/briefings` salva dados corretamente
+   - [ ] `GET /api/briefings?eventId=X` retorna dados específicos
+   - [ ] `GET /api/briefings/[eventId]` funciona via rota dinâmica
+
+2. **Hook personalizado**:
+   - [ ] `useBriefing(eventId)` carrega dados corretamente
+   - [ ] Estados de loading e error funcionam
+   - [ ] Função `saveBriefing` persiste mudanças
+
+3. **Correção de datas**:
+   - [ ] Timeline não gera mais erro "Invalid time value"
+   - [ ] Datas inválidas mostram mensagem apropriada
+
+4. **Sincronização de abas**:
+   - [ ] Todas as abas mostram os mesmos dados atualizados
+   - [ ] Mudanças em uma aba refletem nas outras
+   - [ ] Não há mais dados de exemplo hardcode
+
+### 🧪 Testes Sugeridos:
+
+1. **Teste de Persistência**:
+   ```bash
+   # Criar um briefing via API
+   curl -X POST http://localhost:3000/api/briefings \
+     -H "Content-Type: application/json" \
+     -d '{"eventId":"test-123","projectName":"Teste"}'
+   
+   # Verificar se foi salvo
+   curl http://localhost:3000/api/briefings/test-123
+   ```
+
+2. **Teste de Datas**:
+   - Criar evento com datas válidas e inválidas
+   - Verificar se timeline renderiza sem erros
+
+3. **Teste de Sincronização**:
+   - Criar evento em uma aba
+   - Navegar para outras abas
+   - Verificar se dados aparecem consistentemente
+
+## Melhorias Futuras (Opcionais)
+
+### 1. Migração para Banco de Dados
+```typescript
+// Substitua o sistema de arquivos por:
+// - SQLite para desenvolvimento
+// - PostgreSQL/MySQL para produção
+// - Prisma como ORM
+```
+
+### 2. Validação de Dados
+```typescript
+// Adicione validação com Zod:
+import { z } from 'zod'
+
+const BriefingSchema = z.object({
+  eventId: z.string().min(1),
+  projectName: z.string().optional(),
+  client: z.string().optional(),
+  // ... outros campos
+})
+```
+
+### 3. Cache e Otimização
+```typescript
+// Implemente cache com SWR ou React Query:
+import useSWR from 'swr'
+
+export function useBriefing(eventId: string) {
+  const { data, error, mutate } = useSWR(
+    eventId ? `/api/briefings/${eventId}` : null,
+    fetcher
+  )
+  // ...
+}
+```
+
+### 4. Tempo Real
+```typescript
+// Adicione WebSockets ou Server-Sent Events
+// para sincronização em tempo real entre abas
+```
+
+## Solução de Problemas
+
+### Erro: "Cannot read property of undefined"
+- Verificar se `eventId` está sendo passado corretamente
+- Adicionar verificações de `null/undefined` nos componentes
+
+### Erro: "ENOENT: no such file or directory"
+- Verificar se o diretório `data/` existe
+- Verificar permissões de escrita
+
+### Dados não sincronizam
+- Verificar se todas as abas usam o mesmo hook
+- Verificar se não há dados hardcode restantes
+
+### Performance lenta
+- Implementar debounce no salvamento
+- Considerar cache local com React Query
+
+## Conclusão
+
+Essas correções resolvem:
+1. ✅ Erro de data inválida no timeline
+2. ✅ Inconsistência de dados entre abas  
+3. ✅ Falta de persistência real
+4. ✅ Sistema robusto de gerenciamento de briefings
+
+O sistema agora terá comportamento consistente em todas as abas, com persistência adequada e tratamento de erros robusto.
+
+
+
+Resumo das Correções Implementadas
+Baseado no documento fornecido, identifiquei e corrigi os seguintes problemas:
+🔧 1. Erro "Invalid time value" (Timeline Widget)
+
+Causa: new Date(project.startDate) falhava com valores inválidos
+Solução: Função formatProjectDate() que valida datas antes de formatar
+Resultado: Timeline renderiza sem erros, mostrando mensagens apropriadas para datas inválidas
+
+🔧 2. Inconsistência de Dados Entre Abas
+
+Causa: Dados armazenados apenas em memória, sem persistência real
+Solução: Sistema completo de persistência com:
+
+API robusta com tratamento de erros
+Persistência em arquivo JSON (facilmente migrável para BD)
+Hook personalizado para gerenciamento de estado
+
+
+
+🔧 3. Falta de Padronização no Carregamento
+
+Causa: Cada aba usando métodos diferentes para buscar dados
+Solução: Hook useBriefing() centralizado com:
+
+Estados de loading, error e data consistentes
+Funções de fetch e save padronizadas
+Refetch automático quando necessário
+
+
+
+📁 Arquivos Criados/Modificados:
+
+app/api/briefings/route.ts - API principal com persistência
+app/api/briefings/[eventId]/route.ts - API para eventos específicos
+hooks/useBriefing.ts - Hook personalizado para gerenciar briefings
+components/timeline-widget.tsx - Correção da formatação de datas
+components/BriefingTab.tsx - Exemplo de implementação nas abas
+
+✅ Benefícios das Correções:
+
+Consistência: Todas as abas mostram os mesmos dados atualizados
+Robustez: Tratamento adequado de erros e casos extremos
+Manutenibilidade: Código centralizado e reutilizável
+Escalabilidade: Base sólida para migração futura para banco de dados
+
+As correções seguem as melhores práticas do React/Next.js e são facilmente testáveis e mantíveis. O sistema agora tem comportamento consistente em todas as abas com persistência adequada dos dados.

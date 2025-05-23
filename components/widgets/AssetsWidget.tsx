@@ -411,9 +411,9 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {formatFileSize(asset.size)} •{' '}
-                        {format(new Date(asset.uploadedAt), 'dd/MM/yyyy', {
+                        {asset.uploadedAt ? format(new Date(asset.uploadedAt), 'dd/MM/yyyy', {
                           locale: pt,
-                        })}
+                        }) : 'Data desconhecida'}
                       </div>
                     </div>
                   </div>
