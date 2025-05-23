@@ -18,6 +18,12 @@ Este projeto é uma aplicação web para gerenciar entregas audiovisuais em even
 - **Importação de Vídeos Estáticos**: Importar vídeos existentes da pasta `public/exports/[projectId]/`
 - **Versionamento de Vídeos**: Suporte a múltiplas versões de vídeo por entrega
 - **Aprovação de Vídeos**: Marcar versões específicas como aprovadas
+- **Player de vídeo** com anotações e comentários contextuais
+- **Colaboração em tempo real** usando Socket.io
+- **Anotações visuais** diretamente no vídeo
+- **Comentários com timestamp** vinculados a momentos específicos do vídeo
+- **Sistema de status** para acompanhamento de projetos
+- **Interface responsiva** para desktop e dispositivos móveis
 
 ## Estrutura do Projeto
 
@@ -63,55 +69,11 @@ Para disponibilizar vídeos estáticos de exemplo:
 3. **Execução**: Inicie o servidor de desenvolvimento com `npm run dev`
 4. **Acesso**: Abra `http://localhost:3000` no navegador
 
-## Notas sobre Funcionalidades
+## Melhorias Recentes
 
-- A aplicação não requer autenticação, permitindo o acesso direto às funcionalidades
-- Os vídeos são armazenados apenas durante a sessão (em localStorage para persistência entre recarregamentos)
-- A interface de Edição/Aprovação permite selecionar qual versão de vídeo está ativa e aprovar versões específicas
-
-- **Player de vídeo** com anotações e comentários contextuais
-- **Colaboração em tempo real** usando Socket.io
-- **Anotações visuais** diretamente no vídeo
-- **Comentários com timestamp** vinculados a momentos específicos do vídeo
-- **Sistema de status** para acompanhamento de projetos
-- **Interface responsiva** para desktop e dispositivos móveis
-
-## Melhorias Implementadas
-
-### 1. Estrutura de Projeto Melhorada
-
-- Organização baseada em features para melhor escalabilidade
-- Separação clara de responsabilidades
-
-### 2. TypeScript Aprimorado
-
-- Configurações mais rigorosas para capturar mais erros em tempo de desenvolvimento
-- Tipagem adequada para todas as entidades
-
-### 3. Gerenciamento de Estado
-
-- Implementação do Zustand para estado global
-- Stores separadas para diferentes domínios:
-  - `useAuthStore` para autenticação
-  - `useProjectsStore` para projetos, comentários e anotações
-  - `useCollaborationStore` para colaboração em tempo real
-  - `useUIStore` para estado da interface
-
-### 4. API e Integração Backend
-
-- Serviços abstraídos com React Query para cache e gerenciamento de estado de servidor
-- Simulações para desenvolvimento local
-- Estrutura pronta para integração com API real
-
-### 5. Validação de Formulários
-
-- React Hook Form com Zod para validação robusta
-- Feedback de validação em tempo real para usuários
-
-### 6. Responsividade
-
-- Detecção avançada de dispositivos
-- Adaptação de UI para diferentes tamanhos de tela
+- **Adição de Geração de Timeline**: Agora é possível gerar timelines diretamente a partir do briefing.
+- **Correções de Bugs**: Ajustes em validações de formulários e melhorias na responsividade.
+- **Otimizações de Performance**: Redução de tempo de carregamento e melhorias no gerenciamento de estado.
 
 ## Executando o Projeto
 
@@ -128,11 +90,6 @@ npm run build
 # Iniciar versão de produção
 npm start
 ```
-
-## Credenciais de Demo
-
-- **Email**: admin@gonetwork.ai
-- **Senha**: admin
 
 ---
 
