@@ -25,7 +25,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useUIStore } from '@/store/useUIStore'
-import { useProjectsStore } from '@/store/projects-store'
+import { useProjectsStore } from '@/store/useProjectsStoreUnified'
 import { toast } from '@/components/ui/use-toast'
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -304,8 +304,9 @@ export default function EventsWidget() {
     }
 
     // Criar o novo projeto com os campos básicos
+    const eventId = `evt-${Date.now().toString().slice(-6)}`
     const newProject = {
-      id: `evt-${Date.now().toString().slice(-6)}`,
+      id: eventId,
       name: newEvent.name,
       startDate: newEvent.startDate,
       endDate: newEvent.endDate || newEvent.startDate,
@@ -319,7 +320,16 @@ export default function EventsWidget() {
       briefing: {},
       timeline: [],
       teamMembers: [],
-      deliverables: []
+      deliverables: [],
+      // Adicionar o próprio projeto como um evento para aparecer no widget de briefing
+      events: [
+        {
+          id: eventId,
+          name: newEvent.name,
+          date: newEvent.startDate,
+          location: newEvent.location
+        }
+      ]
     }
     
     // Adicionar o projeto via store
@@ -502,7 +512,7 @@ export default function EventsWidget() {
                 id="event-name"
                 value={newEvent.name} 
                 onChange={e => setNewEvent(v => ({ ...v, name: e.target.value }))} 
-                placeholder="Ex: Festival de Verão 2025"
+                placeholder="Ex: Nome do Evento 2025"
               />
             </div>
             

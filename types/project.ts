@@ -1,9 +1,22 @@
+// Event interface - Para gerenciamento de eventos
+export interface Event {
+  id: string
+  name: string
+  date: string
+  // Campos opcionais que podem ser úteis
+  location?: string
+  description?: string
+  type?: string
+}
+
 // Phase interface - Para Timeline
 export interface Phase {
+  id: string
   name: string
-  plannedStart: Date
-  plannedEnd: Date
+  start: string 
+  end: string
   completed: boolean
+  duration?: number
 }
 
 // Task interface - Para sistema de workflow
@@ -66,6 +79,15 @@ export interface VideoDeliverable {
   tags?: string[] // Tags para categorização
 }
 
+export interface TeamMember {
+  id: string
+  name: string
+  email?: string
+  role: string
+  avatar?: string
+  addedAt?: string
+}
+
 export interface Project {
   id: string
   title: string
@@ -79,15 +101,20 @@ export interface Project {
   videoUrl?: string
   thumbnailUrl?: string
   deadline?: string
+  startDate?: string
+  endDate?: string
   eventDate?: Date
   finalDueDate?: Date
   timeline: Phase[]
   videos: VideoDeliverable[]
   tasks?: Task[] // Adicionado para o sistema de tarefas
+  events?: Event[] // Adicionado para gerenciar eventos associados ao projeto
   briefing?: {
     createdAt: string
     content: string
   } | null
+  teamMembers?: TeamMember[] // Adicionado para gestão de equipe do projeto
+  team?: number // Contador de membros da equipe
   annotations?: Annotation[] // Adicionado para suporte a anotações
   assets?: Asset[] // Adicionado para suporte a assets
 }

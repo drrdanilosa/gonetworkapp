@@ -19,6 +19,7 @@ import { Clock, Save, Trash2, Plus, FileText } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import GeneralInfoTab from '@/features/briefing/components/GeneralInfoTab'
 import { useUIStore } from '@/store/useUIStore'
+import { useProjectsStore } from '@/store/useProjectsStoreUnified'
 import { toast } from '@/components/ui/use-toast'
 import { v4 as uuidv4 } from 'uuid'
 import { cn } from '@/lib/utils'
@@ -90,12 +91,11 @@ type BriefingWidgetProps = {
  * - Entregas em tempo real e pós-evento
  */
 export function BriefingWidget({ projectId }: BriefingWidgetProps) {
-  // Dados de eventos de exemplo
-  const [events, setEvents] = useState<Event[]>([
-    { id: '123', name: 'Festival de Verão', date: '2023-12-15' },
-    { id: '456', name: 'Conferência Tech', date: '2024-01-20' },
-    { id: '789', name: 'Feira Gastronômica', date: '2024-02-10' }
-  ])
+  // Usar store unificado
+  const { projects, updateProject } = useProjectsStore()
+  
+  // Obter o projeto atual a partir do ID recebido
+  const currentProject = projects.find(p => p.id === projectId)
 
   // Estado da aba de estilo visual
   const [visualStyle, setVisualStyle] = useState<string>('')
@@ -376,6 +376,38 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
     }
   }, [sponsors, realTimeDeliveries, stages])
 
+  // Obter eventos do store global
+  const events = projects.flatMap(project => 
+    project.events?.map(event => ({
+      id: event.id,
+      name: event.name,
+      date: event.date
+    })) || []
+  )
+
+  // Adicionar eventos automaticamente para projetos que não possuem a propriedade events
+  useEffect(() => {
+    // Encontrar projetos sem a propriedade events ou com array events vazio
+    const projectsWithoutEvents = projects.filter(p => !p.events || p.events.length === 0);
+    
+    if (projectsWithoutEvents.length > 0) {
+      // Para cada projeto, criar um evento a partir dos dados do projeto
+      projectsWithoutEvents.forEach(project => {
+        const { id, name, startDate } = project;
+        if (id && name) {
+          // Atualizar o projeto adicionando um evento baseado no próprio projeto
+          updateProject(id, {
+            events: [{
+              id,
+              name,
+              date: startDate || new Date().toISOString()
+            }]
+          });
+        }
+      });
+    }
+  }, [projects, updateProject]);
+
   return (
     <div className="animate-in fade-in-50 duration-300">
       <div className="flex justify-between items-center mb-4">
@@ -463,14 +495,20 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
           }}
         >
           <SelectTrigger id="event-select" className="w-[350px]">
-            <SelectValue placeholder="Selecione um evento" />
+            <SelectValue placeholder={events.length > 0 ? "Selecione um evento" : "Nenhum evento disponível"} />
           </SelectTrigger>
           <SelectContent>
-            {events.map((event) => (
-              <SelectItem key={event.id} value={event.id}>
-                {event.name} ({event.date})
-              </SelectItem>
-            ))}
+            {events.length > 0 ? (
+              events.map((event) => (
+                <SelectItem key={event.id} value={event.id}>
+                  {event.name} ({event.date})
+                </SelectItem>
+              ))
+            ) : (
+              <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                Nenhum evento disponível
+              </div>
+            )}
           </SelectContent>
         </Select>
       </div>
