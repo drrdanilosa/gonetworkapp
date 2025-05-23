@@ -121,7 +121,7 @@ export default function TimelineWidget() {
     const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(dataStr)
     
     const fileName = `timeline-${selectedProject.name.replace(/\s+/g, '-').toLowerCase()}-${
-      formatDate(new Date(), 'yyyy-MM-dd', {}, format(new Date(), 'yyyy-MM-dd'))
+      formatProjectDate(new Date()).replace(/\s+/g, '-')
     }.json`
     
     // Criar um elemento de link e clicar nele para iniciar o download

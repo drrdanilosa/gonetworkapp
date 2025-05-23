@@ -51,12 +51,20 @@ export default function Home() {
               {projects.map(project => (
                 <li
                   key={project.id}
-                  className="flex items-center justify-between"
+                  className="flex items-center justify-between p-4 bg-card rounded-lg mb-3 shadow-sm"
                 >
-                  <span>{project.name}</span>
-                  <Button onClick={() => selectProject(project.id)}>
-                    Selecionar
-                  </Button>
+                  <span className="font-medium">{project.name}</span>
+                  <div className="flex space-x-2">
+                    <Button 
+                      variant="outline"
+                      onClick={() => router.push(`/eventos/${project.id}/gerenciar`)}
+                    >
+                      Gerenciar
+                    </Button>
+                    <Button onClick={() => selectProject(project.id)}>
+                      Selecionar
+                    </Button>
+                  </div>
                 </li>
               ))}
             </ul>
