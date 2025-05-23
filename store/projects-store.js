@@ -1,0 +1,171 @@
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+
+export const useProjectsStore = create(
+  persist(
+    (set) => ({
+      // Lista de projetos/eventos
+      projects: [],
+      
+      // Adicionar novo projeto
+      addProject: (project) => set((state) => ({
+        projects: [project, ...state.projects]
+      })),
+      
+      // Atualizar projeto existente
+      updateProject: (projectId, data) => set((state) => ({
+        projects: state.projects.map(project => 
+          project.id === projectId ? { ...project, ...data } : project
+        )
+      })),
+      
+      // Remover projeto
+      removeProject: (projectId) => set((state) => ({
+        projects: state.projects.filter(project => project.id !== projectId)
+      })),
+      
+      // Adicionar ou atualizar briefing
+      updateBriefing: (projectId, briefingData) => set((state) => ({
+        projects: state.projects.map(project => 
+          project.id === projectId 
+            ? { ...project, briefing: { ...project.briefing, ...briefingData } } 
+            : project
+        )
+      })),
+      
+      // Gerar timeline a partir do briefing
+      generateScheduleFromBriefing: (projectId) => set((state) => {
+        const project = state.projects.find(p => p.id === projectId)
+        if (!project || !project.briefing) return state
+        
+        // Lógica para gerar timeline a partir do briefing
+        const timeline = []
+        
+        // Exemplo: criar fases baseadas nas datas do evento
+        if (project.startDate && project.endDate) {
+          // Fase de preparação
+          timeline.push({
+            id: `phase-prep-${Date.now()}`,
+            name: 'Preparação',
+            start: new Date(new Date(project.startDate).getTime() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+            end: project.startDate,
+            completed: false,
+            duration: 20, // percentual da duração total
+          })
+          
+          // Fase do evento
+          timeline.push({
+            id: `phase-event-${Date.now()}`,
+            name: 'Evento',
+            start: project.startDate,
+            end: project.endDate,
+            completed: false,
+            duration: 30,
+          })
+          
+          // Fase de pós-produção
+          timeline.push({
+            id: `phase-post-${Date.now()}`,
+            name: 'Pós-Produção',
+            start: project.endDate,
+            end: new Date(new Date(project.endDate).getTime() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+            completed: false,
+            duration: 50,
+          })
+        }
+        
+        return {
+          projects: state.projects.map(p => 
+            p.id === projectId ? { ...p, timeline } : p
+          )
+        }
+      }),
+      
+      // Adicionar vídeo a um projeto
+      addVideoToProject: (projectId, videoData) => set((state) => {
+        const project = state.projects.find(p => p.id === projectId)
+        if (!project) return state
+        
+        const newDeliverables = [...(project.deliverables || []), {
+          id: `video-${Date.now()}`,
+          type: 'video',
+          ...videoData,
+          status: 'draft',
+          createdAt: new Date().toISOString()
+        }]
+        
+        return {
+          projects: state.projects.map(p => 
+            p.id === projectId 
+              ? { 
+                ...p, 
+                deliverables: newDeliverables,
+                deliveries: (p.deliveries || 0) + 1
+              } 
+              : p
+          )
+        }
+      }),
+      
+      // Atualizar status de entrega de vídeo
+      updateDeliverableStatus: (projectId, deliverableId, status) => set((state) => {
+        const project = state.projects.find(p => p.id === projectId)
+        if (!project || !project.deliverables) return state
+        
+        const wasCompleted = project.deliverables.find(
+          d => d.id === deliverableId
+        )?.status === 'approved'
+        
+        const isCompleted = status === 'approved'
+        
+        // Atualizar contador de concluídos
+        let completedDelta = 0
+        if (isCompleted && !wasCompleted) completedDelta = 1
+        if (!isCompleted && wasCompleted) completedDelta = -1
+        
+        return {
+          projects: state.projects.map(p => 
+            p.id === projectId 
+              ? { 
+                ...p, 
+                deliverables: p.deliverables.map(d => 
+                  d.id === deliverableId ? { ...d, status } : d
+                ),
+                completed: Math.max(0, (p.completed || 0) + completedDelta)
+              } 
+              : p
+          )
+        }
+      }),
+      
+      // Adicionar membro à equipe do projeto
+      addTeamMember: (projectId, member) => set((state) => {
+        const project = state.projects.find(p => p.id === projectId)
+        if (!project) return state
+        
+        const teamMembers = [...(project.teamMembers || []), {
+          id: member.id || `member-${Date.now()}`,
+          ...member,
+          addedAt: new Date().toISOString()
+        }]
+        
+        return {
+          projects: state.projects.map(p => 
+            p.id === projectId 
+              ? { 
+                ...p, 
+                teamMembers,
+                team: teamMembers.length
+              } 
+              : p
+          )
+        }
+      }),
+    }),
+    {
+      name: 'projects-storage',
+      // Opcionalmente, definir a versão para migrações futuras
+      version: 1,
+    }
+  )
+)

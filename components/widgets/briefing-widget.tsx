@@ -22,6 +22,7 @@ import { useUIStore } from '@/store/useUIStore'
 import { toast } from '@/components/ui/use-toast'
 import { v4 as uuidv4 } from 'uuid'
 import { cn } from '@/lib/utils'
+import GenerateTimelineButton from './GenerateTimelineButton'
 
 // Definições de tipos
 type Event = {
@@ -385,14 +386,34 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
           </p>
         </div>
 
-        <Button 
-          onClick={handleSaveBriefing} 
-          disabled={isSaving}
-          className="transition-all"
-        >
-          <Save className={cn("h-4 w-4 mr-2", isSaving && "animate-spin")} />
-          {isSaving ? "Salvando..." : "Salvar Briefing"}
-        </Button>
+        <div className="flex gap-2">
+          <GenerateTimelineButton 
+            projectId={projectId} 
+            disabled={isSaving}
+            onGenerated={(success) => {
+              if (success) {
+                toast({
+                  title: "Timeline gerada",
+                  description: "A timeline foi gerada com sucesso com base no briefing.",
+                });
+              } else {
+                toast({
+                  title: "Erro ao gerar timeline",
+                  description: "Não foi possível gerar a timeline. Tente novamente.",
+                  variant: "destructive"
+                });
+              }
+            }}
+          />
+          <Button 
+            onClick={handleSaveBriefing} 
+            disabled={isSaving}
+            className="transition-all"
+          >
+            <Save className={cn("h-4 w-4 mr-2", isSaving && "animate-spin")} />
+            {isSaving ? "Salvando..." : "Salvar Briefing"}
+          </Button>
+        </div>
       </div>
       
       {/* Estatísticas do briefing */}
@@ -457,10 +478,7 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
       {/* Tabs principais */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6 w-full">
-          <TabsTrigger value="general">
-            <FileText className="h-4 w-4 mr-2" />
-            Informações Gerais
-          </TabsTrigger>
+          <TabsTrigger value="general">Informações Gerais</TabsTrigger>
           <TabsTrigger value="style">Estilo Visual</TabsTrigger>
           <TabsTrigger value="sponsors">Patrocinadores</TabsTrigger>
           <TabsTrigger value="schedule">Programação</TabsTrigger>
@@ -484,7 +502,7 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                 id="visual-style"
                 placeholder="Descreva aqui o estilo visual, identidade e linguagem desejados para as entregas..."
                 value={visualStyle}
-                onChange={e => setVisualStyle(e.target.value)}
+                onChange={(e) => setVisualStyle(e.target.value)}
                 className="min-h-[150px]"
               />
             </div>
@@ -843,16 +861,14 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                     <div className="flex items-center gap-2">
                       <Label>Palco:</Label>
                       <Input 
-                        className="w-[250px]" 
+                        className="w-[250px]"
                         value={stage.name}
-                        onChange={e => {
+                        onChange={(e) => {
                           setStages(
-                            stages.map(s => 
-                              s.id === stage.id 
-                                ? { ...s, name: e.target.value }
-                                : s
+                            stages.map((s) =>
+                              s.id === stage.id ? { ...s, name: e.target.value } : s
                             )
-                          )
+                          );
                         }}
                       />
                     </div>
@@ -892,21 +908,21 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                                 id={`artist-${attraction.id}`}
                                 placeholder="Nome do artista/atração"
                                 value={attraction.name}
-                                onChange={e => {
+                                onChange={(e) => {
                                   setStages(
-                                    stages.map(s => 
-                                      s.id === stage.id 
-                                        ? { 
-                                            ...s, 
-                                            attractions: s.attractions.map(a => 
-                                              a.id === attraction.id 
+                                    stages.map((s) =>
+                                      s.id === stage.id
+                                        ? {
+                                            ...s,
+                                            attractions: s.attractions.map((a) =>
+                                              a.id === attraction.id
                                                 ? { ...a, name: e.target.value }
                                                 : a
-                                            ) 
+                                            ),
                                           }
                                         : s
                                     )
-                                  )
+                                  );
                                 }}
                               />
                             </div>
