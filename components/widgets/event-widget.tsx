@@ -438,12 +438,11 @@ export default function EventsWidget() {
                     </div>
                     <Progress 
                       value={calculateCompletionRate(event.completed, event.deliveries)} 
-                      className="h-2"
-                      indicatorClassName={
+                      className={`h-2 ${
                         event.completed === event.deliveries && event.deliveries > 0
-                          ? "bg-green-500"
-                          : undefined
-                      }
+                          ? "bg-muted [&>div]:bg-green-500"
+                          : ""
+                      }`}
                     />
                   </div>
                   
