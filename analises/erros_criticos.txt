@@ -1,0 +1,189 @@
+⚠️ Pontos que Precisam de Atenção:
+1. Correção do Timeline Widget (CRÍTICO)
+O erro original "Invalid time value" ainda não foi completamente resolvido. Precisa:
+
+
+// components/widgets/timeline-widget.tsx
+// Adicione essas importações no topo do arquivo
+import { format, isValid, parseISO } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+
+// Adicione esta função auxiliar antes do componente TimelineWidget
+const formatProjectDate = (dateValue: any): string => {
+  if (!dateValue) return 'Data não informada'
+  
+  try {
+    // Tenta diferentes formatos de data
+    let date: Date
+    
+    if (typeof dateValue === 'string') {
+      // Tenta ISO primeiro, depois new Date
+      date = dateValue.includes('T') || dateValue.includes('-') 
+        ? parseISO(dateValue) 
+        : new Date(dateValue)
+    } else {
+      date = new Date(dateValue)
+    }
+    
+    // Verifica se a data é válida
+    if (!isValid(date) || isNaN(date.getTime())) {
+      return 'Data inválida'
+    }
+    
+    return format(date, 'dd MMM yyyy', { locale: ptBR })
+  } catch (error) {
+    console.warn('Erro ao formatar data:', dateValue, error)
+    return 'Data não disponível'
+  }
+}
+
+// No componente TimelineWidget, substitua a linha 159:
+// ANTES (linha que causa erro):
+// {project.name} - {format(new Date(project.startDate), 'dd MMM yyyy', { locale: ptBR })}
+
+// DEPOIS (linha corrigida):
+// {project.name} - {formatProjectDate(project.startDate)}
+
+// Exemplo de como deve ficar o trecho completo:
+/*
+projects.map(project => (
+  <SelectItem key={project.id} value={project.id}>
+    {project.name} - {formatProjectDate(project.startDate)}
+  </SelectItem>
+))
+*/
+
+
+
+
+2. Verificação de Dependências
+Certifique-se de que as dependências necessárias estão instaladas:
+npm install date-fns
+# ou
+yarn add date-fns
+
+3. Implementação nas Abas Restantes
+O documento menciona que as abas BRIEFING, EQUIPE, EDIÇÃO/APROVAÇÃO e ENTREGAS precisam usar o hook. Precisamos:
+
+
+
+// Exemplo para as abas restantes que precisam ser atualizadas:
+
+// 1. components/tabs/EquipeTab.tsx
+import React from 'react'
+import { useBriefing } from '../../hooks/useBriefing'
+
+interface EquipeTabProps {
+  eventId: string
+}
+
+export default function EquipeTab({ eventId }: EquipeTabProps) {
+  const { briefing, loading, error } = useBriefing(eventId)
+  
+  if (loading) return <div>Carregando equipe...</div>
+  if (error) return <div>Erro: {error}</div>
+  
+  return (
+    <div>
+      <h2>Equipe do Evento</h2>
+      {briefing?.team ? (
+        <div>{/* Renderizar dados da equipe do briefing real */}</div>
+      ) : (
+        <div>Nenhuma equipe definida ainda.</div>
+      )}
+    </div>
+  )
+}
+
+// 2. components/tabs/EdicaoAprovacaoTab.tsx
+import React from 'react'
+import { useBriefing } from '../../hooks/useBriefing'
+
+interface EdicaoAprovacaoTabProps {
+  eventId: string
+}
+
+export default function EdicaoAprovacaoTab({ eventId }: EdicaoAprovacaoTabProps) {
+  const { briefing, loading, error } = useBriefing(eventId)
+  
+  if (loading) return <div>Carregando informações de edição...</div>
+  if (error) return <div>Erro: {error}</div>
+  
+  return (
+    <div>
+      <h2>Edição e Aprovação</h2>
+      {briefing?.editorialInfo ? (
+        <div>{/* Renderizar dados editoriais do briefing real */}</div>
+      ) : (
+        <div>Nenhuma informação editorial ainda.</div>
+      )}
+    </div>
+  )
+}
+
+// 3. components/tabs/EntregasTab.tsx
+import React from 'react'
+import { useBriefing } from '../../hooks/useBriefing'
+
+interface EntregasTabProps {
+  eventId: string
+}
+
+export default function EntregasTab({ eventId }: EntregasTabProps) {
+  const { briefing, loading, error } = useBriefing(eventId)
+  
+  if (loading) return <div>Carregando entregas...</div>
+  if (error) return <div>Erro: {error}</div>
+  
+  return (
+    <div>
+      <h2>Entregas do Projeto</h2>
+      {briefing?.deliveries ? (
+        <div>{/* Renderizar dados de entregas do briefing real */}</div>
+      ) : (
+        <div>Nenhuma entrega definida ainda.</div>
+      )}
+    </div>
+  )
+}
+
+// IMPORTANTE: Remova todos os dados hardcode/exemplo destas abas
+// Substitua por dados vindos do briefing via hook useBriefing
+
+
+
+
+4. Estrutura de Diretórios
+Verifique se os diretórios estão criados corretamente:
+
+# Criar estruturas necessárias
+mkdir -p data
+mkdir -p hooks
+mkdir -p app/api/briefings
+
+
+📋 Checklist de Implementação Restante:
+✅ Já Implementado:
+
+ API de persistência (/api/briefings/route.ts)
+ API específica por evento (/api/briefings/[eventId]/route.ts)
+ Hook personalizado (hooks/useBriefing.ts)
+ Exemplo de componente BriefingTab
+
+⚠️ Ainda Precisa:
+
+ Correção específica do timeline-widget.tsx (linha 159)
+ Atualização das abas restantes (Equipe, Edição, Entregas)
+ Remoção de dados hardcode/exemplo das abas
+ Teste das APIs criadas
+
+🔧 Próximos Passos Recomendados:
+
+Aplicar a correção do timeline widget (mais crítico)
+Testar as APIs com Postman ou curl
+Atualizar cada aba para usar o hook useBriefing
+Remover dados de exemplo hardcode
+Testar sincronização entre abas
+
+✅ Conclusão:
+O caminho está correto e bem estruturado. A base foi implementada adequadamente, mas precisa finalizar a correção específica do erro de data e a integração completa nas abas. As correções implementadas seguem as melhores práticas e resolverão o problema de inconsistência de dados entre as abas quando completamente aplicadas.

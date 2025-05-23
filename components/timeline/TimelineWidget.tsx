@@ -86,185 +86,212 @@ export default function TimelineWidget({
   useEffect(() => {
     if (!selectedEvent) return
     
-    // Em uma aplicação real, buscaria dados da API
+    // Buscar dados da timeline da API
     const fetchTimelineData = async () => {
       try {
-        // Mock de chamada API para buscar dados baseados no ID do evento
-        // const response = await fetch(`/api/events/${selectedEvent}/timeline`)
-        // const data = await response.json()
+        const response = await fetch(`/api/timeline/${selectedEvent}`)
+        const data = await response.json()
         
-        // Para demonstração, usamos dados de exemplo
-        const mockData: TimelineData = {
-          projectId: selectedEvent,
-          projectName: events.find(e => e.id === selectedEvent)?.name || "",
-          phases: [
-            {
-              id: "phase1",
-              name: "Planejamento",
-              plannedStart: new Date(2025, 4, 1), // 1 de maio
-              plannedEnd: new Date(2025, 4, 10), // 10 de maio
-              completed: true
-            },
-            {
-              id: "phase2",
-              name: "Pré-produção",
-              plannedStart: new Date(2025, 4, 10), // 10 de maio
-              plannedEnd: new Date(2025, 4, 15), // 15 de maio
-              completed: true
-            },
-            {
-              id: "phase3",
-              name: "Evento",
-              plannedStart: new Date(2025, 4, 18), // 18 de maio
-              plannedEnd: new Date(2025, 4, 20), // 20 de maio
-              completed: false
-            },
-            {
-              id: "phase4",
-              name: "Pós-produção",
-              plannedStart: new Date(2025, 4, 21), // 21 de maio
-              plannedEnd: new Date(2025, 4, 28), // 28 de maio
-              completed: false
-            }
-          ],
-          tasks: [
-            {
-              id: "task1",
-              name: "Captação - Palco Principal",
-              memberId: "joao",
-              memberName: "João Silva",
-              memberRole: "Cinegrafia",
-              startTime: "12:00",
-              endTime: "14:00",
-              type: "captacao",
-              status: "andamento",
-              date: new Date(2025, 4, 18) // 18 de maio
-            },
-            {
-              id: "task2",
-              name: "Patrocinador A - Stand",
-              memberId: "joao",
-              memberName: "João Silva",
-              memberRole: "Cinegrafia",
-              startTime: "14:00",
-              endTime: "15:00",
-              type: "captacao",
-              status: "pendente",
-              date: new Date(2025, 4, 18) // 18 de maio
-            },
-            {
-              id: "task3",
-              name: "Captação - Backstage",
-              memberId: "joao",
-              memberName: "João Silva",
-              memberRole: "Cinegrafia",
-              startTime: "17:00",
-              endTime: "19:00",
-              type: "captacao",
-              status: "pendente",
-              date: new Date(2025, 4, 19) // 19 de maio
-            },
-            {
-              id: "task4",
-              name: "Edição - Abertura",
-              memberId: "maria",
-              memberName: "Maria Souza",
-              memberRole: "Edição",
-              startTime: "12:30",
-              endTime: "14:30",
-              type: "edicao",
-              status: "andamento",
-              date: new Date(2025, 4, 18) // 18 de maio
-            },
-            {
-              id: "task5",
-              name: "Entrega - Reels",
-              memberId: "maria",
-              memberName: "Maria Souza",
-              memberRole: "Edição",
-              startTime: "15:00",
-              endTime: "15:30",
-              type: "entrega",
-              status: "pendente",
-              date: new Date(2025, 4, 18) // 18 de maio
-            },
-            {
-              id: "task6",
-              name: "Edição - Teaser Final",
-              memberId: "maria",
-              memberName: "Maria Souza",
-              memberRole: "Edição",
-              startTime: "18:00",
-              endTime: "20:00",
-              type: "edicao",
-              status: "andamento",
-              date: new Date(2025, 4, 19) // 19 de maio
-            },
-            {
-              id: "task7",
-              name: "Captação Drone - Área Externa",
-              memberId: "carlos",
-              memberName: "Carlos Lima",
-              memberRole: "Drone",
-              startTime: "13:00",
-              endTime: "14:00",
-              type: "captacao",
-              status: "andamento",
-              date: new Date(2025, 4, 18) // 18 de maio
-            },
-            {
-              id: "task8",
-              name: "Captação Drone - Vista Geral",
-              memberId: "carlos",
-              memberName: "Carlos Lima",
-              memberRole: "Drone",
-              startTime: "16:00",
-              endTime: "16:30",
-              type: "captacao",
-              status: "atrasado",
-              date: new Date(2025, 4, 19) // 19 de maio
-            },
-            {
-              id: "task9",
-              name: "Aprovação - Material Inicial",
-              memberId: "ana",
-              memberName: "Ana Costa",
-              memberRole: "Coordenação",
-              startTime: "12:50",
-              endTime: "13:20",
-              type: "aprovacao",
-              status: "concluido",
-              date: new Date(2025, 4, 18) // 18 de maio
-            },
-            {
-              id: "task10",
-              name: "Entrega - Stories",
-              memberId: "ana",
-              memberName: "Ana Costa",
-              memberRole: "Coordenação",
-              startTime: "14:30",
-              endTime: "15:00",
-              type: "entrega",
-              status: "concluido",
-              date: new Date(2025, 4, 18) // 18 de maio
-            },
-            {
-              id: "task11",
-              name: "Aprovação - Teaser",
-              memberId: "ana",
-              memberName: "Ana Costa",
-              memberRole: "Coordenação",
-              startTime: "19:00",
-              endTime: "20:00",
-              type: "aprovacao",
-              status: "pendente",
-              date: new Date(2025, 4, 19) // 19 de maio
-            }
-          ],
-          finalDueDate: new Date(2025, 4, 28) // 28 de maio
+        if (data.success && data.timeline) {
+          setTimelineData({
+            projectId: selectedEvent,
+            projectName: events.find(e => e.id === selectedEvent)?.name || "",
+            phases: data.timeline.map((phase: any) => ({
+              id: phase.id,
+              name: phase.name,
+              plannedStart: new Date(phase.startDate),
+              plannedEnd: new Date(phase.endDate),
+              completed: phase.status === 'completed'
+            })),
+            tasks: data.timeline.flatMap((phase: any) => 
+              (phase.tasks || []).map((task: any) => ({
+                id: task.id,
+                name: task.name,
+                memberId: task.memberId || "unassigned",
+                memberName: task.memberName || "Não atribuído",
+                memberRole: task.memberRole || "N/A",
+                startTime: task.startTime || "00:00",
+                endTime: task.endTime || "23:59",
+                type: task.type || "outro",
+                status: task.status || "pendente",
+                date: new Date(task.dueDate)
+              }))
+            )
+          })
+        } else {
+          // Caso a API retorne dados vazios, usamos os dados de exemplo
+          const mockData: TimelineData = {
+            projectId: selectedEvent,
+            projectName: events.find(e => e.id === selectedEvent)?.name || "",
+            phases: [
+              {
+                id: "phase1",
+                name: "Planejamento",
+                plannedStart: new Date(2025, 4, 1), // 1 de maio
+                plannedEnd: new Date(2025, 4, 10), // 10 de maio
+                completed: true
+              },
+              {
+                id: "phase2",
+                name: "Pré-produção",
+                plannedStart: new Date(2025, 4, 10), // 10 de maio
+                plannedEnd: new Date(2025, 4, 15), // 15 de maio
+                completed: true
+              },
+              {
+                id: "phase3",
+                name: "Evento",
+                plannedStart: new Date(2025, 4, 18), // 18 de maio
+                plannedEnd: new Date(2025, 4, 20), // 20 de maio
+                completed: false
+              },
+              {
+                id: "phase4",
+                name: "Pós-produção",
+                plannedStart: new Date(2025, 4, 21), // 21 de maio
+                plannedEnd: new Date(2025, 4, 28), // 28 de maio
+                completed: false
+              }
+            ],
+            tasks: [
+              {
+                id: "task1",
+                name: "Captação - Palco Principal",
+                memberId: "joao",
+                memberName: "João Silva",
+                memberRole: "Cinegrafia",
+                startTime: "12:00",
+                endTime: "14:00",
+                type: "captacao",
+                status: "andamento",
+                date: new Date(2025, 4, 18) // 18 de maio
+              },
+              {
+                id: "task2",
+                name: "Patrocinador A - Stand",
+                memberId: "joao",
+                memberName: "João Silva",
+                memberRole: "Cinegrafia",
+                startTime: "14:00",
+                endTime: "15:00",
+                type: "captacao",
+                status: "pendente",
+                date: new Date(2025, 4, 18) // 18 de maio
+              },
+              {
+                id: "task3",
+                name: "Captação - Backstage",
+                memberId: "joao",
+                memberName: "João Silva",
+                memberRole: "Cinegrafia",
+                startTime: "17:00",
+                endTime: "19:00",
+                type: "captacao",
+                status: "pendente",
+                date: new Date(2025, 4, 19) // 19 de maio
+              },
+              {
+                id: "task4",
+                name: "Edição - Abertura",
+                memberId: "maria",
+                memberName: "Maria Souza",
+                memberRole: "Edição",
+                startTime: "12:30",
+                endTime: "14:30",
+                type: "edicao",
+                status: "andamento",
+                date: new Date(2025, 4, 18) // 18 de maio
+              },
+              {
+                id: "task5",
+                name: "Entrega - Reels",
+                memberId: "maria",
+                memberName: "Maria Souza",
+                memberRole: "Edição",
+                startTime: "15:00",
+                endTime: "15:30",
+                type: "entrega",
+                status: "pendente",
+                date: new Date(2025, 4, 18) // 18 de maio
+              },
+              {
+                id: "task6",
+                name: "Edição - Teaser Final",
+                memberId: "maria",
+                memberName: "Maria Souza",
+                memberRole: "Edição",
+                startTime: "18:00",
+                endTime: "20:00",
+                type: "edicao",
+                status: "andamento",
+                date: new Date(2025, 4, 19) // 19 de maio
+              },
+              {
+                id: "task7",
+                name: "Captação Drone - Área Externa",
+                memberId: "carlos",
+                memberName: "Carlos Lima",
+                memberRole: "Drone",
+                startTime: "13:00",
+                endTime: "14:00",
+                type: "captacao",
+                status: "andamento",
+                date: new Date(2025, 4, 18) // 18 de maio
+              },
+              {
+                id: "task8",
+                name: "Captação Drone - Vista Geral",
+                memberId: "carlos",
+                memberName: "Carlos Lima",
+                memberRole: "Drone",
+                startTime: "16:00",
+                endTime: "16:30",
+                type: "captacao",
+                status: "atrasado",
+                date: new Date(2025, 4, 19) // 19 de maio
+              },
+              {
+                id: "task9",
+                name: "Aprovação - Material Inicial",
+                memberId: "ana",
+                memberName: "Ana Costa",
+                memberRole: "Coordenação",
+                startTime: "12:50",
+                endTime: "13:20",
+                type: "aprovacao",
+                status: "concluido",
+                date: new Date(2025, 4, 18) // 18 de maio
+              },
+              {
+                id: "task10",
+                name: "Entrega - Stories",
+                memberId: "ana",
+                memberName: "Ana Costa",
+                memberRole: "Coordenação",
+                startTime: "14:30",
+                endTime: "15:00",
+                type: "entrega",
+                status: "concluido",
+                date: new Date(2025, 4, 18) // 18 de maio
+              },
+              {
+                id: "task11",
+                name: "Aprovação - Teaser",
+                memberId: "ana",
+                memberName: "Ana Costa",
+                memberRole: "Coordenação",
+                startTime: "19:00",
+                endTime: "20:00",
+                type: "aprovacao",
+                status: "pendente",
+                date: new Date(2025, 4, 19) // 19 de maio
+              }
+            ],
+            finalDueDate: new Date(2025, 4, 28) // 28 de maio
+          }
+          
+          setTimelineData(mockData)
         }
-        
-        setTimelineData(mockData)
       } catch (error) {
         console.error("Erro ao buscar dados da timeline:", error)
       }

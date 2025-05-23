@@ -1,10 +1,6 @@
 'use client'
 
-'use client'
-
-"use client"
-
-import { useEffect } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useProjectsStore } from '@/store/useProjectsStoreUnified'
 import { DeliverableActions } from '@/components/video/DeliverableActions'
 import { CommentItem } from '@/components/video/CommentItem'
@@ -12,144 +8,281 @@ import { TaskList } from '@/components/widgets/TaskList'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Progress } from '@/components/ui/progress'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useUIStore } from '@/store/useUIStore'
-import { Textarea } from '@/components/ui/textarea'
-import { useState } from 'react'
-import type { TaskStatus } from '@/types/project'
+import { Plus, MessageSquare, ListTodo, Settings } from 'lucide-react'
+import type { TaskStatus, Comment, Task } from '@/types/project'
 
-// Componente para adicionar na página de eventos
+interface ProjectWorkflowPanelProps {
+  projectId: string
+  deliverableId?: string
+}
+
+type CommentFilter = 'all' | 'unresolved' | 'resolved'
+type TabValue = 'tasks' | 'actions' | 'comments'
+
 export function ProjectWorkflowPanel({
   projectId,
   deliverableId,
-}: {
-  projectId: string
-  deliverableId?: string
-}) {
-  const [activeTab, setActiveTab] = useState('tasks')
+}: ProjectWorkflowPanelProps) {
+  // Estados do componente
+  const [activeTab, setActiveTab] = useState<TabValue>('tasks')
   const [commentText, setCommentText] = useState('')
   const [taskTitle, setTaskTitle] = useState('')
   const [showAddTaskForm, setShowAddTaskForm] = useState(false)
-  const [commentFilter, setCommentFilter] = useState<
-    'all' | 'unresolved' | 'resolved'
-  >('all')
-  const { projects } = useProjectsStore()
+  const [commentFilter, setCommentFilter] = useState<CommentFilter>('all')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Stores
+  const { projects, updateProject } = useProjectsStore()
   const user = useAuthStore(state => state.user)
-  const { updateProject } = useProjectsStore()
+  const { addNotification } = useUIStore()
 
-  // Verificar se o usuário é editor
-  const isEditor = user?.role === 'editor'
+  // Verificações de permissão
+  const isEditor = useMemo(() => user?.role === 'editor', [user?.role])
+  const isAuthenticated = useMemo(() => !!user, [user])
 
-  // Obter o projeto pelo ID
-  const project = projects.find(p => p.id === projectId)
+  // Obter o projeto
+  const project = useMemo(
+    () => projects.find(p => p.id === projectId),
+    [projects, projectId]
+  )
 
-  if (!project) {
-    return <div>Projeto não encontrado</div>
-  }
+  // Obter o deliverable selecionado
+  const selectedDeliverable = useMemo(() => {
+    if (!project?.videos) return null
+    return deliverableId
+      ? project.videos.find(v => v.id === deliverableId)
+      : project.videos[0]
+  }, [project?.videos, deliverableId])
 
-  // Obter o deliverable selecionado (se houver)
-  const selectedDeliverable = deliverableId
-    ? project.videos.find(v => v.id === deliverableId)
-    : project.videos[0]
+  // Estado derivado dos comentários
+  const comments = useMemo(
+    () => selectedDeliverable?.comments || [],
+    [selectedDeliverable?.comments]
+  )
 
-  // Obter os comentários do deliverable
-  const comments = selectedDeliverable?.comments || []
-  // Função para adicionar uma nova tarefa
-  const handleAddTask = () => {
-    if (!taskTitle.trim()) return
+  // Comentários filtrados e ordenados
+  const filteredComments = useMemo(() => {
+    return [...comments]
+      .filter(comment => {
+        switch (commentFilter) {
+          case 'resolved':
+            return comment.resolved
+          case 'unresolved':
+            return !comment.resolved
+          default:
+            return true
+        }
+      })
+      .sort((a, b) => {
+        // Primeiro ordena por status de resolução (não resolvidos primeiro)
+        if (a.resolved !== b.resolved) {
+          return a.resolved ? 1 : -1
+        }
+        // Depois por data (mais recentes primeiro)
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      })
+  }, [comments, commentFilter])
 
-    // Criar uma nova tarefa
-    const newTask = {
-      id: `task-${Date.now()}`,
-      title: taskTitle,
-      status: 'pending' as TaskStatus,
+  // Progresso das tarefas
+  const tasksProgress = useMemo(() => {
+    const tasks = project?.tasks || []
+    if (tasks.length === 0) return { completed: 0, total: 0, percentage: 0 }
+    
+    const completed = tasks.filter(t => t.status === 'completed').length
+    return {
+      completed,
+      total: tasks.length,
+      percentage: Math.round((completed / tasks.length) * 100)
     }
+  }, [project?.tasks])
 
-    // Adicionar a tarefa ao projeto
-    const updatedTasks = [...(project.tasks || []), newTask]
+  // Contadores de comentários
+  const commentCounts = useMemo(() => {
+    const total = comments.length
+    const unresolved = comments.filter(c => !c.resolved).length
+    const resolved = comments.filter(c => c.resolved).length
+    
+    return { total, unresolved, resolved }
+  }, [comments])
 
-    // Atualizar o projeto
-    updateProject(projectId, { tasks: updatedTasks })
+  // Função para validar entrada de tarefa
+  const isValidTaskTitle = useCallback((title: string) => {
+    return title.trim().length >= 3 && title.trim().length <= 100
+  }, [])
 
-    // Limpar o formulário e fechar
-    setTaskTitle('')
-    setShowAddTaskForm(false)
+  // Função para adicionar uma nova tarefa
+  const handleAddTask = useCallback(async () => {
+    if (!isValidTaskTitle(taskTitle) || !project || isSubmitting) return
 
-    // Notificar
-    useUIStore.getState().addNotification('Nova tarefa adicionada', 'success')
-  }
+    setIsSubmitting(true)
+    
+    try {
+      const newTask: Task = {
+        id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        title: taskTitle.trim(),
+        status: 'pending' as TaskStatus,
+        createdAt: new Date().toISOString(),
+        assignedTo: user?.id,
+      }
+
+      const updatedTasks = [...(project.tasks || []), newTask]
+      await updateProject(projectId, { tasks: updatedTasks })
+
+      // Reset form
+      setTaskTitle('')
+      setShowAddTaskForm(false)
+      
+      addNotification('Nova tarefa adicionada com sucesso', 'success')
+    } catch (error) {
+      console.error('Erro ao adicionar tarefa:', error)
+      addNotification('Erro ao adicionar tarefa', 'error')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }, [taskTitle, project, isSubmitting, projectId, user?.id, updateProject, addNotification, isValidTaskTitle])
 
   // Função para adicionar um comentário
-  const handleAddComment = () => {
-    if (!commentText.trim() || !user || !selectedDeliverable) return
+  const handleAddComment = useCallback(async () => {
+    if (!commentText.trim() || !user || !selectedDeliverable || isSubmitting) return
 
-    // Criar um novo comentário
-    const newComment = {
-      id: `comment-${Date.now()}`,
-      projectId,
-      userId: user.id,
-      content: commentText,
-      timestamp: 0, // Pode ser substituído pela posição atual do vídeo
-      createdAt: new Date().toISOString(),
-      resolved: false,
-      authorName: user.name,
+    const trimmedComment = commentText.trim()
+    if (trimmedComment.length < 1 || trimmedComment.length > 1000) {
+      addNotification('Comentário deve ter entre 1 e 1000 caracteres', 'error')
+      return
     }
 
-    // Adicionar o comentário diretamente ao deliverable
-    const updatedVideos = project.videos.map(video => {
-      if (video.id === selectedDeliverable.id) {
-        return {
-          ...video,
-          comments: [...(video.comments || []), newComment],
-        }
+    setIsSubmitting(true)
+
+    try {
+      const newComment: Comment = {
+        id: `comment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        projectId,
+        userId: user.id,
+        content: trimmedComment,
+        timestamp: 0, // Pode ser substituído pela posição atual do vídeo
+        createdAt: new Date().toISOString(),
+        resolved: false,
+        authorName: user.name,
       }
-      return video
-    })
 
-    // Atualizar o projeto com os novos comentários
-    updateProject(projectId, { videos: updatedVideos })
+      const updatedVideos = project!.videos.map(video => {
+        if (video.id === selectedDeliverable.id) {
+          return {
+            ...video,
+            comments: [...(video.comments || []), newComment],
+          }
+        }
+        return video
+      })
 
-    // Limpar o formulário
-    setCommentText('')
+      await updateProject(projectId, { videos: updatedVideos })
+      
+      setCommentText('')
+      addNotification('Comentário adicionado com sucesso', 'success')
+    } catch (error) {
+      console.error('Erro ao adicionar comentário:', error)
+      addNotification('Erro ao adicionar comentário', 'error')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }, [commentText, user, selectedDeliverable, isSubmitting, projectId, project, updateProject, addNotification])
+
+  // Função para cancelar adição de tarefa
+  const handleCancelAddTask = useCallback(() => {
+    setTaskTitle('')
+    setShowAddTaskForm(false)
+  }, [])
+
+  // Função para lidar com mudança de tab
+  const handleTabChange = useCallback((value: string) => {
+    setActiveTab(value as TabValue)
+  }, [])
+
+  // Early returns para casos de erro
+  if (!project) {
+    return (
+      <Card className="mt-8">
+        <CardContent className="p-6">
+          <p className="text-destructive">Projeto não encontrado</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <Card className="mt-8">
+        <CardContent className="p-6">
+          <p className="text-muted-foreground">Faça login para acessar o workflow do projeto</p>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
     <div className="mt-8">
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-xl">Workflow do Projeto</CardTitle>
-          {project.tasks && project.tasks.length > 0 && (
-            <div className="flex items-center mt-1">
-              <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-primary"
-                  style={{
-                    width: `${Math.round((project.tasks.filter(t => t.status === 'completed').length / project.tasks.length) * 100)}%`,
-                  }}
-                />
-              </div>
-              <span className="text-sm ml-2 text-muted-foreground">
-                {Math.round(
-                  (project.tasks.filter(t => t.status === 'completed').length /
-                    project.tasks.length) *
-                    100
-                )}
-                %
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xl flex items-center gap-2">
+              <ListTodo className="h-5 w-5" />
+              Workflow do Projeto
+            </CardTitle>
+            {tasksProgress.total > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {tasksProgress.completed}/{tasksProgress.total} tarefas
+              </Badge>
+            )}
+          </div>
+          
+          {tasksProgress.total > 0 && (
+            <div className="flex items-center mt-3 gap-3">
+              <Progress value={tasksProgress.percentage} className="flex-1" />
+              <span className="text-sm text-muted-foreground font-medium min-w-[45px]">
+                {tasksProgress.percentage}%
               </span>
             </div>
           )}
         </CardHeader>
+
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-            <TabsList className="w-full">
-              <TabsTrigger value="tasks">Tarefas</TabsTrigger>
-              <TabsTrigger value="actions">Ações</TabsTrigger>
-              <TabsTrigger value="comments">Comentários</TabsTrigger>
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-6">
+            <TabsList className="w-full grid grid-cols-3">
+              <TabsTrigger value="tasks" className="flex items-center gap-2">
+                <ListTodo className="h-4 w-4" />
+                Tarefas
+                {tasksProgress.total > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-5 text-xs">
+                    {tasksProgress.total}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="actions" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Ações
+              </TabsTrigger>
+              <TabsTrigger value="comments" className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Comentários
+                {commentCounts.total > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-5 text-xs">
+                    {commentCounts.unresolved}
+                  </Badge>
+                )}
+              </TabsTrigger>
             </TabsList>
-            <TabsContent value="tasks" className="pt-4">
+
+            <TabsContent value="tasks" className="pt-4 space-y-4">
               <TaskList projectId={projectId} />
 
-              {/* Formulário para adicionar tarefas */}
               {isEditor && (
                 <div className="mt-4">
                   {!showAddTaskForm ? (
@@ -158,45 +291,45 @@ export function ProjectWorkflowPanel({
                       size="sm"
                       onClick={() => setShowAddTaskForm(true)}
                       className="w-full"
+                      disabled={isSubmitting}
                     >
-                      + Adicionar nova tarefa
+                      <Plus className="h-4 w-4 mr-2" />
+                      Adicionar nova tarefa
                     </Button>
                   ) : (
-                    <div className="space-y-2 p-3 border rounded-lg">
-                      <label
-                        htmlFor="task-title"
-                        className="text-sm font-medium"
-                      >
-                        Nova tarefa
-                      </label>
-                      <input
-                        id="task-title"
-                        type="text"
-                        value={taskTitle}
-                        onChange={e => setTaskTitle(e.target.value)}
-                        placeholder="Digite o título da tarefa..."
-                        className="w-full p-2 border rounded-md bg-background"
-                      />
-                      <div className="flex gap-2 justify-end">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setTaskTitle('')
-                            setShowAddTaskForm(false)
-                          }}
-                        >
-                          Cancelar
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={handleAddTask}
-                          disabled={taskTitle.trim().length === 0}
-                        >
-                          Adicionar
-                        </Button>
+                    <Card className="p-4">
+                      <div className="space-y-3">
+                        <Label htmlFor="task-title" className="text-sm font-medium">
+                          Nova tarefa
+                        </Label>
+                        <Input
+                          id="task-title"
+                          type="text"
+                          value={taskTitle}
+                          onChange={e => setTaskTitle(e.target.value)}
+                          placeholder="Digite o título da tarefa (3-100 caracteres)..."
+                          maxLength={100}
+                          disabled={isSubmitting}
+                        />
+                        <div className="flex gap-2 justify-end">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleCancelAddTask}
+                            disabled={isSubmitting}
+                          >
+                            Cancelar
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={handleAddTask}
+                            disabled={!isValidTaskTitle(taskTitle) || isSubmitting}
+                          >
+                            {isSubmitting ? 'Adicionando...' : 'Adicionar'}
+                          </Button>
+                        </div>
                       </div>
-                    </div>
+                    </Card>
                   )}
                 </div>
               )}
@@ -209,68 +342,75 @@ export function ProjectWorkflowPanel({
                   deliverable={selectedDeliverable}
                 />
               ) : (
-                <p>Selecione um vídeo para ver as ações disponíveis.</p>
+                <Card className="p-6">
+                  <p className="text-muted-foreground text-center">
+                    Selecione um vídeo para ver as ações disponíveis.
+                  </p>
+                </Card>
               )}
             </TabsContent>
 
-            <TabsContent value="comments" className="pt-4">
-              <div className="space-y-4">
-                {selectedDeliverable ? (
-                  <>
-                    <div className="mb-4">
-                      <h3 className="text-sm font-medium mb-2">
+            <TabsContent value="comments" className="pt-4 space-y-4">
+              {selectedDeliverable ? (
+                <>
+                  {/* Formulário para adicionar comentário */}
+                  <Card className="p-4">
+                    <div className="space-y-3">
+                      <Label htmlFor="comment-text" className="text-sm font-medium">
                         Adicionar comentário
-                      </h3>
-                      <div className="space-y-2">
-                        <Textarea
-                          placeholder="Escreva seu comentário..."
-                          value={commentText}
-                          onChange={e => setCommentText(e.target.value)}
-                          className="min-h-[100px]"
-                        />
+                      </Label>
+                      <Textarea
+                        id="comment-text"
+                        placeholder="Escreva seu comentário..."
+                        value={commentText}
+                        onChange={e => setCommentText(e.target.value)}
+                        className="min-h-[100px]"
+                        maxLength={1000}
+                        disabled={isSubmitting}
+                      />
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">
+                          {commentText.length}/1000 caracteres
+                        </span>
                         <Button
                           onClick={handleAddComment}
-                          disabled={!commentText.trim()}
+                          disabled={!commentText.trim() || isSubmitting}
+                          size="sm"
                         >
-                          Enviar comentário
+                          {isSubmitting ? 'Enviando...' : 'Enviar comentário'}
                         </Button>
                       </div>
-                    </div>{' '}
-                    <div className="space-y-3 mt-6">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-sm font-medium">Comentários</h3>
-                        <select
-                          className="text-xs border rounded px-2 py-1 bg-background"
-                          value={commentFilter}
-                          onChange={e =>
-                            setCommentFilter(e.target.value as any)
-                          }
-                        >
-                          <option value="all">Todos</option>
-                          <option value="unresolved">Não resolvidos</option>
-                          <option value="resolved">Resolvidos</option>
-                        </select>
+                    </div>
+                  </Card>
+
+                  {/* Lista de comentários */}
+                  <Card className="p-4">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">
+                          Comentários ({commentCounts.total})
+                        </h3>
+                        <Select value={commentFilter} onValueChange={(value: CommentFilter) => setCommentFilter(value)}>
+                          <SelectTrigger className="w-[140px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">
+                              Todos ({commentCounts.total})
+                            </SelectItem>
+                            <SelectItem value="unresolved">
+                              Não resolvidos ({commentCounts.unresolved})
+                            </SelectItem>
+                            <SelectItem value="resolved">
+                              Resolvidos ({commentCounts.resolved})
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                      {comments.length > 0 ? (
-                        // Filtrar e ordenar comentários
-                        [...comments]
-                          .filter(comment => {
-                            if (commentFilter === 'all') return true
-                            if (commentFilter === 'resolved')
-                              return comment.resolved
-                            return !comment.resolved
-                          })
-                          .sort((a, b) => {
-                            if (a.resolved === b.resolved) {
-                              // Se ambos têm o mesmo status de resolução, ordena pelo mais recente
-                              return (
-                                new Date(b.createdAt).getTime() -
-                                new Date(a.createdAt).getTime()
-                              )
-                            }
-                            return a.resolved ? 1 : -1
-                          })
-                          .map(comment => (
+
+                      <div className="space-y-3">
+                        {filteredComments.length > 0 ? (
+                          filteredComments.map(comment => (
                             <CommentItem
                               key={comment.id}
                               projectId={projectId}
@@ -278,17 +418,27 @@ export function ProjectWorkflowPanel({
                               comment={comment}
                             />
                           ))
-                      ) : (
-                        <p className="text-muted-foreground text-sm">
-                          Nenhum comentário ainda. Seja o primeiro a comentar!
-                        </p>
-                      )}
+                        ) : (
+                          <div className="text-center py-8">
+                            <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                            <p className="text-muted-foreground">
+                              {commentFilter === 'all'
+                                ? 'Nenhum comentário ainda. Seja o primeiro a comentar!'
+                                : `Nenhum comentário ${commentFilter === 'resolved' ? 'resolvido' : 'não resolvido'}.`}
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </>
-                ) : (
-                  <p>Selecione um vídeo para ver os comentários.</p>
-                )}
-              </div>
+                  </Card>
+                </>
+              ) : (
+                <Card className="p-6">
+                  <p className="text-muted-foreground text-center">
+                    Selecione um vídeo para ver os comentários.
+                  </p>
+                </Card>
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>

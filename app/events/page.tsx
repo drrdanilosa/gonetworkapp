@@ -1,7 +1,3 @@
-'use client'
-
-'use client'
-
 "use client"
 
 import { useEffect, useState } from 'react'
@@ -32,39 +28,26 @@ export default function EventsPage() {
   const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
-    // Para fins de demonstração, usamos dados simulados
-    // Em um ambiente real, isso viria de uma chamada de API
-    const mockEvents = [
-      {
-        id: '123',
-        name: 'Congresso de Tecnologia 2025',
-        date: '2025-05-30',
-        status: 'confirmado',
-        client: 'Empresa ABC',
-        type: 'conferência',
-      },
-      {
-        id: '456',
-        name: 'Workshop de Marketing Digital',
-        date: '2025-06-15',
-        status: 'planejamento',
-        client: 'Agência XYZ',
-        type: 'workshop',
-      },
-      {
-        id: '789',
-        name: 'Lançamento de Produto Q3',
-        date: '2025-07-10',
-        status: 'confirmado',
-        client: 'Tech Solutions',
-        type: 'evento corporativo',
-      },
-    ]
+    async function fetchEvents() {
+      try {
+        const response = await fetch('/api/events')
+        if (!response.ok) {
+          throw new Error('Erro ao buscar eventos')
+        }
+        const { success, events, message } = await response.json()
+        if (!success) {
+          console.error('Erro na resposta da API:', message)
+          return
+        }
+        setEvents(events || [])
+      } catch (error) {
+        console.error('Erro ao carregar eventos:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
-    setTimeout(() => {
-      setEvents(mockEvents)
-      setIsLoading(false)
-    }, 1000) // Simula um delay de carregamento
+    fetchEvents()
   }, [])
 
   // Filtra eventos com base no termo de pesquisa
