@@ -1,48 +1,28 @@
 {
   "e556271a-dda7-4559-b9c6-73ea3431f640": {
+    "formData": {
+      "eventDate": "2025-06-15",
+      "startTime": "09:00",
+      "endTime": "18:00",
+      "eventLocation": "Centro de Convenções SP",
+      "hasCredentialing": "yes",
+      "accessLocation": "Portaria Principal",
+      "eventAccessLocation": "Hall de Entrada",
+      "hasMediaRoom": "yes",
+      "mediaRoomLocation": "Sala 201",
+      "hasInternet": "yes",
+      "internetLogin": "evento2025",
+      "internetPassword": "senha123",
+      "generalInfo": "Evento de lançamento de produto com 200 participantes",
+      "credentialingResponsible": "Maria Silva",
+      "credentialingStart": "07:30",
+      "credentialingEnd": "09:00"
+    },
     "eventId": "e556271a-dda7-4559-b9c6-73ea3431f640",
-    "eventName": "Teste Debug",
-    "eventDate": "2025-05-23T07:35:42.384Z",
-    "eventLocation": "Local de Teste",
-    "sponsors": [
-      {
-        "id": "sponsor-1",
-        "name": "Sponsor Principal",
-        "actions": [
-          {
-            "id": "action-1",
-            "name": "Apresentação da marca",
-            "captureTime": "14:30",
-            "isRealTime": true,
-            "rtDeliveryTime": "15:00"
-          }
-        ]
-      }
-    ],
-    "stages": [
-      {
-        "id": "stage-1",
-        "name": "Palco Principal",
-        "attractions": [
-          {
-            "id": "attraction-1",
-            "name": "Show Principal",
-            "type": "musical",
-            "duration": 90,
-            "startTime": "20:00"
-          }
-        ]
-      }
-    ],
-    "realTimeDeliveries": [
-      {
-        "id": "rt-1",
-        "title": "Entrega Tempo Real 1",
-        "deliveryTime": "15:00",
-        "type": "social"
-      }
-    ],
-    "postEventNotes": "Observações pós-evento de teste"
+    "eventTitle": "Teste Debug",
+    "client": "Cliente Teste",
+    "updatedAt": "2025-05-24T11:41:58.329Z",
+    "createdAt": "2025-05-24T11:41:58.329Z"
   },
   "980d3d3f-67d7-4e6d-980a-eba09dba2059": {
     "sections": {
@@ -412,5 +392,111 @@
     "eventTitle": "Projeto Demonstração",
     "client": "Cliente não especificado",
     "createdAt": "2025-05-24T11:01:29.259Z"
+  },
+  "1748088099480": {
+    "eventId": "1748088099480",
+    "eventName": "Evento sem nome",
+    "eventDate": "",
+    "eventLocation": "",
+    "eventDescription": "",
+    "visualStyle": "",
+    "references": "",
+    "sponsors": [
+      {
+        "id": "patrocinadorA",
+        "name": "Patrocinador A",
+        "actions": [
+          {
+            "id": "845fc50c-840f-4492-9f75-5e8cbf0517d3",
+            "name": "Stand promocional",
+            "captureTime": "14:30",
+            "isFreeTime": false,
+            "responsibleId": "joao",
+            "isRealTime": true,
+            "rtDeliveryTime": "15:00",
+            "editorId": "maria",
+            "instructions": "Capturar interação com visitantes",
+            "deliveryTime": "14:30",
+            "editorResponsible": "maria",
+            "responsible": "joao"
+          }
+        ]
+      },
+      {
+        "id": "patrocinadorB",
+        "name": "Patrocinador B",
+        "actions": []
+      },
+      {
+        "id": "patrocinadorC",
+        "name": "Patrocinador C",
+        "actions": []
+      }
+    ],
+    "stages": [
+      {
+        "id": "c2cd0021-b94a-469e-b33e-e366f4134617",
+        "name": "Palco Principal",
+        "attractions": [
+          {
+            "id": "6df639a5-79cd-4916-962a-2f4ef8913c6d",
+            "name": "Banda XYZ",
+            "time": "20:30",
+            "notes": "",
+            "showTime": "20:30",
+            "observations": ""
+          },
+          {
+            "id": "0a78d277-52b8-409c-bb4e-00dfdf53f2e1",
+            "name": "DJ ABC",
+            "time": "22:00",
+            "notes": "Preparar iluminação especial",
+            "showTime": "22:00",
+            "observations": "Preparar iluminação especial"
+          }
+        ]
+      }
+    ],
+    "realTimeDeliveries": [
+      {
+        "id": "5a9f88f1-ebe8-41c2-b467-83673ee481dd",
+        "title": "Stories - Abertura",
+        "time": "12:30",
+        "editorId": "maria",
+        "platforms": {
+          "reels": false,
+          "stories": true,
+          "feed": false
+        },
+        "instructions": "",
+        "deliveryTime": "12:30",
+        "editorResponsible": "maria"
+      },
+      {
+        "id": "151d8d02-692a-4f9d-9424-b1148b1049dc",
+        "title": "Reels - Patrocinador",
+        "time": "15:00",
+        "editorId": "pedro",
+        "platforms": {
+          "reels": true,
+          "stories": false,
+          "feed": false
+        },
+        "instructions": "",
+        "deliveryTime": "15:00",
+        "editorResponsible": "pedro"
+      }
+    ],
+    "postEventOptions": {
+      "aftermovie": true,
+      "highlights": true,
+      "sponsorVersions": false
+    },
+    "postEventDeadline": "7",
+    "postEventInstructions": "",
+    "updatedAt": "2025-05-24T12:01:54.776Z",
+    "eventTitle": "Projeto Demonstração",
+    "client": "Cliente não especificado",
+    "createdAt": "2025-05-24T12:01:54.776Z"
   }
 }

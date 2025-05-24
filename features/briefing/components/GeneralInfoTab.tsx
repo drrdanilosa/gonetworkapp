@@ -39,9 +39,17 @@ const formSchema = z.object({
 
 interface GeneralInfoTabProps {
   eventId?: string
+  onChange?: () => void // Callback quando o formulário é alterado
+  onSaved?: (data: unknown) => void // Callback quando os dados são salvos
+  onTimelineGenerated?: (success: boolean) => void // Callback quando timeline é gerada
 }
 
-const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
+const GeneralInfoTab = ({
+  eventId,
+  onChange,
+  onSaved,
+  onTimelineGenerated,
+}: GeneralInfoTabProps) => {
   const [isSaving, setIsSaving] = useState(false)
 
   // Inicializar o formulário com react-hook-form
@@ -94,6 +102,16 @@ const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
 
     fetchEventData()
   }, [eventId, reset])
+
+  // Observar mudanças no formulário
+  useEffect(() => {
+    const subscription = form.watch(() => {
+      if (onChange) {
+        onChange()
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [form, onChange])
 
   // Manipulador de envio do formulário
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
@@ -158,6 +176,11 @@ Senha: ${data.internetPassword}`
 
       console.log('Briefing salvo com sucesso!')
 
+      // Callback para o componente pai
+      if (onSaved) {
+        onSaved(briefingData)
+      }
+
       // Toast de sucesso
       if (typeof window !== 'undefined') {
         console.log('✅ Briefing salvo com sucesso!')
@@ -168,7 +191,10 @@ Senha: ${data.internetPassword}`
 
       // Toast de erro
       if (typeof window !== 'undefined') {
-        console.error('❌ Erro ao salvar briefing:', error.message)
+        console.error(
+          '❌ Erro ao salvar briefing:',
+          error instanceof Error ? error.message : 'Erro desconhecido'
+        )
         // Aqui seria adicionado um toast de erro real em produção
       }
     } finally {
@@ -568,12 +594,15 @@ Senha: ${data.internetPassword}`
             </Button>
 
             <GenerateTimelineButton
-              projectId={eventId || ''}
+              eventId={eventId || ''}
               disabled={!eventId || isSaving}
               onGenerated={success => {
                 if (success) {
                   console.log('Timeline gerada com sucesso!')
                 }
+              }}
+              onTimelineGenerated={() => {
+                onTimelineGenerated?.(true)
               }}
             />
           </div>

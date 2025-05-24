@@ -3,23 +3,23 @@ import { useState } from 'react'
 import { toast } from '@/components/ui/use-toast'
 
 interface GenerateTimelineButtonProps {
-  projectId: string // Tornar obrigatório
+  eventId: string // Tornar obrigatório
   disabled?: boolean
   onGenerated: (success: boolean) => void
 }
 
 const GenerateTimelineButton: React.FC<GenerateTimelineButtonProps> = ({
-  projectId,
+  eventId,
   disabled,
   onGenerated,
 }) => {
   const [isGenerating, setIsGenerating] = useState(false)
 
   const handleGenerateTimeline = async () => {
-    if (!projectId) {
+    if (!eventId) {
       toast({
         title: 'Erro',
-        description: 'ID do projeto não fornecido.',
+        description: 'ID do evento não fornecido.',
         variant: 'destructive',
       })
       return

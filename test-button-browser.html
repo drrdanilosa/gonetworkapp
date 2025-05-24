@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teste do Botão "Gerar Timeline"</title>
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      h1 {
+        color: #333;
+        text-align: center;
+      }
+      .container {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+      .button {
+        background-color: #4caf50;
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+      }
+      .button:hover {
+        background-color: #45a049;
+      }
+      .button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+      .log {
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 10px;
+        max-height: 300px;
+        overflow-y: auto;
+        font-family: monospace;
+        margin-top: 20px;
+      }
+      .success {
+        color: #4caf50;
+      }
+      .error {
+        color: #f44336;
+      }
+      .info {
+        color: #2196f3;
+      }
+      .warning {
+        color: #ff9800;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Teste do Botão "Gerar Timeline"</h1>
+
+    <div class="container">
+      <h2>Configuração do Teste</h2>
+      <div>
+        <label for="eventId">ID do Evento:</label>
+        <input
+          type="text"
+          id="eventId"
+          value="1748087744088"
+          style="width: 250px; padding: 5px"
+        />
+      </div>
+      <div style="margin-top: 10px">
+        <button id="testButton" class="button">
+          Testar Botão "Gerar Timeline"
+        </button>
+        <button id="clearLog" class="button" style="background-color: #f44336">
+          Limpar Log
+        </button>
+      </div>
+    </div>
+
+    <div class="container">
+      <h2>Log do Teste</h2>
+      <div id="log" class="log"></div>
+    </div>
+
+    <script>
+      // Elementos da interface
+      const eventIdInput = document.getElementById('eventId')
+      const testButton = document.getElementById('testButton')
+      const clearLogButton = document.getElementById('clearLog')
+      const logContainer = document.getElementById('log')
+
+      // Função para adicionar mensagens ao log
+      function log(message, type = 'info') {
+        const logEntry = document.createElement('div')
+        logEntry.className = type
+        logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`
+        logContainer.appendChild(logEntry)
+        logContainer.scrollTop = logContainer.scrollHeight
+      }
+
+      // Função para limpar o log
+      clearLogButton.addEventListener('click', () => {
+        logContainer.innerHTML = ''
+        log('Log limpo', 'info')
+      })
+
+      // Função para simular o clique no botão "Gerar Timeline"
+      async function simulateButtonClick(eventId) {
+        log(`🚀 Iniciando teste com eventId: ${eventId}`, 'info')
+
+        try {
+          // Passo 1: Verificar se existe um briefing para o evento
+          log('📋 Verificando briefing...', 'info')
+          const briefingResponse = await fetch(`/api/briefings/${eventId}`)
+
+          if (!briefingResponse.ok) {
+            throw new Error(
+              `Erro ao carregar briefing: ${briefingResponse.status}`
+            )
+          }
+
+          const briefingData = await briefingResponse.json()
+          log('✅ Briefing carregado com sucesso', 'success')
+
+          // Passo 2: Enviar solicitação para gerar timeline
+          log('🔄 Enviando solicitação para gerar timeline...', 'info')
+          const timelineResponse = await fetch(`/api/timeline/${eventId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              generateFromBriefing: true,
+              briefingData,
+            }),
+          })
+
+          if (!timelineResponse.ok) {
+            throw new Error(
+              `Erro ao gerar timeline: ${timelineResponse.status}`
+            )
+          }
+
+          const generatedTimeline = await timelineResponse.json()
+          log('✅ Timeline gerada com sucesso!', 'success')
+          log(
+            `📊 A timeline contém ${generatedTimeline.timeline.length} fases`,
+            'success'
+          )
+
+          // Passo 3: Verificar se a timeline foi salva
+          log('🔍 Verificando se a timeline foi salva...', 'info')
+          const checkTimelineResponse = await fetch(`/api/timeline/${eventId}`)
+
+          if (!checkTimelineResponse.ok) {
+            throw new Error(
+              `Erro ao verificar timeline salva: ${checkTimelineResponse.status}`
+            )
+          }
+
+          const savedTimeline = await checkTimelineResponse.json()
+          log('✅ Timeline encontrada no sistema!', 'success')
+          log(
+            `📊 A timeline salva contém ${savedTimeline.timeline.length} fases`,
+            'success'
+          )
+
+          log('✅✅✅ TESTE COMPLETO COM SUCESSO!', 'success')
+          log(
+            '📝 O botão "Gerar Timeline" está funcionando corretamente após a correção.',
+            'success'
+          )
+
+          return true
+        } catch (error) {
+          log(`❌ ERRO: ${error.message}`, 'error')
+          return false
+        }
+      }
+
+      // Evento de clique no botão de teste
+      testButton.addEventListener('click', async () => {
+        const eventId = eventIdInput.value.trim()
+
+        if (!eventId) {
+          log('⚠️ Por favor, informe um ID de evento válido', 'warning')
+          return
+        }
+
+        testButton.disabled = true
+        log('🖱️ Simulando clique no botão "Gerar Timeline"...', 'info')
+
+        try {
+          await simulateButtonClick(eventId)
+        } catch (error) {
+          log(`❌ Erro fatal: ${error.message}`, 'error')
+        } finally {
+          testButton.disabled = false
+        }
+      })
+
+      // Log inicial
+      log(
+        '📌 Página de teste carregada. Clique no botão para iniciar o teste.',
+        'info'
+      )
+    </script>
+  </body>
+</html>
