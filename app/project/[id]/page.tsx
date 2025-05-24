@@ -2,8 +2,6 @@
 
 'use client'
 
-"use client"
-
 import type React from 'react'
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/useAuthStore'
@@ -15,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
 import { VideoPlayerWithComments } from '@/components/video/video-player-with-comments'
+import { CheckCircle, FileVideo, Clock } from 'lucide-react'
 
 import type { Comment } from '@/types/project'
 
@@ -23,7 +22,7 @@ export default function EditingPage({ params }: { params: { id: string } }) {
   const {
     currentProject,
     selectProject,
-    addVideoVersion,
+    _addVideoVersion,
     approveVideoVersion,
     addComment,
     markCommentResolved,
@@ -46,12 +45,7 @@ export default function EditingPage({ params }: { params: { id: string } }) {
     }
   }, [params.id, selectProject])
 
-  // Se não houver projeto selecionado, mostra mensagem de carregamento
-  if (!currentProject) {
-    return <div className="p-4">Carregando projeto...</div>
-  }
-
-  // Seleciona o primeiro deliverable se nenhum estiver selecionado
+  // Coloque todos os useEffect antes de qualquer retorno condicional
   useEffect(() => {
     if (
       currentProject &&
@@ -60,7 +54,12 @@ export default function EditingPage({ params }: { params: { id: string } }) {
     ) {
       setSelectedDeliverableId(currentProject.videos[0].id)
     }
-  }, [currentProject, selectedDeliverableId])
+  }, [currentProject, selectedDeliverableId, setSelectedDeliverableId])
+
+  // Se não houver projeto selecionado, mostra mensagem de carregamento
+  if (!currentProject) {
+    return <div className="p-4">Carregando projeto...</div>
+  }
 
   // Obtém o deliverable ativo
   const activeDeliverable = selectedDeliverableId
@@ -173,9 +172,9 @@ export default function EditingPage({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="container mx-auto py-6 px-4">
+    <div className="container mx-auto px-4 py-6">
       <div className="flex flex-col space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">{currentProject.name}</h1>
             <p className="text-gray-500">
@@ -198,7 +197,7 @@ export default function EditingPage({ params }: { params: { id: string } }) {
 
           <TabsContent value="videos" className="space-y-4">
             {activeVersion ? (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                 <div className="lg:col-span-2">
                   <VideoPlayerWithComments
                     videoSrc={activeVersion.url}
@@ -291,7 +290,7 @@ export default function EditingPage({ params }: { params: { id: string } }) {
                               {version.name}
                             </Button>
                             {version.approved && (
-                              <CheckCircle className="h-4 w-4 text-green-500" />
+                              <CheckCircle className="size-4 text-green-500" />
                             )}
                           </div>
                         ))}
@@ -301,8 +300,8 @@ export default function EditingPage({ params }: { params: { id: string } }) {
                 </div>
               </div>
             ) : (
-              <div className="text-center py-12">
-                <FileVideo className="h-16 w-16 mx-auto text-gray-400" />
+              <div className="py-12 text-center">
+                <FileVideo className="mx-auto size-16 text-gray-400" />
                 <h3 className="mt-4 text-lg font-medium">
                   Nenhuma versão disponível
                 </h3>
@@ -319,26 +318,26 @@ export default function EditingPage({ params }: { params: { id: string } }) {
                 <CardTitle>Revisão e Aprovação</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <div>
-                    <h3 className="text-lg font-medium mb-2">Status Atual</h3>
-                    <div className="flex items-center space-x-2 mb-4">
+                    <h3 className="mb-2 text-lg font-medium">Status Atual</h3>
+                    <div className="mb-4 flex items-center space-x-2">
                       {getStatusBadge(activeDeliverable.status)}
                       {activeDeliverable.status === 'approved' && (
-                        <span className="text-green-600 flex items-center">
-                          <CheckCircle className="h-4 w-4 mr-1" />
+                        <span className="flex items-center text-green-600">
+                          <CheckCircle className="mr-1 size-4" />
                           Aprovado
                         </span>
                       )}
                       {activeDeliverable.status === 'ready_for_review' && (
-                        <span className="text-blue-600 flex items-center">
-                          <Clock className="h-4 w-4 mr-1" />
+                        <span className="flex items-center text-blue-600">
+                          <Clock className="mr-1 size-4" />
                           Aguardando aprovação
                         </span>
                       )}
                     </div>
 
-                    <h3 className="text-lg font-medium mb-2">Ações</h3>
+                    <h3 className="mb-2 text-lg font-medium">Ações</h3>
                     <div className="flex flex-wrap gap-2">
                       {activeDeliverable.status === 'editing' && (
                         <Button onClick={handleMarkReady}>
@@ -369,7 +368,7 @@ export default function EditingPage({ params }: { params: { id: string } }) {
                       )}
                       {activeDeliverable.status === 'approved' && (
                         <Button disabled className="bg-green-600">
-                          <CheckCircle className="h-4 w-4 mr-2" />
+                          <CheckCircle className="mr-2 size-4" />
                           Aprovado
                         </Button>
                       )}
@@ -377,7 +376,7 @@ export default function EditingPage({ params }: { params: { id: string } }) {
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-medium mb-2">Feedback</h3>
+                    <h3 className="mb-2 text-lg font-medium">Feedback</h3>
                     <Textarea
                       placeholder="Descreva seu feedback ou solicitações de alterações aqui..."
                       value={feedbackText}

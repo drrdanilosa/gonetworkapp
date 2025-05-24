@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -59,47 +59,47 @@ export default function MainWindow({
   const pages = [
     {
       name: 'Dashboard',
-      icon: <Home className="h-5 w-5" />,
+      icon: <Home className="size-5" />,
       component: <DashboardWidget />,
     },
     {
       name: 'Eventos',
-      icon: <Calendar className="h-5 w-5" />,
+      icon: <Calendar className="size-5" />,
       component: <EventWidget />,
     },
     {
       name: 'Equipe',
-      icon: <Users className="h-5 w-5" />,
+      icon: <Users className="size-5" />,
       component: <TeamWidget />,
     },
     {
       name: 'Briefing',
-      icon: <FileText className="h-5 w-5" />,
+      icon: <FileText className="size-5" />,
       component: <BriefingWidget />,
     },
     {
       name: 'Timeline',
-      icon: <Clock className="h-5 w-5" />,
+      icon: <Clock className="size-5" />,
       component: <TimelineWidget />,
     },
     {
       name: 'Edição/Aprovação',
-      icon: <Video className="h-5 w-5" />,
+      icon: <Video className="size-5" />,
       component: <EditingWidget />,
     },
     {
       name: 'Entregas',
-      icon: <Truck className="h-5 w-5" />,
+      icon: <Truck className="size-5" />,
       component: <DeliveryWidget />,
     },
     {
       name: 'Assets',
-      icon: <FolderOpen className="h-5 w-5" />,
+      icon: <FolderOpen className="size-5" />,
       component: <AssetsWidget />,
     },
     {
       name: 'Configurações',
-      icon: <Settings className="h-5 w-5" />,
+      icon: <Settings className="size-5" />,
       component: <SettingsWidget />,
     },
   ]
@@ -115,18 +115,18 @@ export default function MainWindow({
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col border border-border rounded-lg overflow-hidden">
+    <div className="fixed inset-0 flex flex-col overflow-hidden rounded-lg border border-border">
       {/* Window controls */}
-      <div className="flex items-center justify-between p-2 bg-background border-b border-border">
+      <div className="flex items-center justify-between border-b border-border bg-background p-2">
         <div className="flex items-center gap-2">
           <Image
             src="/logo_gonetwork.png"
             alt="GoNetwork AI Logo"
             width={24}
             height={24}
-            className="w-6 h-6 md:w-8 md:h-8"
+            className="size-6 md:size-8"
           />
-          <span className="text-primary font-bold text-sm md:text-base">
+          <span className="text-sm font-bold text-primary md:text-base">
             GoNetwork AI
           </span>
         </div>
@@ -138,13 +138,13 @@ export default function MainWindow({
                 size="icon"
                 onClick={() => (window.innerWidth = 800)}
               >
-                <Minimize2 className="h-4 w-4" />
+                <Minimize2 className="size-4" />
               </Button>
               <Button variant="ghost" size="icon" onClick={toggleMaximize}>
                 {isMaximized ? (
-                  <Minimize2 className="h-4 w-4" />
+                  <Minimize2 className="size-4" />
                 ) : (
-                  <Maximize2 className="h-4 w-4" />
+                  <Maximize2 className="size-4" />
                 )}
               </Button>
             </>
@@ -155,7 +155,7 @@ export default function MainWindow({
               size="icon"
               onClick={() => setSidebarOpen(!sidebarOpen)}
             >
-              <Menu className="h-5 w-5" />
+              <Menu className="size-5" />
             </Button>
           )}
           <Button
@@ -163,7 +163,7 @@ export default function MainWindow({
             size="icon"
             className="hover:bg-destructive hover:text-destructive-foreground"
           >
-            <X className="h-4 w-4" />
+            <X className="size-4" />
           </Button>
         </div>
       </div>
@@ -178,28 +178,28 @@ export default function MainWindow({
           } flex-col`}
         >
           {isMobile && (
-            <div className="flex justify-between items-center p-4 border-b border-border">
+            <div className="flex items-center justify-between border-b border-border p-4">
               <h2 className="text-xl font-bold text-primary">Menu</h2>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setSidebarOpen(false)}
               >
-                <X className="h-5 w-5" />
+                <X className="size-5" />
               </Button>
             </div>
           )}
 
           {!isMobile && (
             <>
-              <div className="p-4 flex justify-center">
+              <div className="flex justify-center p-4">
                 <h2 className="text-xl font-bold text-primary">GoNetwork AI</h2>
               </div>
               <Separator />
             </>
           )}
 
-          <div className="flex-1 py-4 space-y-1 px-2">
+          <div className="flex-1 space-y-1 px-2 py-4">
             {pages.map((page, index) => (
               <Button
                 key={index}
@@ -222,16 +222,16 @@ export default function MainWindow({
               className="w-full justify-start"
               onClick={onLogout}
             >
-              <LogOut className="h-5 w-5 mr-2" />
+              <LogOut className="mr-2 size-5" />
               Sair
             </Button>
           </div>
         </div>
 
         {/* Main content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-hidden">
           {/* Top bar */}
-          <div className="h-12 border-b border-border flex items-center justify-between px-4">
+          <div className="flex h-12 items-center justify-between border-b border-border px-4">
             {isMobile && (
               <Button
                 variant="ghost"
@@ -239,16 +239,16 @@ export default function MainWindow({
                 className="mr-2"
                 onClick={() => setSidebarOpen(true)}
               >
-                <Menu className="h-5 w-5" />
+                <Menu className="size-5" />
               </Button>
             )}
-            <div className="flex-1 flex items-center">
-              <span className="text-sm md:text-base truncate">
+            <div className="flex flex-1 items-center">
+              <span className="truncate text-sm md:text-base">
                 Olá, {currentUser?.full_name || 'Usuário'}
               </span>
             </div>
             <div className="flex items-center">
-              <span className="text-xs md:text-sm text-muted-foreground">
+              <span className="text-xs text-muted-foreground md:text-sm">
                 {pages[currentPage].name}
               </span>
             </div>

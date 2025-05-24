@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useState, useEffect } from 'react'
 import {
@@ -20,15 +20,15 @@ interface EventSelectorProps {
   onEventSelect?: (eventId: string) => void
 }
 
-export default function EventSelector({ 
-  label = "Selecionar Evento",
-  className = "",
-  onEventSelect
+export default function EventSelector({
+  label = 'Selecionar Evento',
+  className = '',
+  onEventSelect,
 }: EventSelectorProps) {
   const { projects } = useProjectsStore()
   const { selectedEventId, setSelectedEventId } = useUIStore()
   const [isInitialized, setIsInitialized] = useState(false)
-  
+
   // Se só houver um evento, selecione-o automaticamente
   useEffect(() => {
     if (!isInitialized && projects.length === 1 && !selectedEventId) {
@@ -38,7 +38,13 @@ export default function EventSelector({
       }
       setIsInitialized(true)
     }
-  }, [projects, selectedEventId, setSelectedEventId, onEventSelect, isInitialized])
+  }, [
+    projects,
+    selectedEventId,
+    setSelectedEventId,
+    onEventSelect,
+    isInitialized,
+  ])
 
   const handleSelectEvent = (value: string) => {
     setSelectedEventId(value)
@@ -50,22 +56,21 @@ export default function EventSelector({
   // Função para formatar data do evento para exibição
   const formatEventDate = (event: any) => {
     try {
-      if (!event.startDate) return ""
-      
+      if (!event.startDate) return ''
+
       const startDate = parseISO(event.startDate)
-      return format(startDate, "dd MMM yyyy", { locale: ptBR })
+      return format(startDate, 'dd MMM yyyy', { locale: ptBR })
     } catch (error) {
-      return ""
+      return ''
     }
   }
 
   return (
     <div className={`flex items-center gap-3 ${className}`}>
-      <Label htmlFor="event-selector" className="whitespace-nowrap">{label}:</Label>
-      <Select
-        value={selectedEventId || ""}
-        onValueChange={handleSelectEvent}
-      >
+      <Label htmlFor="event-selector" className="whitespace-nowrap">
+        {label}:
+      </Label>
+      <Select value={selectedEventId || ''} onValueChange={handleSelectEvent}>
         <SelectTrigger id="event-selector" className="w-[250px]">
           <SelectValue placeholder="Selecione um evento" />
         </SelectTrigger>
@@ -73,7 +78,8 @@ export default function EventSelector({
           {projects.length > 0 ? (
             projects.map(project => (
               <SelectItem key={project.id} value={project.id}>
-                {project.name} {formatEventDate(project) && `(${formatEventDate(project)})`}
+                {project.name}{' '}
+                {formatEventDate(project) && `(${formatEventDate(project)})`}
               </SelectItem>
             ))
           ) : (

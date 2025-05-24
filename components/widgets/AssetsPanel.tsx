@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useProjectsStore } from '@/store/useProjectsStore'
@@ -247,19 +247,19 @@ export default function AssetsPanel() {
   const getAssetIcon = (type: Asset['type']) => {
     switch (type) {
       case 'image':
-        return <ImageIcon className="h-6 w-6 text-blue-500" />
+        return <ImageIcon className="size-6 text-blue-500" />
       case 'audio':
-        return <Music className="h-6 w-6 text-purple-500" />
+        return <Music className="size-6 text-purple-500" />
       case 'video':
-        return <Film className="h-6 w-6 text-red-500" />
+        return <Film className="size-6 text-red-500" />
       case 'font':
         return (
-          <span className="h-6 w-6 flex items-center justify-center text-orange-500 font-bold">
+          <span className="flex size-6 items-center justify-center font-bold text-orange-500">
             Aa
           </span>
         )
       default:
-        return <FileText className="h-6 w-6 text-gray-500" />
+        return <FileText className="size-6 text-gray-500" />
     }
   }
 
@@ -272,20 +272,20 @@ export default function AssetsPanel() {
   }
 
   return (
-    <div className="p-4 space-y-4">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 p-4">
+      <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">Assets do Projeto</h2>
         <Button
           onClick={handleSelectFile}
           disabled={isUploading}
           className="flex items-center"
         >
-          <Upload className="mr-2 h-4 w-4" />
+          <Upload className="mr-2 size-4" />
           {isUploading ? 'Enviando...' : 'Adicionar Asset'}
         </Button>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row">
         <Input
           placeholder="Pesquisar assets..."
           value={searchTerm}
@@ -320,7 +320,7 @@ export default function AssetsPanel() {
       <div
         ref={dropZoneRef}
         className={cn(
-          'border-2 border-dashed rounded-md transition-all duration-200',
+          'rounded-md border-2 border-dashed transition-all duration-200',
           isDragging
             ? 'border-primary bg-primary/10'
             : assets.length === 0
@@ -333,8 +333,8 @@ export default function AssetsPanel() {
       >
         {/* Lista de assets */}
         {filteredAssets.length === 0 ? (
-          <div className="text-center p-8">
-            <p className="text-muted-foreground mb-2">
+          <div className="p-8 text-center">
+            <p className="mb-2 text-muted-foreground">
               {searchTerm || selectedType !== 'all'
                 ? 'Nenhum asset encontrado com os filtros atuais'
                 : 'Nenhum asset disponível neste projeto'}
@@ -346,29 +346,31 @@ export default function AssetsPanel() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-2">
+          <div className="grid grid-cols-1 gap-4 p-2 md:grid-cols-2 lg:grid-cols-3">
             {filteredAssets.map(asset => (
               <div
                 key={asset.id}
                 className={cn(
-                  'border rounded-md p-3 bg-card shadow-sm transition-all duration-200',
+                  'rounded-md border bg-card p-3 shadow-sm transition-all duration-200',
                   asset.isShared && 'border-blue-400/50 bg-blue-50/10'
                 )}
               >
-                <div className="flex justify-between items-start mb-2">
+                <div className="mb-2 flex items-start justify-between">
                   <div className="flex items-center">
                     {getAssetIcon(asset.type)}
                     <div className="ml-2 max-w-[180px]">
                       <p
-                        className="text-sm font-medium truncate"
+                        className="truncate text-sm font-medium"
                         title={asset.name}
                       >
                         {asset.name}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {asset.createdAt ? format(new Date(asset.createdAt), 'dd/MM/yy', {
-                          locale: ptBR,
-                        }) : 'Data desconhecida'}
+                        {asset.createdAt
+                          ? format(new Date(asset.createdAt), 'dd/MM/yy', {
+                              locale: ptBR,
+                            })
+                          : 'Data desconhecida'}
                         {asset.fileSize &&
                           ` • ${(asset.fileSize / 1024 / 1024).toFixed(1)}MB`}
                       </p>
@@ -378,27 +380,27 @@ export default function AssetsPanel() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0"
+                      className="size-8 p-0"
                       onClick={() => handleOpenShareDialog(asset)}
                       title="Compartilhar com outros projetos"
                     >
-                      <Share2 className="h-4 w-4 text-blue-500" />
+                      <Share2 className="size-4 text-blue-500" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0"
+                      className="size-8 p-0"
                       onClick={() => handleDeleteAsset(asset.id)}
                       title="Deletar asset"
                     >
-                      <Trash2 className="h-4 w-4 text-red-500" />
+                      <Trash2 className="size-4 text-red-500" />
                     </Button>
                   </div>
                 </div>
 
                 {/* Tags do asset */}
                 {asset.tags && asset.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mb-2">
+                  <div className="mb-2 flex flex-wrap gap-1">
                     {asset.tags.map(tag => (
                       <Badge key={tag} variant="secondary" className="text-xs">
                         {tag}
@@ -408,7 +410,7 @@ export default function AssetsPanel() {
                 )}
 
                 {/* Adicionar tag */}
-                <div className="flex gap-1 mb-2">
+                <div className="mb-2 flex gap-1">
                   <Input
                     placeholder="Nova tag..."
                     value={asset.id === assetTags ? newTag : ''}
@@ -427,22 +429,22 @@ export default function AssetsPanel() {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleAddTag(asset.id)}
-                    className="h-7 w-7 p-0"
+                    className="size-7 p-0"
                   >
-                    <Tag className="h-3 w-3" />
+                    <Tag className="size-3" />
                   </Button>
                 </div>
 
                 <div className="mt-2">
                   {asset.type === 'image' ? (
                     <div
-                      className="aspect-video bg-muted rounded-md cursor-pointer overflow-hidden flex items-center justify-center"
+                      className="flex aspect-video cursor-pointer items-center justify-center overflow-hidden rounded-md bg-muted"
                       onClick={() => handleOpenAsset(asset)}
                     >
                       <img
                         src={asset.url}
                         alt={asset.name}
-                        className="object-cover w-full h-full"
+                        className="size-full object-cover"
                       />
                     </div>
                   ) : asset.type === 'audio' ? (
@@ -450,7 +452,7 @@ export default function AssetsPanel() {
                   ) : asset.type === 'video' ? (
                     <video
                       onClick={() => handleOpenAsset(asset)}
-                      className="w-full rounded-md cursor-pointer aspect-video object-cover"
+                      className="aspect-video w-full cursor-pointer rounded-md object-cover"
                       src={asset.url}
                     />
                   ) : (
@@ -459,7 +461,7 @@ export default function AssetsPanel() {
                       className="w-full text-sm"
                       onClick={() => window.open(asset.url, '_blank')}
                     >
-                      <ExternalLink className="mr-2 h-4 w-4" />
+                      <ExternalLink className="mr-2 size-4" />
                       Abrir Documento
                     </Button>
                   )}
@@ -511,13 +513,13 @@ export default function AssetsPanel() {
               <img
                 src={selectedAsset.url}
                 alt={selectedAsset.name}
-                className="max-h-[70vh] mx-auto object-contain"
+                className="mx-auto max-h-[70vh] object-contain"
               />
             ) : selectedAsset?.type === 'video' ? (
               <video
                 controls
                 src={selectedAsset.url}
-                className="w-full max-h-[70vh]"
+                className="max-h-[70vh] w-full"
               />
             ) : null}
           </div>
@@ -550,8 +552,8 @@ export default function AssetsPanel() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <p className="text-sm text-muted-foreground">
-              Selecione os projetos nos quais deseja compartilhar "
-              {assetToShare?.name}"
+              Selecione os projetos nos quais deseja compartilhar &quot;
+              {assetToShare?.name}&quot;
             </p>
             <Select onValueChange={handleShareAsset}>
               <SelectTrigger>

@@ -1,7 +1,7 @@
 // components/widgets/AssetsWidget.tsx
 'use client'
 
-"use client"
+'use client'
 
 import React, { useState, useCallback } from 'react'
 import { useProjectsStore } from '@/store/useProjectsStore'
@@ -229,15 +229,15 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
   const getFileIcon = (category: string) => {
     switch (category) {
       case 'image':
-        return <FileImage className="h-5 w-5" />
+        return <FileImage className="size-5" />
       case 'video':
-        return <FileVideo className="h-5 w-5" />
+        return <FileVideo className="size-5" />
       case 'audio':
-        return <FileAudio className="h-5 w-5" />
+        return <FileAudio className="size-5" />
       case 'document':
-        return <FileText className="h-5 w-5" />
+        return <FileText className="size-5" />
       default:
-        return <File className="h-5 w-5" />
+        return <File className="size-5" />
     }
   }
 
@@ -256,7 +256,7 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
   return (
     <Card className="w-full">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg flex justify-between items-center">
+        <CardTitle className="flex items-center justify-between text-lg">
           <span>Assets</span>
           <div className="flex gap-2">
             {selectedAssets.length > 0 && (
@@ -267,13 +267,13 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
                   onClick={deleteSelectedAssets}
                   className="text-red-600"
                 >
-                  <Trash2 className="h-4 w-4 mr-1" />
+                  <Trash2 className="mr-1 size-4" />
                   Excluir ({selectedAssets.length})
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm">
-                      <Share2 className="h-4 w-4 mr-1" />
+                      <Share2 className="mr-1 size-4" />
                       Compartilhar
                     </Button>
                   </DropdownMenuTrigger>
@@ -296,7 +296,7 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
                 size="sm"
                 onClick={() => setIsUploadDialogOpen(true)}
               >
-                <Upload className="h-4 w-4 mr-1" />
+                <Upload className="mr-1 size-4" />
                 Upload
               </Button>
             )}
@@ -309,7 +309,7 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
 
       <CardContent>
         {/* Filtros */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <div className="flex gap-2 overflow-x-auto">
             <Button
               variant={assetCategory === 'all' ? 'default' : 'outline'}
@@ -325,7 +325,7 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
               onClick={() => setAssetCategory('image')}
               className="whitespace-nowrap"
             >
-              <FileImage className="h-3.5 w-3.5 mr-1" />
+              <FileImage className="mr-1 size-3.5" />
               Imagens (
               {projectAssets.filter(a => a.category === 'image').length})
             </Button>
@@ -335,7 +335,7 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
               onClick={() => setAssetCategory('video')}
               className="whitespace-nowrap"
             >
-              <FileVideo className="h-3.5 w-3.5 mr-1" />
+              <FileVideo className="mr-1 size-3.5" />
               Vídeos ({projectAssets.filter(a => a.category === 'video').length}
               )
             </Button>
@@ -345,7 +345,7 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
               onClick={() => setAssetCategory('document')}
               className="whitespace-nowrap"
             >
-              <FileText className="h-3.5 w-3.5 mr-1" />
+              <FileText className="mr-1 size-3.5" />
               Documentos (
               {projectAssets.filter(a => a.category === 'document').length})
             </Button>
@@ -361,7 +361,7 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
               onCheckedChange={selectAllAssets}
               className="mr-2"
             />
-            <Label htmlFor="select-all" className="text-xs cursor-pointer">
+            <Label htmlFor="select-all" className="cursor-pointer text-xs">
               Selecionar Todos
             </Label>
           </div>
@@ -370,8 +370,8 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
         {/* Lista de assets */}
         <ScrollArea className="h-[300px] rounded-md border p-2">
           {filteredAssets.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
-              <FolderOpen className="h-10 w-10 mb-2" />
+            <div className="flex h-full flex-col items-center justify-center text-muted-foreground">
+              <FolderOpen className="mb-2 size-10" />
               <p>Nenhum asset encontrado</p>
               {isEditable && (
                 <Button
@@ -388,7 +388,7 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
               {filteredAssets.map(asset => (
                 <div
                   key={asset.id}
-                  className={`flex items-center justify-between p-2 rounded-md border ${
+                  className={`flex items-center justify-between rounded-md border p-2 ${
                     selectedAssets.includes(asset.id) ? 'bg-muted' : ''
                   }`}
                 >
@@ -404,16 +404,18 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
                         <span className="font-medium">{asset.name}</span>
                         {asset.isShared && (
                           <Badge variant="outline" className="ml-2 text-xs">
-                            <Share2 className="h-3 w-3 mr-1" />
+                            <Share2 className="mr-1 size-3" />
                             Compartilhado
                           </Badge>
                         )}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {formatFileSize(asset.size)} •{' '}
-                        {asset.uploadedAt ? format(new Date(asset.uploadedAt), 'dd/MM/yyyy', {
-                          locale: pt,
-                        }) : 'Data desconhecida'}
+                        {asset.uploadedAt
+                          ? format(new Date(asset.uploadedAt), 'dd/MM/yyyy', {
+                              locale: pt,
+                            })
+                          : 'Data desconhecida'}
                       </div>
                     </div>
                   </div>
@@ -425,7 +427,7 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
+                            className="size-8"
                             asChild
                           >
                             <a
@@ -433,7 +435,7 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
                               target="_blank"
                               rel="noopener noreferrer"
                             >
-                              <ExternalLink className="h-4 w-4" />
+                              <ExternalLink className="size-4" />
                             </a>
                           </Button>
                         </TooltipTrigger>
@@ -447,11 +449,11 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
+                            className="size-8"
                             asChild
                           >
                             <a href={asset.url} download={asset.name}>
-                              <DownloadCloud className="h-4 w-4" />
+                              <DownloadCloud className="size-4" />
                             </a>
                           </Button>
                         </TooltipTrigger>
@@ -467,13 +469,13 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8"
+                                className="size-8"
                                 onClick={() =>
                                   toggleAssetSharing(asset.id, asset.isShared)
                                 }
                               >
                                 <Share2
-                                  className={`h-4 w-4 ${asset.isShared ? 'text-blue-500' : ''}`}
+                                  className={`size-4 ${asset.isShared ? 'text-blue-500' : ''}`}
                                 />
                               </Button>
                             </TooltipTrigger>
@@ -491,10 +493,10 @@ const AssetsWidget: React.FC<AssetsWidgetProps> = ({
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 text-red-500"
+                                className="size-8 text-red-500"
                                 onClick={() => handleDeleteAsset(asset.id)}
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="size-4" />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>Excluir</TooltipContent>

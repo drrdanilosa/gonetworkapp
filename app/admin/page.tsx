@@ -30,7 +30,7 @@ export default function AdminDashboardPage() {
           <CardContent>
             <div className="flex items-center justify-between">
               <span className="flex items-center">
-                <ActivitySquare className="h-5 w-5 mr-2 text-green-500" />
+                <ActivitySquare className="mr-2 size-5 text-green-500" />
                 Todos os serviços online
               </span>
               <Button variant="outline" size="sm" asChild>
@@ -48,7 +48,7 @@ export default function AdminDashboardPage() {
           <CardContent>
             <div className="flex items-center justify-between">
               <span className="flex items-center">
-                <Network className="h-5 w-5 mr-2 text-amber-500" />
+                <Network className="mr-2 size-5 text-amber-500" />
                 Socket.io: Verificação recomendada
               </span>
               <Button variant="outline" size="sm" asChild>
@@ -66,7 +66,7 @@ export default function AdminDashboardPage() {
           <CardContent>
             <div className="flex items-center justify-between">
               <span className="flex items-center">
-                <Settings className="h-5 w-5 mr-2 text-blue-500" />
+                <Settings className="mr-2 size-5 text-blue-500" />
                 Configurações do sistema
               </span>
               <Button variant="outline" size="sm" disabled>
@@ -92,8 +92,8 @@ export default function AdminDashboardPage() {
             sistema.
           </p>
 
-          <div className="flex items-center p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-900 rounded-md">
-            <AlertTriangle className="h-5 w-5 mr-2 text-amber-500" />
+          <div className="flex items-center rounded-md border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950">
+            <AlertTriangle className="mr-2 size-5 text-amber-500" />
             <span className="text-sm">
               Ferramentas de diagnóstico disponíveis para resolver problemas de
               conexão com Socket.io.

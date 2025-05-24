@@ -41,7 +41,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${inter.variable} ${firaCode.variable}`}
     >
-      <body className={`antialiased bg-background font-sans`}>
+      <body className={`bg-background font-sans antialiased`}>
         <ReactQueryProvider>
           <ThemeProvider
             attribute="class"

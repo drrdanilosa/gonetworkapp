@@ -13,7 +13,7 @@ export interface Event {
 export interface Phase {
   id: string
   name: string
-  start: string 
+  start: string
   end: string
   completed: boolean
   duration?: number
@@ -97,7 +97,13 @@ export interface Project {
   editorId: string
   createdAt: string
   updatedAt: string
-  status: 'draft' | 'review' | 'approved' | 'completed'
+  status:
+    | 'draft'
+    | 'review'
+    | 'approved'
+    | 'completed'
+    | 'in_progress'
+    | 'archived'
   videoUrl?: string
   thumbnailUrl?: string
   deadline?: string
@@ -117,6 +123,12 @@ export interface Project {
   team?: number // Contador de membros da equipe
   annotations?: Annotation[] // Adicionado para suporte a anotações
   assets?: Asset[] // Adicionado para suporte a assets
+  completed?: number // Adicionado para cálculo de progresso
+  deliveries?: number // Adicionado para cálculo de progresso
+  deliverables?: VideoDeliverable[] // Adicionado para entregáveis
+  tags?: string[] // Adicionado para categorização
+  client?: string // Adicionado para compatibilidade
+  deliverySettings?: any // Substituir 'any' por tipo apropriado quando conhecido
 }
 
 export interface Comment {

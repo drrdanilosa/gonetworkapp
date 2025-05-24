@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -65,7 +65,7 @@ export default function AnnotationToolbar({
   setSelectedThickness,
 }: AnnotationToolbarProps) {
   return (
-    <div className="flex items-center gap-1 p-1 bg-background/90 border rounded-md shadow-sm">
+    <div className="flex items-center gap-1 rounded-md border bg-background/90 p-1 shadow-sm">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -73,9 +73,9 @@ export default function AnnotationToolbar({
               pressed={isAnnotationMode}
               onPressedChange={setIsAnnotationMode}
               size="sm"
-              className="h-8 w-8 p-0"
+              className="size-8 p-0"
             >
-              <Edit2 className="h-4 w-4" />
+              <Edit2 className="size-4" />
             </Toggle>
           </TooltipTrigger>
           <TooltipContent side="bottom">
@@ -86,7 +86,7 @@ export default function AnnotationToolbar({
 
       {isAnnotationMode && (
         <>
-          <div className="h-6 w-px bg-border mx-1" />
+          <div className="mx-1 h-6 w-px bg-border" />
 
           <TooltipProvider>
             <Tooltip>
@@ -95,9 +95,9 @@ export default function AnnotationToolbar({
                   pressed={selectedTool === 'pen'}
                   onPressedChange={() => setSelectedTool('pen')}
                   size="sm"
-                  className="h-8 w-8 p-0"
+                  className="size-8 p-0"
                 >
-                  <Pencil className="h-4 w-4" />
+                  <Pencil className="size-4" />
                 </Toggle>
               </TooltipTrigger>
               <TooltipContent side="bottom">
@@ -113,9 +113,9 @@ export default function AnnotationToolbar({
                   pressed={selectedTool === 'highlighter'}
                   onPressedChange={() => setSelectedTool('highlighter')}
                   size="sm"
-                  className="h-8 w-8 p-0"
+                  className="size-8 p-0"
                 >
-                  <Highlighter className="h-4 w-4" />
+                  <Highlighter className="size-4" />
                 </Toggle>
               </TooltipTrigger>
               <TooltipContent side="bottom">
@@ -131,9 +131,9 @@ export default function AnnotationToolbar({
                   pressed={selectedTool === 'arrow'}
                   onPressedChange={() => setSelectedTool('arrow')}
                   size="sm"
-                  className="h-8 w-8 p-0"
+                  className="size-8 p-0"
                 >
-                  <ArrowUpRight className="h-4 w-4" />
+                  <ArrowUpRight className="size-4" />
                 </Toggle>
               </TooltipTrigger>
               <TooltipContent side="bottom">
@@ -149,9 +149,9 @@ export default function AnnotationToolbar({
                   pressed={selectedTool === 'rectangle'}
                   onPressedChange={() => setSelectedTool('rectangle')}
                   size="sm"
-                  className="h-8 w-8 p-0"
+                  className="size-8 p-0"
                 >
-                  <Square className="h-4 w-4" />
+                  <Square className="size-4" />
                 </Toggle>
               </TooltipTrigger>
               <TooltipContent side="bottom">
@@ -167,9 +167,9 @@ export default function AnnotationToolbar({
                   pressed={selectedTool === 'ellipse'}
                   onPressedChange={() => setSelectedTool('ellipse')}
                   size="sm"
-                  className="h-8 w-8 p-0"
+                  className="size-8 p-0"
                 >
-                  <Circle className="h-4 w-4" />
+                  <Circle className="size-4" />
                 </Toggle>
               </TooltipTrigger>
               <TooltipContent side="bottom">
@@ -185,9 +185,9 @@ export default function AnnotationToolbar({
                   pressed={selectedTool === 'text'}
                   onPressedChange={() => setSelectedTool('text')}
                   size="sm"
-                  className="h-8 w-8 p-0"
+                  className="size-8 p-0"
                 >
-                  <Type className="h-4 w-4" />
+                  <Type className="size-4" />
                 </Toggle>
               </TooltipTrigger>
               <TooltipContent side="bottom">
@@ -203,9 +203,9 @@ export default function AnnotationToolbar({
                   pressed={selectedTool === 'eraser'}
                   onPressedChange={() => setSelectedTool('eraser')}
                   size="sm"
-                  className="h-8 w-8 p-0"
+                  className="size-8 p-0"
                 >
-                  <Eraser className="h-4 w-4" />
+                  <Eraser className="size-4" />
                 </Toggle>
               </TooltipTrigger>
               <TooltipContent side="bottom">
@@ -214,14 +214,14 @@ export default function AnnotationToolbar({
             </Tooltip>
           </TooltipProvider>
 
-          <div className="h-6 w-px bg-border mx-1" />
+          <div className="mx-1 h-6 w-px bg-border" />
 
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 w-8 p-0"
+                className="size-8 p-0"
                 style={{ backgroundColor: selectedColor }}
               />
             </PopoverTrigger>
@@ -230,7 +230,7 @@ export default function AnnotationToolbar({
                 {COLORS.map(color => (
                   <button
                     key={color}
-                    className="h-6 w-6 rounded-full border border-border hover:scale-110 transition-transform"
+                    className="size-6 rounded-full border border-border transition-transform hover:scale-110"
                     style={{ backgroundColor: color }}
                     onClick={() => setSelectedColor(color)}
                   />

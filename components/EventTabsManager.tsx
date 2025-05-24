@@ -18,30 +18,34 @@ export default function EventTabsManager({ eventId }: EventTabsManagerProps) {
   return (
     <div className="container mx-auto p-4">
       <Card className="p-6">
-        <Tabs defaultValue="briefing" value={activeTab} onValueChange={setActiveTab}>
+        <Tabs
+          defaultValue="briefing"
+          value={activeTab}
+          onValueChange={setActiveTab}
+        >
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="briefing" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
+              <FileText className="size-4" />
               <span>Briefing</span>
             </TabsTrigger>
             <TabsTrigger value="equipe" className="flex items-center gap-2">
-              <UsersRound className="h-4 w-4" />
+              <UsersRound className="size-4" />
               <span>Equipe</span>
             </TabsTrigger>
             <TabsTrigger value="entregas" className="flex items-center gap-2">
-              <ClipboardList className="h-4 w-4" />
+              <ClipboardList className="size-4" />
               <span>Entregas</span>
             </TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="briefing">
             <BriefingTab eventId={eventId} />
           </TabsContent>
-          
+
           <TabsContent value="equipe">
             <EquipeTab eventId={eventId} />
           </TabsContent>
-          
+
           <TabsContent value="entregas">
             <EntregasTab eventId={eventId} />
           </TabsContent>

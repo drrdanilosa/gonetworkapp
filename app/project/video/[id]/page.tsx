@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -133,21 +133,21 @@ export default function VideoPage({ params }: { params: { id: string } }) {
         className="mb-4"
         onClick={() => router.back()}
       >
-        <ArrowLeft className="mr-2 h-4 w-4" />
+        <ArrowLeft className="mr-2 size-4" />
         Voltar ao projeto
       </Button>
 
-      <h1 className="text-2xl font-bold mb-6">{currentProject.title}</h1>
+      <h1 className="mb-6 text-2xl font-bold">{currentProject.title}</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <div className="relative rounded-lg overflow-hidden bg-black aspect-video mb-6">
+          <div className="relative mb-6 aspect-video overflow-hidden rounded-lg bg-black">
             {selectedVersion ? (
               <>
                 <video
                   ref={videoRef}
                   src={selectedVersion.url}
-                  className="w-full h-full"
+                  className="size-full"
                   controls
                   onTimeUpdate={handleTimeUpdate}
                 />
@@ -167,22 +167,22 @@ export default function VideoPage({ params }: { params: { id: string } }) {
                 )}
               </>
             ) : (
-              <div className="flex items-center justify-center h-full text-white">
+              <div className="flex h-full items-center justify-center text-white">
                 Nenhuma versão disponível para este vídeo
               </div>
             )}
           </div>
 
           {isAddingComment && (
-            <div className="mb-6 p-4 border rounded-md bg-card">
-              <h3 className="text-lg font-medium mb-2">
+            <div className="mb-6 rounded-md border bg-card p-4">
+              <h3 className="mb-2 text-lg font-medium">
                 Adicionar comentário em {formatTime(currentTime)}
               </h3>
               <textarea
                 value={newCommentContent}
                 onChange={e => setNewCommentContent(e.target.value)}
                 placeholder="Digite seu comentário sobre o vídeo neste ponto..."
-                className="w-full p-3 border rounded-md mb-3 bg-background"
+                className="mb-3 w-full rounded-md border bg-background p-3"
                 rows={3}
               />
               <div className="flex justify-end space-x-2">
@@ -195,15 +195,15 @@ export default function VideoPage({ params }: { params: { id: string } }) {
           )}
 
           <Tabs className="mb-6">
-            <TabList className="flex border-b mb-4">
+            <TabList className="mb-4 flex border-b">
               <Tab className="tab-item">
-                <MessageCircle className="mr-2 h-4 w-4" /> Comentários
+                <MessageCircle className="mr-2 size-4" /> Comentários
               </Tab>
               <Tab className="tab-item">
-                <Layers className="mr-2 h-4 w-4" /> Versões
+                <Layers className="mr-2 size-4" /> Versões
               </Tab>
               <Tab className="tab-item">
-                <FileBox className="mr-2 h-4 w-4" /> Assets
+                <FileBox className="mr-2 size-4" /> Assets
               </Tab>
             </TabList>
 
@@ -233,21 +233,21 @@ export default function VideoPage({ params }: { params: { id: string } }) {
         </div>
 
         <div className="space-y-6">
-          <div className="border rounded-md p-4 bg-card">
-            <h2 className="text-lg font-semibold mb-4">Vídeos do Projeto</h2>
+          <div className="rounded-md border bg-card p-4">
+            <h2 className="mb-4 text-lg font-semibold">Vídeos do Projeto</h2>
             <div className="space-y-2">
               {currentProject.videos.map(video => (
                 <div
                   key={video.id}
                   onClick={() => setSelectedDeliverable(video.id)}
-                  className={`p-3 rounded-md cursor-pointer transition-colors ${
+                  className={`cursor-pointer rounded-md p-3 transition-colors ${
                     selectedDeliverable === video.id
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-secondary hover:bg-secondary/80'
                   }`}
                 >
                   <h3 className="font-medium">{video.title}</h3>
-                  <div className="text-xs mt-1">
+                  <div className="mt-1 text-xs">
                     {video.versions.length}{' '}
                     {video.versions.length === 1 ? 'versão' : 'versões'}
                   </div>

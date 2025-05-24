@@ -19,13 +19,13 @@ interface AuthStore {
 
 export const useAuthStore = create<AuthStore>()(
   persist(
-    (set) => ({
+    set => ({
       user: null,
       isAuthenticated: false,
       login: (user: User) => set({ user, isAuthenticated: true }),
       logout: () => set({ user: null, isAuthenticated: false }),
       updateUserRole: (role: User['role']) =>
-        set((state) => ({
+        set(state => ({
           user: state.user ? { ...state.user, role } : null,
         })),
     }),

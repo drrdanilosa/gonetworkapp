@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -62,24 +62,24 @@ export default function TestProjectsInitPage() {
   }, [])
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">
+    <div className="mx-auto max-w-4xl p-8">
+      <h1 className="mb-6 text-3xl font-bold">
         Inicialização de Projetos de Teste
       </h1>
-      <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
+      <div className="mb-6 rounded border border-green-400 bg-green-100 px-4 py-3 text-green-700">
         <p className="font-bold">
           Status:{' '}
           {initialized
             ? 'Projetos inicializados com sucesso!'
             : 'Inicializando...'}
         </p>
-        <p className="text-sm mt-1">
+        <p className="mt-1 text-sm">
           Esta página cria os projetos de teste necessários para o funcionamento
           do watcher de vídeos.
         </p>
       </div>
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Projetos Disponíveis</h2>
+      <div className="mb-6 rounded-lg bg-white p-6 shadow">
+        <h2 className="mb-4 text-xl font-semibold">Projetos Disponíveis</h2>
         {projects.length === 0 ? (
           <p className="text-gray-500">Nenhum projeto encontrado.</p>
         ) : (
@@ -96,13 +96,13 @@ export default function TestProjectsInitPage() {
           </ul>
         )}
       </div>{' '}
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Status do Sistema</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="border rounded p-4">
-            <h3 className="font-medium mb-2 flex items-center">
+      <div className="mb-6 rounded-lg bg-white p-6 shadow">
+        <h2 className="mb-4 text-xl font-semibold">Status do Sistema</h2>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="rounded border p-4">
+            <h3 className="mb-2 flex items-center font-medium">
               <span
-                className={`inline-block w-3 h-3 rounded-full mr-2 ${watcherStatus === 'Online' ? 'bg-green-500' : 'bg-red-500'}`}
+                className={`mr-2 inline-block size-3 rounded-full ${watcherStatus === 'Online' ? 'bg-green-500' : 'bg-red-500'}`}
               ></span>
               Watcher de Vídeos
             </h3>
@@ -116,12 +116,12 @@ export default function TestProjectsInitPage() {
               </div>
             )}
           </div>
-          <div className="border rounded p-4">
-            <h3 className="font-medium mb-2">Diretórios de Vídeo</h3>
-            <ul className="text-sm space-y-1">
+          <div className="rounded border p-4">
+            <h3 className="mb-2 font-medium">Diretórios de Vídeo</h3>
+            <ul className="space-y-1 text-sm">
               <li className="flex items-center">
                 <span
-                  className={`inline-block w-2 h-2 rounded-full mr-2 ${directoryStatus.projeto1Dir ? 'bg-green-500' : 'bg-red-500'}`}
+                  className={`mr-2 inline-block size-2 rounded-full ${directoryStatus.projeto1Dir ? 'bg-green-500' : 'bg-red-500'}`}
                 ></span>
                 <code>public/exports/projeto-1</code>
                 {directoryStatus.projeto1Dir &&
@@ -133,7 +133,7 @@ export default function TestProjectsInitPage() {
               </li>
               <li className="flex items-center">
                 <span
-                  className={`inline-block w-2 h-2 rounded-full mr-2 ${directoryStatus.projeto2Dir ? 'bg-green-500' : 'bg-red-500'}`}
+                  className={`mr-2 inline-block size-2 rounded-full ${directoryStatus.projeto2Dir ? 'bg-green-500' : 'bg-red-500'}`}
                 ></span>
                 <code>public/exports/projeto-2</code>
                 {directoryStatus.projeto2Dir &&
@@ -158,13 +158,13 @@ export default function TestProjectsInitPage() {
         </div>
 
         {apiStatus?.diagnostico?.arquivos && (
-          <div className="mt-4 border rounded p-4">
-            <h3 className="font-medium mb-2">Arquivos Detectados</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="mt-4 rounded border p-4">
+            <h3 className="mb-2 font-medium">Arquivos Detectados</h3>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <h4 className="text-sm font-medium">Projeto 1:</h4>
                 {apiStatus.diagnostico.arquivos.projeto1?.length > 0 ? (
-                  <ul className="text-xs text-gray-600 list-disc pl-5">
+                  <ul className="list-disc pl-5 text-xs text-gray-600">
                     {apiStatus.diagnostico.arquivos.projeto1.map(
                       (file: string, index: number) => (
                         <li key={index}>{file}</li>
@@ -180,7 +180,7 @@ export default function TestProjectsInitPage() {
               <div>
                 <h4 className="text-sm font-medium">Projeto 2:</h4>
                 {apiStatus.diagnostico.arquivos.projeto2?.length > 0 ? (
-                  <ul className="text-xs text-gray-600 list-disc pl-5">
+                  <ul className="list-disc pl-5 text-xs text-gray-600">
                     {apiStatus.diagnostico.arquivos.projeto2.map(
                       (file: string, index: number) => (
                         <li key={index}>{file}</li>
@@ -200,7 +200,7 @@ export default function TestProjectsInitPage() {
       <div className="flex space-x-4">
         <button
           onClick={() => router.push('/')}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+          className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
         >
           Voltar para a página inicial
         </button>
@@ -233,7 +233,7 @@ export default function TestProjectsInitPage() {
               console.error('Erro ao atualizar status:', error)
             }
           }}
-          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+          className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600"
         >
           Reinicializar projetos
         </button>
@@ -259,7 +259,7 @@ export default function TestProjectsInitPage() {
               console.error('Erro ao atualizar status:', error)
             }
           }}
-          className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
+          className="rounded bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600"
         >
           Atualizar status
         </button>

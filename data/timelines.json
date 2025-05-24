@@ -48,5 +48,288 @@
         }
       ]
     }
+  ],
+  "980d3d3f-67d7-4e6d-980a-eba09dba2059": [
+    {
+      "id": "c15fc186-883c-4915-9a24-4dc6fb527191",
+      "name": "Pré-produção",
+      "description": "Planejamento e preparação baseado no briefing",
+      "startDate": "2025-05-16T00:00:00.000Z",
+      "endDate": "2025-05-31T00:00:00.000Z",
+      "status": "pending",
+      "type": "planning",
+      "tasks": [
+        {
+          "id": "9128c82f-fb60-41d3-bb0f-c7277cba9bd6",
+          "name": "Preparação para 1 sponsors",
+          "description": "Coordenação com sponsors baseada no briefing",
+          "status": "pending",
+          "dueDate": "2025-05-21T00:00:00.000Z"
+        },
+        {
+          "id": "d13fdd71-e795-4134-b9df-ee1c16769f86",
+          "name": "Setup de 1 palcos",
+          "description": "Preparação dos palcos conforme briefing",
+          "status": "pending",
+          "dueDate": "2025-05-26T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "0ff32427-2877-407c-986d-4fcf2fc4011a",
+      "name": "Dia do Evento",
+      "description": "Execução baseada no briefing",
+      "startDate": "2025-06-15T00:00:00.000Z",
+      "endDate": "2025-06-16T00:00:00.000Z",
+      "status": "pending",
+      "type": "execution",
+      "tasks": [
+        {
+          "id": "204ef6d0-6fb4-407c-8109-ea06341b9616",
+          "name": "Entregas em tempo real (1)",
+          "description": "Execução das entregas conforme briefing",
+          "status": "pending",
+          "dueDate": "2025-06-15T00:00:00.000Z"
+        }
+      ]
+    }
+  ],
+  "c5d5061f-a619-45ee-ba0b-c245e13a5908": [
+    {
+      "id": "6f8ef843-b2a8-45a7-8357-8bf25e8ec611",
+      "name": "Pré-produção",
+      "description": "Planejamento e preparação baseado no briefing",
+      "startDate": "2025-05-16T00:00:00.000Z",
+      "endDate": "2025-05-31T00:00:00.000Z",
+      "status": "pending",
+      "type": "planning",
+      "tasks": [
+        {
+          "id": "07ddba06-2740-4615-886f-2f05e58b4fbb",
+          "name": "Preparação para 1 sponsors",
+          "description": "Coordenação com sponsors baseada no briefing",
+          "status": "pending",
+          "dueDate": "2025-05-21T00:00:00.000Z"
+        },
+        {
+          "id": "adeee590-7ab0-4e06-948d-9a63b4fbfbe2",
+          "name": "Setup de 1 palcos",
+          "description": "Preparação dos palcos conforme briefing",
+          "status": "pending",
+          "dueDate": "2025-05-26T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "d0fd43da-40c0-4357-8975-f60bbff31c13",
+      "name": "Dia do Evento",
+      "description": "Execução baseada no briefing",
+      "startDate": "2025-06-15T00:00:00.000Z",
+      "endDate": "2025-06-16T00:00:00.000Z",
+      "status": "pending",
+      "type": "execution",
+      "tasks": [
+        {
+          "id": "0bc66467-47a8-4191-a82a-905b1f9d704f",
+          "name": "Entregas em tempo real (1)",
+          "description": "Execução das entregas conforme briefing",
+          "status": "pending",
+          "dueDate": "2025-06-15T00:00:00.000Z"
+        }
+      ]
+    }
+  ],
+  "c22fa920-433d-4152-8ea5-df5ceaa2125e": [
+    {
+      "id": "d8b859bc-de0b-4dda-82ce-45b1be453bba",
+      "name": "Pré-produção",
+      "description": "Planejamento e preparação baseado no briefing",
+      "startDate": "2025-05-16T00:00:00.000Z",
+      "endDate": "2025-05-31T00:00:00.000Z",
+      "status": "pending",
+      "type": "planning",
+      "tasks": [
+        {
+          "id": "3cba5fc5-645d-4ddd-b15f-e22ef90b824d",
+          "name": "Preparação para 1 sponsors",
+          "description": "Coordenação com sponsors baseada no briefing",
+          "status": "pending",
+          "dueDate": "2025-05-21T00:00:00.000Z"
+        },
+        {
+          "id": "d081ba19-7810-4931-8875-94e6f0810c4b",
+          "name": "Setup de 1 palcos",
+          "description": "Preparação dos palcos conforme briefing",
+          "status": "pending",
+          "dueDate": "2025-05-26T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "4ee8c6f2-7faf-4632-b3de-b613fbdaeb9e",
+      "name": "Dia do Evento",
+      "description": "Execução baseada no briefing",
+      "startDate": "2025-06-15T00:00:00.000Z",
+      "endDate": "2025-06-16T00:00:00.000Z",
+      "status": "pending",
+      "type": "execution",
+      "tasks": [
+        {
+          "id": "80f66e24-f58e-43f9-a1c6-2e9946010c19",
+          "name": "Entregas em tempo real (1)",
+          "description": "Execução das entregas conforme briefing",
+          "status": "pending",
+          "dueDate": "2025-06-15T00:00:00.000Z"
+        }
+      ]
+    }
+  ],
+  "test-event-1748081440763": {
+    "eventId": "test-event-1748081440763",
+    "phases": [
+      {
+        "id": "pre-production",
+        "name": "Pré-Produção",
+        "description": "Planejamento e preparação",
+        "startDate": "2025-05-24T10:10:40.788Z",
+        "endDate": "2025-05-31T10:10:40.788Z",
+        "status": "pending",
+        "type": "planning",
+        "tasks": [
+          {
+            "id": "briefing",
+            "name": "Briefing do cliente",
+            "status": "completed",
+            "dueDate": "2025-05-24T10:10:40.788Z"
+          }
+        ]
+      }
+    ],
+    "createdAt": "2025-05-24T10:10:40.788Z"
+  },
+  "test-event-1748081458939": {
+    "eventId": "test-event-1748081458939",
+    "phases": [
+      {
+        "id": "pre-production",
+        "name": "Pré-Produção",
+        "description": "Planejamento e preparação",
+        "startDate": "2025-05-24T10:10:58.949Z",
+        "endDate": "2025-05-31T10:10:58.949Z",
+        "status": "pending",
+        "type": "planning",
+        "tasks": [
+          {
+            "id": "briefing",
+            "name": "Briefing do cliente",
+            "status": "completed",
+            "dueDate": "2025-05-24T10:10:58.949Z"
+          }
+        ]
+      }
+    ],
+    "createdAt": "2025-05-24T10:10:58.949Z"
+  },
+  "test-evento-12345": [
+    {
+      "id": "118fdb3b-c38b-4e39-b4ec-101dccd248c1",
+      "name": "Pré-produção",
+      "description": "Fase de planejamento e preparação",
+      "startDate": "2025-05-02T00:00:00.000Z",
+      "endDate": "2025-05-17T00:00:00.000Z",
+      "status": "pending",
+      "type": "planning",
+      "tasks": [
+        {
+          "id": "14225ba9-fb50-42ae-a0fd-b8a02eb534b6",
+          "name": "Reunião inicial",
+          "description": "Alinhamento de expectativas",
+          "status": "pending",
+          "dueDate": "2025-05-04T00:00:00.000Z"
+        },
+        {
+          "id": "0aee350a-383d-4e65-8c6f-f288adf282ec",
+          "name": "Elaboração de roteiro",
+          "description": "Desenvolvimento do conteúdo base",
+          "status": "pending",
+          "dueDate": "2025-05-09T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "5d09a4df-0088-42d0-91f4-49a2a7b1d718",
+      "name": "Produção",
+      "description": "Fase de captação e criação de conteúdo",
+      "startDate": "2025-05-17T00:00:00.000Z",
+      "endDate": "2025-05-27T00:00:00.000Z",
+      "status": "pending",
+      "type": "production",
+      "tasks": [
+        {
+          "id": "7f77b7ba-5c99-4415-b64b-991ba1276697",
+          "name": "Captação de vídeo",
+          "description": "Filmagem do conteúdo",
+          "status": "pending",
+          "dueDate": "2025-05-20T00:00:00.000Z"
+        },
+        {
+          "id": "540dca2a-2238-4bac-b21f-fde2a03507e1",
+          "name": "Backup de material",
+          "description": "Organização e backup de todo o material",
+          "status": "pending",
+          "dueDate": "2025-05-21T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "8a3390b4-0ae1-4bbe-b048-ecc4e9500d27",
+      "name": "Pós-produção",
+      "description": "Fase de edição e finalização",
+      "startDate": "2025-05-27T00:00:00.000Z",
+      "endDate": "2025-05-30T00:00:00.000Z",
+      "status": "pending",
+      "type": "post-production",
+      "tasks": [
+        {
+          "id": "b04bdc2c-06f6-46c9-a121-61ef9f8c7640",
+          "name": "Edição preliminar",
+          "description": "Primeiro corte do vídeo",
+          "status": "pending",
+          "dueDate": "2025-05-28T00:00:00.000Z"
+        },
+        {
+          "id": "9ccd6286-9f72-402d-9642-872573dcca14",
+          "name": "Revisão e aprovação",
+          "description": "Revisão pelo cliente",
+          "status": "pending",
+          "dueDate": "2025-05-29T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "dbd35790-4e9e-46f3-ade4-569ec36bc0eb",
+      "name": "Entrega",
+      "description": "Fase de finalização e entrega",
+      "startDate": "2025-05-30T00:00:00.000Z",
+      "endDate": "2025-05-31T00:00:00.000Z",
+      "status": "pending",
+      "type": "delivery",
+      "tasks": [
+        {
+          "id": "4f03ba45-5527-4ecd-8b6c-9863302ce25b",
+          "name": "Exportação final",
+          "description": "Exportação em alta qualidade",
+          "status": "pending",
+          "dueDate": "2025-05-30T00:00:00.000Z"
+        },
+        {
+          "id": "38e0f58a-a8eb-466e-9344-0a2eea0638c1",
+          "name": "Entrega ao cliente",
+          "description": "Disponibilização dos arquivos finais",
+          "status": "pending",
+          "dueDate": "2025-05-30T12:00:00.000Z"
+        }
+      ]
+    }
   ]
 }

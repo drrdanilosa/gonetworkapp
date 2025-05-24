@@ -32,7 +32,7 @@ export default function TeamWidget() {
       phone: '(11) 98765-4321',
       avatar: '/placeholder.svg?key=rrhki',
       events: 8,
-      icon: <Camera className="h-4 w-4" />,
+      icon: <Camera className="size-4" />,
     },
     {
       id: 2,
@@ -42,7 +42,7 @@ export default function TeamWidget() {
       phone: '(11) 91234-5678',
       avatar: '/placeholder.svg?key=r3e0i',
       events: 12,
-      icon: <Edit3 className="h-4 w-4" />,
+      icon: <Edit3 className="size-4" />,
     },
     {
       id: 3,
@@ -52,7 +52,7 @@ export default function TeamWidget() {
       phone: '(11) 99876-5432',
       avatar: '/placeholder.svg?key=bmikw',
       events: 6,
-      icon: <Drone className="h-4 w-4" />,
+      icon: <Drone className="size-4" />,
     },
     {
       id: 4,
@@ -62,7 +62,7 @@ export default function TeamWidget() {
       phone: '(11) 95678-1234',
       avatar: '/placeholder.svg?key=cevbo',
       events: 15,
-      icon: <Users className="h-4 w-4" />,
+      icon: <Users className="size-4" />,
     },
   ]
 
@@ -98,10 +98,10 @@ export default function TeamWidget() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Equipe</h1>
         <Button>
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="mr-2 size-4" />
           Adicionar Membro
         </Button>
       </div>
@@ -112,9 +112,9 @@ export default function TeamWidget() {
           <TabsTrigger value="clients">Clientes</TabsTrigger>
         </TabsList>
 
-        <div className="flex items-center gap-4 mt-6 mb-4">
+        <div className="mb-4 mt-6 flex items-center gap-4">
           <div className="relative flex-1">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2 top-2.5 size-4 text-muted-foreground" />
             <Input placeholder="Buscar..." className="pl-8" />
           </div>
 
@@ -133,12 +133,12 @@ export default function TeamWidget() {
         </div>
 
         <TabsContent value="team" className="mt-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {team.map(member => (
               <Card key={member.id}>
                 <CardContent className="p-4">
                   <div className="flex items-start gap-4">
-                    <Avatar className="h-12 w-12">
+                    <Avatar className="size-12">
                       <AvatarImage
                         src={member.avatar || '/placeholder.svg'}
                         alt={member.name}
@@ -152,7 +152,7 @@ export default function TeamWidget() {
                     </Avatar>
 
                     <div className="flex-1">
-                      <div className="flex justify-between items-start">
+                      <div className="flex items-start justify-between">
                         <div>
                           <h3 className="font-medium">{member.name}</h3>
                           <div className="flex items-center text-sm text-muted-foreground">
@@ -165,11 +165,11 @@ export default function TeamWidget() {
 
                       <div className="mt-4 space-y-1 text-sm">
                         <div className="flex items-center">
-                          <Mail className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+                          <Mail className="mr-2 size-3.5 text-muted-foreground" />
                           <span>{member.email}</span>
                         </div>
                         <div className="flex items-center">
-                          <Phone className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+                          <Phone className="mr-2 size-3.5 text-muted-foreground" />
                           <span>{member.phone}</span>
                         </div>
                       </div>
@@ -188,20 +188,20 @@ export default function TeamWidget() {
               </Card>
             ))}
 
-            <Card className="border-dashed flex flex-col items-center justify-center p-6 h-full">
-              <Plus className="h-12 w-12 text-muted-foreground mb-4" />
+            <Card className="flex h-full flex-col items-center justify-center border-dashed p-6">
+              <Plus className="mb-4 size-12 text-muted-foreground" />
               <Button variant="outline">Adicionar Membro</Button>
             </Card>
           </div>
         </TabsContent>
 
         <TabsContent value="clients" className="mt-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {clients.map(client => (
               <Card key={client.id}>
                 <CardContent className="p-4">
                   <div className="flex items-start gap-4">
-                    <Avatar className="h-12 w-12">
+                    <Avatar className="size-12">
                       <AvatarImage
                         src={client.avatar || '/placeholder.svg'}
                         alt={client.name}
@@ -215,7 +215,7 @@ export default function TeamWidget() {
                     </Avatar>
 
                     <div className="flex-1">
-                      <div className="flex justify-between items-start">
+                      <div className="flex items-start justify-between">
                         <div>
                           <h3 className="font-medium">{client.name}</h3>
                           <div className="text-sm text-muted-foreground">
@@ -227,11 +227,11 @@ export default function TeamWidget() {
 
                       <div className="mt-4 space-y-1 text-sm">
                         <div className="flex items-center">
-                          <Mail className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+                          <Mail className="mr-2 size-3.5 text-muted-foreground" />
                           <span>{client.email}</span>
                         </div>
                         <div className="flex items-center">
-                          <Phone className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+                          <Phone className="mr-2 size-3.5 text-muted-foreground" />
                           <span>{client.phone}</span>
                         </div>
                       </div>
@@ -250,8 +250,8 @@ export default function TeamWidget() {
               </Card>
             ))}
 
-            <Card className="border-dashed flex flex-col items-center justify-center p-6 h-full">
-              <Plus className="h-12 w-12 text-muted-foreground mb-4" />
+            <Card className="flex h-full flex-col items-center justify-center border-dashed p-6">
+              <Plus className="mb-4 size-12 text-muted-foreground" />
               <Button variant="outline">Adicionar Cliente</Button>
             </Card>
           </div>

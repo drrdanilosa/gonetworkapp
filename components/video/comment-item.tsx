@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -53,14 +53,14 @@ export default function CommentItem({
 
   return (
     <Card className={comment.isResolved ? 'border-success bg-success/5' : ''}>
-      <CardContent className="p-3 space-y-2">
+      <CardContent className="space-y-2 p-3">
         <div className="flex justify-between">
           <div className="font-medium">{comment.author}</div>
           <div
-            className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1"
+            className="flex cursor-pointer items-center gap-1 text-sm text-muted-foreground"
             onClick={() => onJumpToTime(comment.time)}
           >
-            <Clock className="h-3 w-3" />
+            <Clock className="size-3" />
             {formatTime(comment.time)}
           </div>
         </div>
@@ -75,10 +75,10 @@ export default function CommentItem({
             />
             <div className="flex justify-end gap-2">
               <Button variant="outline" size="sm" onClick={handleCancelEdit}>
-                <X className="h-3 w-3 mr-1" /> Cancelar
+                <X className="mr-1 size-3" /> Cancelar
               </Button>
               <Button size="sm" onClick={handleSaveEdit}>
-                <Check className="h-3 w-3 mr-1" /> Salvar
+                <Check className="mr-1 size-3" /> Salvar
               </Button>
             </div>
           </div>
@@ -86,9 +86,9 @@ export default function CommentItem({
           <p className="text-sm">{comment.text}</p>
         )}
 
-        <div className="flex justify-between items-center">
-          <div className="text-xs text-muted-foreground flex items-center gap-1">
-            <MessageSquare className="h-3 w-3" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <MessageSquare className="size-3" />
             {formatDistanceToNow(new Date(comment.createdAt), {
               addSuffix: true,
               locale: ptBR,
@@ -102,19 +102,19 @@ export default function CommentItem({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7"
+                  className="size-7"
                   onClick={() => setIsEditing(true)}
                 >
-                  <Edit2 className="h-3.5 w-3.5" />
+                  <Edit2 className="size-3.5" />
                 </Button>
 
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7"
+                  className="size-7"
                   onClick={() => onDelete(comment.id)}
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Trash2 className="size-3.5" />
                 </Button>
 
                 {comment.isResolved ? (

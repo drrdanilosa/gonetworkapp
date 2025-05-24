@@ -1,7 +1,7 @@
 // components/video/VideoErrorDisplay.tsx
 'use client'
 
-"use client"
+'use client'
 
 import React from 'react'
 import { AlertCircle, RefreshCw } from 'lucide-react'
@@ -21,7 +21,7 @@ export default function VideoErrorDisplay({
 }: VideoErrorDisplayProps) {
   return (
     <Alert variant="destructive" className="my-4">
-      <AlertCircle className="h-5 w-5" />
+      <AlertCircle className="size-5" />
       <AlertTitle>{title}</AlertTitle>
       <AlertDescription className="mt-2">
         <p>{error}</p>
@@ -32,7 +32,7 @@ export default function VideoErrorDisplay({
             onClick={retryAction}
             className="mt-2"
           >
-            <RefreshCw className="mr-2 h-4 w-4" />
+            <RefreshCw className="mr-2 size-4" />
             Tentar novamente
           </Button>
         )}

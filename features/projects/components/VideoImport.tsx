@@ -1,7 +1,7 @@
 // features/projects/components/VideoImport.tsx
 'use client'
 
-"use client"
+'use client'
 
 import React, { useState } from 'react'
 import { useProjectsStore } from '@/store/useProjectsStoreUnified'

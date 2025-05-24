@@ -10,7 +10,7 @@ async function readBriefingData() {
   try {
     const dir = path.dirname(DATA_FILE)
     await fs.mkdir(dir, { recursive: true })
-    
+
     try {
       const data = await fs.readFile(DATA_FILE, 'utf-8')
       return JSON.parse(data)
@@ -50,18 +50,22 @@ export async function POST(request: NextRequest) {
 
     // Ler dados existentes
     const briefingData = await readBriefingData()
-    
+
     // Atualizar com os novos dados
     briefingData[eventId] = {
       ...data,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     }
-    
+
     // Salvar dados atualizados
     await saveBriefingData(briefingData)
 
     return NextResponse.json(
-      { success: true, message: 'Briefing salvo com sucesso', data: briefingData[eventId] },
+      {
+        success: true,
+        message: 'Briefing salvo com sucesso',
+        data: briefingData[eventId],
+      },
       { status: 200 }
     )
   } catch (error) {
@@ -77,10 +81,10 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const eventId = searchParams.get('eventId')
-    
+
     // Ler todos os briefings
     const briefingData = await readBriefingData()
-    
+
     // Se foi solicitado um eventId específico
     if (eventId) {
       const briefing = briefingData[eventId]
@@ -92,7 +96,7 @@ export async function GET(request: NextRequest) {
       }
       return NextResponse.json(briefing, { status: 200 })
     }
-    
+
     // Retorna todos os briefings
     return NextResponse.json(briefingData, { status: 200 })
   } catch (error) {

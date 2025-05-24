@@ -29,60 +29,60 @@ export function DraculaDemo() {
 
   return (
     <div className="container py-4 md:py-10">
-      <div className="flex justify-between items-center mb-6 md:mb-10">
-        <h1 className="text-2xl md:text-4xl font-bold tracking-tight text-primary">
+      <div className="mb-6 flex items-center justify-between md:mb-10">
+        <h1 className="text-2xl font-bold tracking-tight text-primary md:text-4xl">
           Tema Dracula
         </h1>
         <ThemeToggle />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
         <div>
-          <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-4 text-dracula-purple">
+          <h2 className="mb-3 text-xl font-semibold text-dracula-purple md:mb-4 md:text-2xl">
             Paleta de Cores
           </h2>
 
           <div className="grid grid-cols-2 gap-2 md:gap-4">
-            <div className="p-2 md:p-4 rounded-md bg-dracula-background text-dracula-foreground text-xs md:text-sm">
+            <div className="rounded-md bg-dracula-background p-2 text-xs text-dracula-foreground md:p-4 md:text-sm">
               Background
             </div>
-            <div className="p-2 md:p-4 rounded-md bg-dracula-current-line text-dracula-foreground text-xs md:text-sm">
+            <div className="rounded-md bg-dracula-current-line p-2 text-xs text-dracula-foreground md:p-4 md:text-sm">
               Current Line
             </div>
-            <div className="p-2 md:p-4 rounded-md bg-dracula-selection text-dracula-foreground text-xs md:text-sm">
+            <div className="rounded-md bg-dracula-selection p-2 text-xs text-dracula-foreground md:p-4 md:text-sm">
               Selection
             </div>
-            <div className="p-2 md:p-4 rounded-md bg-dracula-foreground text-dracula-background text-xs md:text-sm">
+            <div className="rounded-md bg-dracula-foreground p-2 text-xs text-dracula-background md:p-4 md:text-sm">
               Foreground
             </div>
-            <div className="p-2 md:p-4 rounded-md bg-dracula-comment text-dracula-foreground text-xs md:text-sm">
+            <div className="rounded-md bg-dracula-comment p-2 text-xs text-dracula-foreground md:p-4 md:text-sm">
               Comment
             </div>
-            <div className="p-2 md:p-4 rounded-md bg-dracula-cyan text-dracula-background text-xs md:text-sm">
+            <div className="rounded-md bg-dracula-cyan p-2 text-xs text-dracula-background md:p-4 md:text-sm">
               Cyan
             </div>
-            <div className="p-2 md:p-4 rounded-md bg-dracula-green text-dracula-background text-xs md:text-sm">
+            <div className="rounded-md bg-dracula-green p-2 text-xs text-dracula-background md:p-4 md:text-sm">
               Green
             </div>
-            <div className="p-2 md:p-4 rounded-md bg-dracula-orange text-dracula-background text-xs md:text-sm">
+            <div className="rounded-md bg-dracula-orange p-2 text-xs text-dracula-background md:p-4 md:text-sm">
               Orange
             </div>
-            <div className="p-2 md:p-4 rounded-md bg-dracula-pink text-dracula-background text-xs md:text-sm">
+            <div className="rounded-md bg-dracula-pink p-2 text-xs text-dracula-background md:p-4 md:text-sm">
               Pink
             </div>
-            <div className="p-2 md:p-4 rounded-md bg-dracula-purple text-dracula-background text-xs md:text-sm">
+            <div className="rounded-md bg-dracula-purple p-2 text-xs text-dracula-background md:p-4 md:text-sm">
               Purple
             </div>
-            <div className="p-2 md:p-4 rounded-md bg-dracula-red text-dracula-background text-xs md:text-sm">
+            <div className="rounded-md bg-dracula-red p-2 text-xs text-dracula-background md:p-4 md:text-sm">
               Red
             </div>
-            <div className="p-2 md:p-4 rounded-md bg-dracula-yellow text-dracula-background text-xs md:text-sm">
+            <div className="rounded-md bg-dracula-yellow p-2 text-xs text-dracula-background md:p-4 md:text-sm">
               Yellow
             </div>
           </div>
 
           <div className="mt-4 md:mt-6">
-            <h3 className="text-lg md:text-xl font-semibold mb-2 text-dracula-pink">
+            <h3 className="mb-2 text-lg font-semibold text-dracula-pink md:text-xl">
               Badges
             </h3>
             <div className="flex flex-wrap gap-2">
@@ -94,12 +94,12 @@ export function DraculaDemo() {
           </div>
 
           <div className="mt-4 md:mt-6">
-            <h3 className="text-lg md:text-xl font-semibold mb-2 text-dracula-pink">
+            <h3 className="mb-2 text-lg font-semibold text-dracula-pink md:text-xl">
               Alertas
             </h3>
             <div className="space-y-2 md:space-y-3">
               <Alert>
-                <Info className="h-4 w-4" />
+                <Info className="size-4" />
                 <AlertTitle>Informação</AlertTitle>
                 <AlertDescription className="text-xs md:text-sm">
                   Esta é uma mensagem informativa.
@@ -107,23 +107,23 @@ export function DraculaDemo() {
               </Alert>
 
               <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
+                <AlertCircle className="size-4" />
                 <AlertTitle>Erro</AlertTitle>
                 <AlertDescription className="text-xs md:text-sm">
                   Algo deu errado, tente novamente.
                 </AlertDescription>
               </Alert>
 
-              <Alert className="bg-dracula-green/20 text-dracula-green border-dracula-green">
-                <CheckCircle2 className="h-4 w-4" />
+              <Alert className="border-dracula-green bg-dracula-green/20 text-dracula-green">
+                <CheckCircle2 className="size-4" />
                 <AlertTitle>Sucesso</AlertTitle>
                 <AlertDescription className="text-xs md:text-sm">
                   Operação realizada com sucesso!
                 </AlertDescription>
               </Alert>
 
-              <Alert className="bg-dracula-orange/20 text-dracula-orange border-dracula-orange">
-                <AlertTriangle className="h-4 w-4" />
+              <Alert className="border-dracula-orange bg-dracula-orange/20 text-dracula-orange">
+                <AlertTriangle className="size-4" />
                 <AlertTitle>Aviso</AlertTitle>
                 <AlertDescription className="text-xs md:text-sm">
                   Atenção, isto é um aviso importante.
@@ -134,7 +134,7 @@ export function DraculaDemo() {
         </div>
 
         <div>
-          <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-4 text-dracula-purple">
+          <h2 className="mb-3 text-xl font-semibold text-dracula-purple md:mb-4 md:text-2xl">
             Componentes UI
           </h2>
 
@@ -145,7 +145,7 @@ export function DraculaDemo() {
                 Entre com suas credenciais para acessar sua conta
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3 md:space-y-4 p-4 md:p-6 pb-0 md:pb-0">
+            <CardContent className="space-y-3 p-4 pb-0 md:space-y-4 md:p-6 md:pb-0">
               <div className="space-y-1 md:space-y-2">
                 <Label htmlFor="email" className="text-xs md:text-sm">
                   Email
@@ -170,7 +170,7 @@ export function DraculaDemo() {
 
           <div className="space-y-3 md:space-y-4">
             <div>
-              <h3 className="text-lg md:text-xl font-semibold mb-2 text-dracula-green">
+              <h3 className="mb-2 text-lg font-semibold text-dracula-green md:text-xl">
                 Botões
               </h3>
               <div className="flex flex-wrap gap-1 md:gap-2">
@@ -197,32 +197,32 @@ export function DraculaDemo() {
             </div>
 
             <div>
-              <h3 className="text-lg md:text-xl font-semibold mb-2 text-dracula-green">
+              <h3 className="mb-2 text-lg font-semibold text-dracula-green md:text-xl">
                 Tabs
               </h3>
               <Tabs defaultValue="code" className="w-full">
-                <TabsList className="grid grid-cols-3 h-auto">
-                  <TabsTrigger value="code" className="text-xs md:text-sm py-2">
+                <TabsList className="grid h-auto grid-cols-3">
+                  <TabsTrigger value="code" className="py-2 text-xs md:text-sm">
                     Código
                   </TabsTrigger>
                   <TabsTrigger
                     value="design"
-                    className="text-xs md:text-sm py-2"
+                    className="py-2 text-xs md:text-sm"
                   >
                     Design
                   </TabsTrigger>
                   <TabsTrigger
                     value="preview"
-                    className="text-xs md:text-sm py-2"
+                    className="py-2 text-xs md:text-sm"
                   >
                     Prévia
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent
                   value="code"
-                  className="p-2 md:p-4 rounded-md bg-dracula-current-line"
+                  className="rounded-md bg-dracula-current-line p-2 md:p-4"
                 >
-                  <div className="font-mono text-xs md:text-sm text-dracula-foreground">
+                  <div className="font-mono text-xs text-dracula-foreground md:text-sm">
                     <pre>
                       <code>{`function draculaTheme() {
   console.log('🧛‍♂️ Dracula theme activated!');
@@ -245,12 +245,12 @@ export function DraculaDemo() {
             </div>
 
             <div className="mt-4 md:mt-6">
-              <div className="p-4 md:p-6 bg-dracula-current-line rounded-lg border border-dracula-comment">
-                <Terminal className="h-5 w-5 md:h-6 md:w-6 mb-2 text-dracula-purple" />
-                <h3 className="text-base md:text-lg font-medium">
+              <div className="rounded-lg border border-dracula-comment bg-dracula-current-line p-4 md:p-6">
+                <Terminal className="mb-2 size-5 text-dracula-purple md:size-6" />
+                <h3 className="text-base font-medium md:text-lg">
                   Código Fonte
                 </h3>
-                <p className="text-xs md:text-sm text-dracula-comment mt-2">
+                <p className="mt-2 text-xs text-dracula-comment md:text-sm">
                   Com o tema Dracula, seu código ganha uma legibilidade superior
                   em ambientes escuros, reduzindo a fadiga visual e aumentando o
                   foco durante longas sessões de codificação.

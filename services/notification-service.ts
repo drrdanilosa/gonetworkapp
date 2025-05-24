@@ -1,7 +1,7 @@
 // services/notification-service.ts
 'use client'
 
-"use client"
+'use client'
 
 import { useUIStore } from '@/store/useUIStore'
 import { useAuthStore } from '@/store/useAuthStore'

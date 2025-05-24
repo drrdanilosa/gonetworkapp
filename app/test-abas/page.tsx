@@ -9,14 +9,14 @@ import { ArrowLeft } from 'lucide-react'
 export default function TestPage() {
   // ID de teste para facilitar os experimentos
   const testEventId = 'test-123'
-  
+
   return (
     <div className="container mx-auto py-8">
-      <div className="flex justify-between items-center mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <div>
           <Link href="/">
             <Button variant="outline" size="sm" className="mb-2">
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <ArrowLeft className="mr-2 size-4" />
               Voltar à Página Inicial
             </Button>
           </Link>
@@ -24,7 +24,7 @@ export default function TestPage() {
           <p className="text-muted-foreground">ID do evento: {testEventId}</p>
         </div>
       </div>
-      
+
       <EventTabsManager eventId={testEventId} />
     </div>
   )

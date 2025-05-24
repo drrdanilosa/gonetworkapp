@@ -9,33 +9,33 @@ export const useToast = () => {
       addNotification({
         type: 'success',
         message,
-        ...options
+        ...options,
       })
     },
     error: (message, options = {}) => {
       addNotification({
         type: 'error',
         message,
-        ...options
+        ...options,
       })
     },
     warning: (message, options = {}) => {
       addNotification({
         type: 'warning',
         message,
-        ...options
+        ...options,
       })
     },
     info: (message, options = {}) => {
       addNotification({
         type: 'info',
         message,
-        ...options
+        ...options,
       })
     },
-    dismiss: (id) => {
+    dismiss: id => {
       removeNotification(id)
-    }
+    },
   }
 
   return { toast }

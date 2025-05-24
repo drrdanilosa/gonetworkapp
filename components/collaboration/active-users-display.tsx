@@ -63,7 +63,7 @@ export default function ActiveUsersDisplay() {
                 <div className="flex flex-col items-center">
                   <div className="relative">
                     <Avatar
-                      className="h-10 w-10 border-2"
+                      className="size-10 border-2"
                       style={{ borderColor: user.color }}
                     >
                       <AvatarFallback
@@ -77,27 +77,27 @@ export default function ActiveUsersDisplay() {
                     </Avatar>
                     {isTyping(user.id) && (
                       <Badge
-                        className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center"
+                        className="absolute -right-1 -top-1 flex size-5 items-center justify-center p-0"
                         style={{ backgroundColor: user.color }}
                       >
-                        <MessageSquare className="h-3 w-3" />
+                        <MessageSquare className="size-3" />
                       </Badge>
                     )}
                     {isAnnotating(user.id) && (
                       <Badge
-                        className="absolute -bottom-1 -right-1 h-5 w-5 p-0 flex items-center justify-center"
+                        className="absolute -bottom-1 -right-1 flex size-5 items-center justify-center p-0"
                         style={{ backgroundColor: user.color }}
                       >
-                        <Edit className="h-3 w-3" />
+                        <Edit className="size-3" />
                       </Badge>
                     )}
                   </div>
-                  <span className="text-xs mt-1 max-w-[60px] truncate">
+                  <span className="mt-1 max-w-[60px] truncate text-xs">
                     {user.name}
                   </span>
                   <Badge
                     variant="outline"
-                    className="text-[10px] h-4 px-1 mt-0.5"
+                    className="mt-0.5 h-4 px-1 text-[10px]"
                     style={{ borderColor: user.color, color: user.color }}
                   >
                     {user.role}

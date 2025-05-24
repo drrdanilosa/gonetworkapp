@@ -18,28 +18,42 @@ import { useUIStore } from '@/store/useUIStore'
 export default function DeliveryWidget() {
   const { projects } = useProjectsStore()
   const { selectedEventId } = useUIStore()
-  
+
   // Buscar projeto selecionado
   const selectedProject = projects.find(p => p.id === selectedEventId)
-  
+
   // Buscar entregas do projeto selecionado
   const projectDeliverables = selectedProject?.videos || []
-  
+
   const pendingDeliveries = projectDeliverables
     .filter(deliverable => deliverable.status !== 'approved')
     .map(deliverable => ({
       id: deliverable.id,
       title: deliverable.title,
       event: selectedProject?.name || 'Projeto não selecionado',
-      deadline: deliverable.dueDate ? new Date(deliverable.dueDate).toLocaleString('pt-BR') : 'Sem prazo definido',
-      status: deliverable.status === 'editing' ? 'Em edição' : 
-             deliverable.status === 'ready_for_review' ? 'Aguardando revisão' :
-             deliverable.status === 'changes_requested' ? 'Revisão solicitada' : 'Pendente',
+      deadline: deliverable.dueDate
+        ? new Date(deliverable.dueDate).toLocaleString('pt-BR')
+        : 'Sem prazo definido',
+      status:
+        deliverable.status === 'editing'
+          ? 'Em edição'
+          : deliverable.status === 'ready_for_review'
+            ? 'Aguardando revisão'
+            : deliverable.status === 'changes_requested'
+              ? 'Revisão solicitada'
+              : 'Pendente',
       editor: selectedProject?.editorId || 'Editor não definido',
-      type: deliverable.title.includes('Teaser') ? 'Teaser' :
-            deliverable.title.includes('Stories') ? 'Stories' :
-            deliverable.title.includes('Reels') ? 'Reels' : 'Vídeo',
-      urgent: deliverable.dueDate ? new Date(deliverable.dueDate) < new Date(Date.now() + 24 * 60 * 60 * 1000) : false,
+      type: deliverable.title.includes('Teaser')
+        ? 'Teaser'
+        : deliverable.title.includes('Stories')
+          ? 'Stories'
+          : deliverable.title.includes('Reels')
+            ? 'Reels'
+            : 'Vídeo',
+      urgent: deliverable.dueDate
+        ? new Date(deliverable.dueDate) <
+          new Date(Date.now() + 24 * 60 * 60 * 1000)
+        : false,
     }))
 
   const completedDeliveries = projectDeliverables
@@ -48,29 +62,43 @@ export default function DeliveryWidget() {
       id: deliverable.id,
       title: deliverable.title,
       event: selectedProject?.name || 'Projeto não selecionado',
-      completedDate: deliverable.lastUpdated ? new Date(deliverable.lastUpdated).toLocaleString('pt-BR') : 'Data não disponível',
+      completedDate: deliverable.lastUpdated
+        ? new Date(deliverable.lastUpdated).toLocaleString('pt-BR')
+        : 'Data não disponível',
       editor: selectedProject?.editorId || 'Editor não definido',
-      type: deliverable.title.includes('Teaser') ? 'Teaser' :
-            deliverable.title.includes('Stories') ? 'Stories' :
-            deliverable.title.includes('Reels') ? 'Reels' : 'Vídeo',
+      type: deliverable.title.includes('Teaser')
+        ? 'Teaser'
+        : deliverable.title.includes('Stories')
+          ? 'Stories'
+          : deliverable.title.includes('Reels')
+            ? 'Reels'
+            : 'Vídeo',
     }))
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Entregas</h1>
 
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Label>Evento:</Label>
-            <Select value={selectedEventId || ''} onValueChange={(value) => useUIStore.getState().setSelectedEventId(value)}>
+            <Select
+              value={selectedEventId || ''}
+              onValueChange={value =>
+                useUIStore.getState().setSelectedEventId(value)
+              }
+            >
               <SelectTrigger className="w-[250px]">
                 <SelectValue placeholder="Selecione um evento" />
               </SelectTrigger>
               <SelectContent>
                 {projects.map(project => (
                   <SelectItem key={project.id} value={project.id}>
-                    {project.name} - {project.startDate ? new Date(project.startDate).toLocaleDateString('pt-BR') : 'Data não definida'}
+                    {project.name} -{' '}
+                    {project.startDate
+                      ? new Date(project.startDate).toLocaleDateString('pt-BR')
+                      : 'Data não definida'}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -78,7 +106,7 @@ export default function DeliveryWidget() {
           </div>
 
           <Button>
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="mr-2 size-4" />
             Nova Entrega
           </Button>
         </div>
@@ -91,14 +119,14 @@ export default function DeliveryWidget() {
         </TabsList>
 
         <TabsContent value="pending" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {pendingDeliveries.map(delivery => (
               <Card
                 key={delivery.id}
                 className={delivery.urgent ? 'border-destructive' : ''}
               >
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex justify-between items-start">
+                  <CardTitle className="flex items-start justify-between text-lg">
                     <span>{delivery.title}</span>
                     {delivery.urgent && (
                       <Badge variant="destructive">Urgente</Badge>
@@ -108,15 +136,15 @@ export default function DeliveryWidget() {
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <div className="flex items-center text-sm">
-                      <FileText className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <FileText className="mr-2 size-4 text-muted-foreground" />
                       <span>Evento: {delivery.event}</span>
                     </div>
                     <div className="flex items-center text-sm">
-                      <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <Clock className="mr-2 size-4 text-muted-foreground" />
                       <span>Prazo: {delivery.deadline}</span>
                     </div>
                     <div className="flex items-center text-sm">
-                      <Video className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <Video className="mr-2 size-4 text-muted-foreground" />
                       <span>Editor: {delivery.editor}</span>
                     </div>
                   </div>
@@ -141,7 +169,7 @@ export default function DeliveryWidget() {
                       Detalhes
                     </Button>
                     <Button size="sm">
-                      <Upload className="h-4 w-4 mr-2" />
+                      <Upload className="mr-2 size-4" />
                       Entregar
                     </Button>
                   </div>
@@ -152,11 +180,11 @@ export default function DeliveryWidget() {
         </TabsContent>
 
         <TabsContent value="completed" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {completedDeliveries.map(delivery => (
               <Card key={delivery.id}>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex justify-between items-start">
+                  <CardTitle className="flex items-start justify-between text-lg">
                     <span>{delivery.title}</span>
                     <Badge variant="success">Concluída</Badge>
                   </CardTitle>
@@ -164,15 +192,15 @@ export default function DeliveryWidget() {
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <div className="flex items-center text-sm">
-                      <FileText className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <FileText className="mr-2 size-4 text-muted-foreground" />
                       <span>Evento: {delivery.event}</span>
                     </div>
                     <div className="flex items-center text-sm">
-                      <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <Clock className="mr-2 size-4 text-muted-foreground" />
                       <span>Entregue em: {delivery.completedDate}</span>
                     </div>
                     <div className="flex items-center text-sm">
-                      <Video className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <Video className="mr-2 size-4 text-muted-foreground" />
                       <span>Editor: {delivery.editor}</span>
                     </div>
                   </div>
@@ -186,7 +214,7 @@ export default function DeliveryWidget() {
                       Detalhes
                     </Button>
                     <Button variant="outline" size="sm">
-                      <Download className="h-4 w-4 mr-2" />
+                      <Download className="mr-2 size-4" />
                       Download
                     </Button>
                   </div>

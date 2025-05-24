@@ -4,7 +4,7 @@ import { useProjectsStore } from '@/store/useProjectsStoreUnified'
 
 /**
  * Hook para sincronizar os eventos do Zustand com o sistema de persistência baseado em arquivos.
- * 
+ *
  * Isso garante que os eventos criados no cliente estejam disponíveis para as APIs do servidor,
  * resolvendo o problema onde eventos criados não apareciam na aba BRIEFING.
  */
@@ -18,11 +18,11 @@ export function useEventSync() {
         try {
           // Verificar se o evento já existe no servidor
           const response = await fetch(`/api/events/${project.id}`)
-          
+
           if (response.status === 404) {
             // Evento não existe no servidor, criar
             console.log(`🔄 Sincronizando evento: ${project.title}`)
-            
+
             await fetch('/api/events', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -42,14 +42,17 @@ export function useEventSync() {
                 tasks: project.tasks,
                 deadline: project.deadline,
                 thumbnail: project.thumbnail,
-                deliverySettings: project.deliverySettings
-              })
+                deliverySettings: project.deliverySettings,
+              }),
             })
-            
+
             console.log(`✅ Evento sincronizado: ${project.title}`)
           }
         } catch (error) {
-          console.error(`❌ Erro ao sincronizar evento ${project.title}:`, error)
+          console.error(
+            `❌ Erro ao sincronizar evento ${project.title}:`,
+            error
+          )
         }
       }
     }

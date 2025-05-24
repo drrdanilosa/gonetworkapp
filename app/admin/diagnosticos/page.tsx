@@ -11,12 +11,12 @@ export const metadata: Metadata = {
 
 export default function DiagnosticPage() {
   return (
-    <div className="container mx-auto py-6 px-4">
-      <h1 className="text-2xl font-bold mb-6">Ferramentas de Diagnóstico</h1>
+    <div className="container mx-auto px-4 py-6">
+      <h1 className="mb-6 text-2xl font-bold">Ferramentas de Diagnóstico</h1>
 
       <div className="grid gap-6">
         <div>
-          <div className="flex justify-between items-center mb-4">
+          <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xl font-semibold">
               Diagnóstico de Conexão Socket.io
             </h2>
@@ -25,7 +25,7 @@ export default function DiagnosticPage() {
               target="_blank"
               className="flex items-center text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
             >
-              <FileText className="h-4 w-4 mr-1" />
+              <FileText className="mr-1 size-4" />
               Documentação de CORS
             </Link>
           </div>
@@ -33,8 +33,8 @@ export default function DiagnosticPage() {
         </div>
 
         {/* Recursos de documentação */}
-        <div className="mt-6 p-4 border rounded-md bg-gray-50 dark:bg-gray-800">
-          <h3 className="font-medium mb-2">Recursos de Solução de Problemas</h3>
+        <div className="mt-6 rounded-md border bg-gray-50 p-4 dark:bg-gray-800">
+          <h3 className="mb-2 font-medium">Recursos de Solução de Problemas</h3>
           <ul className="space-y-2">
             <li>
               <Link
@@ -42,7 +42,7 @@ export default function DiagnosticPage() {
                 target="_blank"
                 className="flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
               >
-                <FileText className="h-4 w-4 mr-1" />
+                <FileText className="mr-1 size-4" />
                 Como resolver problemas de CORS com Socket.io
               </Link>
             </li>

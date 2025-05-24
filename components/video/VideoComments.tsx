@@ -1,7 +1,7 @@
 // components/video/VideoComments.tsx
 'use client'
 
-"use client"
+'use client'
 
 import React, { useState } from 'react'
 import { format } from 'date-fns'
@@ -78,8 +78,8 @@ export default function VideoComments({
   return (
     <Card className={`w-full ${className}`}>
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center">
-          <MessageSquare className="h-5 w-5 mr-2" />
+        <CardTitle className="flex items-center text-lg">
+          <MessageSquare className="mr-2 size-5" />
           Comentários{' '}
           {sortedComments.length > 0 && `(${sortedComments.length})`}
         </CardTitle>
@@ -92,8 +92,8 @@ export default function VideoComments({
           style={{ height }}
         >
           {sortedComments.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-              <MessageSquare className="h-10 w-10 mb-2" />
+            <div className="flex h-full flex-col items-center justify-center text-muted-foreground">
+              <MessageSquare className="mb-2 size-10" />
               <p>Nenhum comentário ainda</p>
             </div>
           ) : (
@@ -101,19 +101,19 @@ export default function VideoComments({
               {sortedComments.map(comment => (
                 <div
                   key={comment.id}
-                  className={`p-3 rounded-lg ${
+                  className={`rounded-lg p-3 ${
                     comment.resolved ? 'bg-gray-50 opacity-75' : 'bg-white'
                   } border`}
                 >
-                  <div className="flex justify-between items-start mb-2">
+                  <div className="mb-2 flex items-start justify-between">
                     <div className="flex items-center">
-                      <div className="bg-slate-100 h-8 w-8 rounded-full flex items-center justify-center mr-2">
-                        <User className="h-4 w-4 text-slate-500" />
+                      <div className="mr-2 flex size-8 items-center justify-center rounded-full bg-slate-100">
+                        <User className="size-4 text-slate-500" />
                       </div>
                       <div>
                         <p className="font-medium">{comment.author}</p>
                         <div className="flex items-center text-xs text-muted-foreground">
-                          <Clock className="h-3 w-3 mr-1" />
+                          <Clock className="mr-1 size-3" />
                           <span>
                             {format(
                               new Date(comment.createdAt),
@@ -147,16 +147,16 @@ export default function VideoComments({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6 text-red-500"
+                          className="size-6 text-red-500"
                           onClick={() => onDeleteComment(comment.id)}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="size-4" />
                         </Button>
                       )}
                     </div>
                   </div>
 
-                  <p className="whitespace-pre-wrap text-sm mt-2">
+                  <p className="mt-2 whitespace-pre-wrap text-sm">
                     {comment.content}
                   </p>
 
@@ -188,7 +188,7 @@ export default function VideoComments({
 
             <div className="flex gap-2">
               <textarea
-                className="flex-1 min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="min-h-[80px] flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="Digite seu comentário..."
                 value={commentText}
                 onChange={e => setCommentText(e.target.value)}
@@ -200,7 +200,7 @@ export default function VideoComments({
                 onClick={handleAddComment}
                 disabled={!commentText.trim()}
               >
-                <Send className="h-4 w-4 mr-2" />
+                <Send className="mr-2 size-4" />
                 Enviar
               </Button>
             </div>

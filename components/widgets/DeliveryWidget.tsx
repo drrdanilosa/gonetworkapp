@@ -1,13 +1,9 @@
-// components/widgets/DeliveryWidget.tsx
 'use client'
 
-"use client"
-
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
@@ -20,42 +16,37 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import {
-  Download,
-  Upload,
   CheckCircle,
-  XCircle,
   Clock,
-  AlertTriangle,
-  Eye,
-  MessageSquare,
+  Calendar as CalendarIcon,
   Calendar,
-  User,
-  FileVideo,
-  Settings,
-  Share,
-  Trash2,
+  AlertCircle,
+  X,
+  Check,
 } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useProjectsStoreUnified } from '@/store/useProjectsStoreUnified'
+import { useProjectsStore } from '@/store/useProjectsStoreUnified'
 import { VideoDeliverable, Project } from '@/types/project'
+import { format, parseISO, differenceInDays, addDays } from 'date-fns'
+import { pt } from 'date-fns/locale'
+import { useToast } from '@/components/ui/use-toast'
+
+// Enum para os status de entrega
+enum DeliveryStatus {
+  PENDENTE = 'pendente',
+  EM_PROGRESSO = 'em_progresso',
+  AGUARDANDO_APROVACAO = 'aguardando_aprovacao',
+  APROVADO = 'aprovado',
+  ALTERACOES_SOLICITADAS = 'alteracoes_solicitadas',
+  CONCLUIDO = 'concluido',
+  ATRASADO = 'atrasado',
+  CANCELADO = 'cancelado',
+}
 
 interface DeliveryWidgetProps {
   projectId?: string
@@ -66,9 +57,11 @@ interface DeliveryWidgetProps {
 export function DeliveryWidget({
   projectId,
   deliverableId,
-  onDeliverableUpdate,
+  _onDeliverableUpdate,
 }: DeliveryWidgetProps) {
-  const { projects, updateVideoStatus } = useProjectsStoreUnified()
+  const { projects, _updateVideoStatus, updateProject } = useProjectsStore()
+  const { toast } = useToast()
+  const [isEditable] = useState(true)
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [deadlineForm, setDeadlineForm] = useState({
@@ -80,7 +73,8 @@ export function DeliveryWidget({
   const project = projects.find((p: Project) => p.id === projectId)
 
   const deliverable =
-    deliverableId && project?.videos?.find((v: VideoDeliverable) => v.id === deliverableId)
+    deliverableId &&
+    project?.videos?.find((v: VideoDeliverable) => v.id === deliverableId)
 
   if (!project) {
     return (
@@ -95,16 +89,25 @@ export function DeliveryWidget({
     ? new Date(currentDeadline.dueDate)
     : null
 
-  const daysRemaining = dueDate ? Math.ceil((dueDate.getTime() - Date.now()) / (1000 * 3600 * 24)) : null
+  const daysRemaining = dueDate
+    ? Math.ceil((dueDate.getTime() - Date.now()) / (1000 * 3600 * 24))
+    : null
   const isLate = dueDate ? Date.now() > dueDate.getTime() : false
 
-  const currentStatus =
-    deliverable?.status || project.status || 'pendente'
+  const currentStatus = deliverable?.status || project.status || 'pendente'
+
+  const addNotification = (message: string, type = 'default') => {
+    toast({
+      title: type === 'error' ? 'Erro' : 'Notificação',
+      description: message,
+      variant: type === 'error' ? 'destructive' : 'default',
+    })
+  }
 
   const updateStatus = (status: string) => {
     if (deliverable) {
       const updatedVideos = project.videos?.map((v: VideoDeliverable) =>
-        v.id === deliverableId ? { ...v, status: newStatus } : v
+        v.id === deliverableId ? { ...v, status } : v
       )
 
       updateProject(projectId, {
@@ -170,7 +173,7 @@ export function DeliveryWidget({
 
     if (deliverable) {
       const updatedVideos = project.videos?.map((v: VideoDeliverable) =>
-        v.id === deliverableId ? { ...v, ...updates } : v
+        v.id === deliverableId ? { ...v, deadline: newDeadline } : v
       )
 
       updateProject(projectId, {
@@ -210,7 +213,7 @@ export function DeliveryWidget({
   return (
     <Card className="w-full">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg flex justify-between items-center">
+        <CardTitle className="flex items-center justify-between text-lg">
           <span>Status de Entrega</span>
           {isEditable && (
             <Button
@@ -219,7 +222,7 @@ export function DeliveryWidget({
               onClick={handleOpenDialog}
               className="ml-2"
             >
-              <CalendarIcon className="h-4 w-4 mr-1" />
+              <CalendarIcon className="mr-1 size-4" />
               {currentDeadline ? 'Alterar Prazo' : 'Definir Prazo'}
             </Button>
           )}
@@ -229,7 +232,7 @@ export function DeliveryWidget({
       <CardContent>
         {/* Status atual */}
         <div className="mb-4">
-          <Label className="text-sm text-muted-foreground mb-1">
+          <Label className="mb-1 text-sm text-muted-foreground">
             Status Atual
           </Label>
           <div className="flex items-center">
@@ -250,11 +253,11 @@ export function DeliveryWidget({
         {/* Prazo */}
         {currentDeadline && (
           <div className="mb-4">
-            <Label className="text-sm text-muted-foreground mb-1">
+            <Label className="mb-1 text-sm text-muted-foreground">
               Prazo de Entrega
             </Label>
             <div className="flex items-center">
-              <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
+              <Calendar className="mr-1 size-4 text-muted-foreground" />
               <span className="text-sm">
                 {format(
                   parseISO(currentDeadline.dueDate),
@@ -291,7 +294,7 @@ export function DeliveryWidget({
         {/* Progresso */}
         {dueDate && (
           <div className="mb-4">
-            <div className="flex justify-between text-xs text-muted-foreground mb-1">
+            <div className="mb-1 flex justify-between text-xs text-muted-foreground">
               <span>Progresso</span>
               <span>
                 {isLate
@@ -343,14 +346,14 @@ export function DeliveryWidget({
         {isEditable && (
           <>
             <Separator className="my-3" />
-            <div className="grid grid-cols-2 gap-2 mt-3">
+            <div className="mt-3 grid grid-cols-2 gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => updateStatus(DeliveryStatus.EM_PROGRESSO)}
                 className="justify-start"
               >
-                <Clock className="h-4 w-4 mr-1" />
+                <Clock className="mr-1 size-4" />
                 Em Progresso
               </Button>
 
@@ -362,7 +365,7 @@ export function DeliveryWidget({
                 }
                 className="justify-start"
               >
-                <AlertCircle className="h-4 w-4 mr-1" />
+                <AlertCircle className="mr-1 size-4" />
                 Aguardando Aprovação
               </Button>
 
@@ -372,7 +375,7 @@ export function DeliveryWidget({
                 onClick={() => updateStatus(DeliveryStatus.APROVADO)}
                 className="justify-start text-green-600"
               >
-                <CheckCircle className="h-4 w-4 mr-1" />
+                <CheckCircle className="mr-1 size-4" />
                 Aprovado
               </Button>
 
@@ -384,7 +387,7 @@ export function DeliveryWidget({
                 }
                 className="justify-start text-orange-600"
               >
-                <X className="h-4 w-4 mr-1" />
+                <X className="mr-1 size-4" />
                 Solicitar Alterações
               </Button>
 
@@ -395,7 +398,7 @@ export function DeliveryWidget({
                 className="justify-start text-emerald-600"
                 style={{ gridColumn: '1 / -1' }}
               >
-                <Check className="h-4 w-4 mr-1" />
+                <Check className="mr-1 size-4" />
                 Marcar como Concluído
               </Button>
             </div>
@@ -431,7 +434,7 @@ export function DeliveryWidget({
               <Label htmlFor="priority">Prioridade</Label>
               <Select
                 value={deadlineForm.priority}
-                onValueChange={(value: any) =>
+                onValueChange={(value: string) =>
                   setDeadlineForm({ ...deadlineForm, priority: value })
                 }
               >

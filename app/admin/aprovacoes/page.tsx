@@ -69,7 +69,7 @@ export default function VideosForReviewPage() {
           <CardContent className="pt-6">
             <div className="text-center">
               <p>Você não tem permissão para visualizar esta página.</p>
-              <p className="text-muted-foreground mt-2">
+              <p className="mt-2 text-muted-foreground">
                 Apenas clientes e administradores podem aprovar vídeos.
               </p>
             </div>
@@ -78,7 +78,7 @@ export default function VideosForReviewPage() {
       }
     >
       <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-6">Vídeos para Aprovação</h1>
+        <h1 className="mb-6 text-2xl font-bold">Vídeos para Aprovação</h1>
 
         <Card>
           <CardHeader>
@@ -86,12 +86,12 @@ export default function VideosForReviewPage() {
           </CardHeader>
           <CardContent>
             {pendingVideos.length === 0 ? (
-              <div className="text-center py-8">
-                <FileVideo className="mx-auto h-12 w-12 text-muted-foreground mb-2" />
+              <div className="py-8 text-center">
+                <FileVideo className="mx-auto mb-2 size-12 text-muted-foreground" />
                 <h3 className="text-lg font-medium">
                   Nenhum vídeo aguardando aprovação
                 </h3>
-                <p className="text-muted-foreground mt-2">
+                <p className="mt-2 text-muted-foreground">
                   Todos os vídeos já foram revisados ou não há vídeos
                   disponíveis para revisão.
                 </p>
@@ -116,7 +116,7 @@ export default function VideosForReviewPage() {
                       <TableCell>{video.versionName}</TableCell>
                       <TableCell>
                         <div className="flex items-center">
-                          <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
+                          <Clock className="mr-1 size-4 text-muted-foreground" />
                           <span>
                             {formatDistanceToNow(new Date(video.uploadedAt), {
                               addSuffix: true,
@@ -128,7 +128,7 @@ export default function VideosForReviewPage() {
                       <TableCell>
                         <Badge
                           variant="outline"
-                          className="bg-yellow-100 text-yellow-800 border-yellow-300"
+                          className="border-yellow-300 bg-yellow-100 text-yellow-800"
                         >
                           Aguardando Aprovação
                         </Badge>
@@ -136,7 +136,7 @@ export default function VideosForReviewPage() {
                       <TableCell>
                         <Link href={`/eventos/${video.projectId}/aprovacao`}>
                           <Button size="sm" className="gap-1">
-                            <PlayCircle className="h-4 w-4" />
+                            <PlayCircle className="size-4" />
                             Revisar
                           </Button>
                         </Link>

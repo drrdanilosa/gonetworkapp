@@ -12,7 +12,13 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Progress } from '@/components/ui/progress'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useUIStore } from '@/store/useUIStore'
@@ -95,12 +101,12 @@ export function ProjectWorkflowPanel({
   const tasksProgress = useMemo(() => {
     const tasks = project?.tasks || []
     if (tasks.length === 0) return { completed: 0, total: 0, percentage: 0 }
-    
+
     const completed = tasks.filter(t => t.status === 'completed').length
     return {
       completed,
       total: tasks.length,
-      percentage: Math.round((completed / tasks.length) * 100)
+      percentage: Math.round((completed / tasks.length) * 100),
     }
   }, [project?.tasks])
 
@@ -109,7 +115,7 @@ export function ProjectWorkflowPanel({
     const total = comments.length
     const unresolved = comments.filter(c => !c.resolved).length
     const resolved = comments.filter(c => c.resolved).length
-    
+
     return { total, unresolved, resolved }
   }, [comments])
 
@@ -123,7 +129,7 @@ export function ProjectWorkflowPanel({
     if (!isValidTaskTitle(taskTitle) || !project || isSubmitting) return
 
     setIsSubmitting(true)
-    
+
     try {
       const newTask: Task = {
         id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -139,7 +145,7 @@ export function ProjectWorkflowPanel({
       // Reset form
       setTaskTitle('')
       setShowAddTaskForm(false)
-      
+
       addNotification('Nova tarefa adicionada com sucesso', 'success')
     } catch (error) {
       console.error('Erro ao adicionar tarefa:', error)
@@ -147,11 +153,21 @@ export function ProjectWorkflowPanel({
     } finally {
       setIsSubmitting(false)
     }
-  }, [taskTitle, project, isSubmitting, projectId, user?.id, updateProject, addNotification, isValidTaskTitle])
+  }, [
+    taskTitle,
+    project,
+    isSubmitting,
+    projectId,
+    user?.id,
+    updateProject,
+    addNotification,
+    isValidTaskTitle,
+  ])
 
   // Função para adicionar um comentário
   const handleAddComment = useCallback(async () => {
-    if (!commentText.trim() || !user || !selectedDeliverable || isSubmitting) return
+    if (!commentText.trim() || !user || !selectedDeliverable || isSubmitting)
+      return
 
     const trimmedComment = commentText.trim()
     if (trimmedComment.length < 1 || trimmedComment.length > 1000) {
@@ -184,7 +200,7 @@ export function ProjectWorkflowPanel({
       })
 
       await updateProject(projectId, { videos: updatedVideos })
-      
+
       setCommentText('')
       addNotification('Comentário adicionado com sucesso', 'success')
     } catch (error) {
@@ -193,7 +209,16 @@ export function ProjectWorkflowPanel({
     } finally {
       setIsSubmitting(false)
     }
-  }, [commentText, user, selectedDeliverable, isSubmitting, projectId, project, updateProject, addNotification])
+  }, [
+    commentText,
+    user,
+    selectedDeliverable,
+    isSubmitting,
+    projectId,
+    project,
+    updateProject,
+    addNotification,
+  ])
 
   // Função para cancelar adição de tarefa
   const handleCancelAddTask = useCallback(() => {
@@ -221,7 +246,9 @@ export function ProjectWorkflowPanel({
     return (
       <Card className="mt-8">
         <CardContent className="p-6">
-          <p className="text-muted-foreground">Faça login para acessar o workflow do projeto</p>
+          <p className="text-muted-foreground">
+            Faça login para acessar o workflow do projeto
+          </p>
         </CardContent>
       </Card>
     )
@@ -232,8 +259,8 @@ export function ProjectWorkflowPanel({
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-xl flex items-center gap-2">
-              <ListTodo className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <ListTodo className="size-5" />
               Workflow do Projeto
             </CardTitle>
             {tasksProgress.total > 0 && (
@@ -242,11 +269,11 @@ export function ProjectWorkflowPanel({
               </Badge>
             )}
           </div>
-          
+
           {tasksProgress.total > 0 && (
-            <div className="flex items-center mt-3 gap-3">
+            <div className="mt-3 flex items-center gap-3">
               <Progress value={tasksProgress.percentage} className="flex-1" />
-              <span className="text-sm text-muted-foreground font-medium min-w-[45px]">
+              <span className="min-w-[45px] text-sm font-medium text-muted-foreground">
                 {tasksProgress.percentage}%
               </span>
             </div>
@@ -254,10 +281,14 @@ export function ProjectWorkflowPanel({
         </CardHeader>
 
         <CardContent>
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-6">
-            <TabsList className="w-full grid grid-cols-3">
+          <Tabs
+            value={activeTab}
+            onValueChange={handleTabChange}
+            className="mb-6"
+          >
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="tasks" className="flex items-center gap-2">
-                <ListTodo className="h-4 w-4" />
+                <ListTodo className="size-4" />
                 Tarefas
                 {tasksProgress.total > 0 && (
                   <Badge variant="secondary" className="ml-1 h-5 text-xs">
@@ -266,11 +297,11 @@ export function ProjectWorkflowPanel({
                 )}
               </TabsTrigger>
               <TabsTrigger value="actions" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
+                <Settings className="size-4" />
                 Ações
               </TabsTrigger>
               <TabsTrigger value="comments" className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
+                <MessageSquare className="size-4" />
                 Comentários
                 {commentCounts.total > 0 && (
                   <Badge variant="secondary" className="ml-1 h-5 text-xs">
@@ -280,7 +311,7 @@ export function ProjectWorkflowPanel({
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="tasks" className="pt-4 space-y-4">
+            <TabsContent value="tasks" className="space-y-4 pt-4">
               <TaskList projectId={projectId} />
 
               {isEditor && (
@@ -293,13 +324,16 @@ export function ProjectWorkflowPanel({
                       className="w-full"
                       disabled={isSubmitting}
                     >
-                      <Plus className="h-4 w-4 mr-2" />
+                      <Plus className="mr-2 size-4" />
                       Adicionar nova tarefa
                     </Button>
                   ) : (
                     <Card className="p-4">
                       <div className="space-y-3">
-                        <Label htmlFor="task-title" className="text-sm font-medium">
+                        <Label
+                          htmlFor="task-title"
+                          className="text-sm font-medium"
+                        >
                           Nova tarefa
                         </Label>
                         <Input
@@ -311,7 +345,7 @@ export function ProjectWorkflowPanel({
                           maxLength={100}
                           disabled={isSubmitting}
                         />
-                        <div className="flex gap-2 justify-end">
+                        <div className="flex justify-end gap-2">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -323,7 +357,9 @@ export function ProjectWorkflowPanel({
                           <Button
                             size="sm"
                             onClick={handleAddTask}
-                            disabled={!isValidTaskTitle(taskTitle) || isSubmitting}
+                            disabled={
+                              !isValidTaskTitle(taskTitle) || isSubmitting
+                            }
                           >
                             {isSubmitting ? 'Adicionando...' : 'Adicionar'}
                           </Button>
@@ -343,20 +379,23 @@ export function ProjectWorkflowPanel({
                 />
               ) : (
                 <Card className="p-6">
-                  <p className="text-muted-foreground text-center">
+                  <p className="text-center text-muted-foreground">
                     Selecione um vídeo para ver as ações disponíveis.
                   </p>
                 </Card>
               )}
             </TabsContent>
 
-            <TabsContent value="comments" className="pt-4 space-y-4">
+            <TabsContent value="comments" className="space-y-4 pt-4">
               {selectedDeliverable ? (
                 <>
                   {/* Formulário para adicionar comentário */}
                   <Card className="p-4">
                     <div className="space-y-3">
-                      <Label htmlFor="comment-text" className="text-sm font-medium">
+                      <Label
+                        htmlFor="comment-text"
+                        className="text-sm font-medium"
+                      >
                         Adicionar comentário
                       </Label>
                       <Textarea
@@ -368,7 +407,7 @@ export function ProjectWorkflowPanel({
                         maxLength={1000}
                         disabled={isSubmitting}
                       />
-                      <div className="flex justify-between items-center">
+                      <div className="flex items-center justify-between">
                         <span className="text-xs text-muted-foreground">
                           {commentText.length}/1000 caracteres
                         </span>
@@ -390,7 +429,12 @@ export function ProjectWorkflowPanel({
                         <h3 className="text-sm font-medium">
                           Comentários ({commentCounts.total})
                         </h3>
-                        <Select value={commentFilter} onValueChange={(value: CommentFilter) => setCommentFilter(value)}>
+                        <Select
+                          value={commentFilter}
+                          onValueChange={(value: CommentFilter) =>
+                            setCommentFilter(value)
+                          }
+                        >
                           <SelectTrigger className="w-[140px]">
                             <SelectValue />
                           </SelectTrigger>
@@ -419,8 +463,8 @@ export function ProjectWorkflowPanel({
                             />
                           ))
                         ) : (
-                          <div className="text-center py-8">
-                            <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                          <div className="py-8 text-center">
+                            <MessageSquare className="mx-auto mb-2 size-12 text-muted-foreground" />
                             <p className="text-muted-foreground">
                               {commentFilter === 'all'
                                 ? 'Nenhum comentário ainda. Seja o primeiro a comentar!'
@@ -434,7 +478,7 @@ export function ProjectWorkflowPanel({
                 </>
               ) : (
                 <Card className="p-6">
-                  <p className="text-muted-foreground text-center">
+                  <p className="text-center text-muted-foreground">
                     Selecione um vídeo para ver os comentários.
                   </p>
                 </Card>

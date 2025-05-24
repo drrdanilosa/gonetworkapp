@@ -76,7 +76,10 @@ export interface UseBriefingReturn {
   error: string | null
   fetchBriefing: () => Promise<void>
   saveBriefing: (data: Partial<BriefingData>) => Promise<void>
-  updateField: <K extends keyof BriefingData>(field: K, value: BriefingData[K]) => Promise<void>
+  updateField: <K extends keyof BriefingData>(
+    field: K,
+    value: BriefingData[K]
+  ) => Promise<void>
   resetError: () => void
 }
 
@@ -96,36 +99,36 @@ export const createEmptyBriefing = (eventId: string): BriefingData => ({
   team: [],
   deliverables: [],
   createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString()
+  updatedAt: new Date().toISOString(),
 })
 
 // Validação de dados
 export const validateBriefingData = (data: Partial<BriefingData>): string[] => {
   const errors: string[] = []
-  
+
   if (!data.eventName?.trim()) {
     errors.push('Nome do evento é obrigatório')
   }
-  
+
   if (!data.eventDate) {
     errors.push('Data do evento é obrigatória')
   }
-  
+
   if (!data.eventLocation?.trim()) {
     errors.push('Local do evento é obrigatório')
   }
-  
+
   if (!data.targetAudience?.trim()) {
     errors.push('Público-alvo é obrigatório')
   }
-  
+
   if (data.estimatedAttendees !== undefined && data.estimatedAttendees <= 0) {
     errors.push('Número estimado de participantes deve ser maior que zero')
   }
-  
+
   if (data.budget !== undefined && data.budget < 0) {
     errors.push('Orçamento não pode ser negativo')
   }
-  
+
   return errors
 }

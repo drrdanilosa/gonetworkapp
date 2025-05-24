@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -15,43 +15,50 @@ import { Badge } from '@/components/ui/badge'
 
 export default function EditingPage() {
   const [activeTab, setActiveTab] = useState<string>('videos')
-  
-  const { projects, addVideoToProject, updateDeliverableStatus } = useProjectsStore()
+
+  const { projects, addVideoToProject, updateDeliverableStatus } =
+    useProjectsStore()
   const { selectedEventId } = useUIStore()
-  
+
   const selectedProject = projects.find(p => p.id === selectedEventId)
-  const videoDeliverables = selectedProject?.deliverables?.filter(d => d.type === 'video') || []
-  
+  const videoDeliverables =
+    selectedProject?.deliverables?.filter(d => d.type === 'video') || []
+
   const handleVideoUpload = (videoData: any) => {
     if (!selectedEventId) {
       toast({
-        title: "Nenhum evento selecionado",
-        description: "Selecione um evento antes de fazer upload de vídeos.",
-        variant: "destructive"
+        title: 'Nenhum evento selecionado',
+        description: 'Selecione um evento antes de fazer upload de vídeos.',
+        variant: 'destructive',
       })
       return
     }
-    
+
     addVideoToProject(selectedEventId, videoData)
   }
-  
+
   const handleStatusChange = (deliverableId: string, status: string) => {
     if (!selectedEventId) return
-    
+
     updateDeliverableStatus(selectedEventId, deliverableId, status)
-    
-    const statusText = status === 'approved' ? 'aprovado' : 
-                      status === 'rejected' ? 'rejeitado' : 
-                      status === 'review' ? 'em revisão' : 'em análise'
-    
+
+    const statusText =
+      status === 'approved'
+        ? 'aprovado'
+        : status === 'rejected'
+          ? 'rejeitado'
+          : status === 'review'
+            ? 'em revisão'
+            : 'em análise'
+
     toast({
       title: `Status atualizado`,
-      description: `O vídeo foi marcado como "${statusText}".`
+      description: `O vídeo foi marcado como "${statusText}".`,
     })
   }
 
   const getStatusBadge = (status: string) => {
-    switch(status) {
+    switch (status) {
       case 'approved':
         return <Badge variant="success">Aprovado</Badge>
       case 'rejected':
@@ -62,94 +69,112 @@ export default function EditingPage() {
         return <Badge variant="outline">Rascunho</Badge>
     }
   }
-  
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Edição e Aprovação</h1>
-        
+
         <EventSelector label="Evento" />
       </div>
-      
+
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="videos">
-            <Video className="h-4 w-4 mr-2" />
+            <Video className="mr-2 size-4" />
             Vídeos
           </TabsTrigger>
           <TabsTrigger value="comments">
-            <MessageSquare className="h-4 w-4 mr-2" />
+            <MessageSquare className="mr-2 size-4" />
             Comentários
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="videos" className="space-y-6">
           {!selectedEventId ? (
-            <div className="flex flex-col items-center justify-center p-10 border rounded-lg">
-              <AlertCircle className="h-10 w-10 text-muted-foreground mb-4" />
+            <div className="flex flex-col items-center justify-center rounded-lg border p-10">
+              <AlertCircle className="mb-4 size-10 text-muted-foreground" />
               <p className="text-xl font-medium">Nenhum evento selecionado</p>
-              <p className="text-muted-foreground mt-2">
+              <p className="mt-2 text-muted-foreground">
                 Selecione um evento no menu acima para gerenciar seus vídeos.
               </p>
             </div>
           ) : (
             <>
-              <VideoUploader 
-                onVideoUpload={handleVideoUpload} 
+              <VideoUploader
+                onVideoUpload={handleVideoUpload}
                 isDisabled={!selectedEventId}
               />
-              
-              <h3 className="text-lg font-medium mt-8">Vídeos do Evento</h3>
-              
+
+              <h3 className="mt-8 text-lg font-medium">Vídeos do Evento</h3>
+
               {videoDeliverables.length === 0 ? (
-                <div className="text-center p-8 border rounded-md">
-                  <Video className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                <div className="rounded-md border p-8 text-center">
+                  <Video className="mx-auto mb-3 size-12 text-muted-foreground" />
                   <p className="text-muted-foreground">
                     Nenhum vídeo adicionado a este evento.
                   </p>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="mt-1 text-sm text-muted-foreground">
                     Utilize o uploader acima para adicionar vídeos.
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {videoDeliverables.map((video) => (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {videoDeliverables.map(video => (
                     <Card key={video.id}>
                       <div className="aspect-video bg-black">
                         {video.localUrl && (
-                          <video 
-                            src={video.localUrl} 
-                            controls 
+                          <video
+                            src={video.localUrl}
+                            controls
                             poster={video.thumbnailUrl}
-                            className="w-full h-full object-contain"
+                            className="size-full object-contain"
                           />
                         )}
                       </div>
                       <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                          <CardTitle className="text-lg">{video.title}</CardTitle>
+                        <div className="flex items-start justify-between">
+                          <CardTitle className="text-lg">
+                            {video.title}
+                          </CardTitle>
                           {getStatusBadge(video.status)}
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Upload em {format(new Date(video.uploadDate), 'dd/MM/yyyy HH:mm')}
+                          Upload em{' '}
+                          {format(
+                            new Date(video.uploadDate),
+                            'dd/MM/yyyy HH:mm'
+                          )}
                         </p>
                       </CardHeader>
                       <CardContent>
                         <div className="flex justify-end gap-2">
-                          <Button 
-                            size="sm" 
-                            variant={video.status === 'rejected' ? 'destructive' : 'outline'}
-                            onClick={() => handleStatusChange(video.id, 'rejected')}
+                          <Button
+                            size="sm"
+                            variant={
+                              video.status === 'rejected'
+                                ? 'destructive'
+                                : 'outline'
+                            }
+                            onClick={() =>
+                              handleStatusChange(video.id, 'rejected')
+                            }
                           >
-                            <X className="h-4 w-4 mr-1" />
+                            <X className="mr-1 size-4" />
                             Rejeitar
                           </Button>
-                          <Button 
-                            size="sm" 
-                            variant={video.status === 'approved' ? 'success' : 'outline'}
-                            onClick={() => handleStatusChange(video.id, 'approved')}
+                          <Button
+                            size="sm"
+                            variant={
+                              video.status === 'approved'
+                                ? 'success'
+                                : 'outline'
+                            }
+                            onClick={() =>
+                              handleStatusChange(video.id, 'approved')
+                            }
                           >
-                            <Check className="h-4 w-4 mr-1" />
+                            <Check className="mr-1 size-4" />
                             Aprovar
                           </Button>
                         </div>
@@ -161,12 +186,12 @@ export default function EditingPage() {
             </>
           )}
         </TabsContent>
-        
+
         <TabsContent value="comments">
-          <div className="text-center p-10 border rounded-lg">
-            <MessageSquare className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
+          <div className="rounded-lg border p-10 text-center">
+            <MessageSquare className="mx-auto mb-4 size-10 text-muted-foreground" />
             <p className="text-lg font-medium">Comentários e aprovações</p>
-            <p className="text-muted-foreground mt-2 mb-4">
+            <p className="mb-4 mt-2 text-muted-foreground">
               Esta funcionalidade será implementada em breve.
             </p>
           </div>

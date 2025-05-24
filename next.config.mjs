@@ -9,19 +9,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Configuração de proxy para o servidor Socket.io
-  async rewrites() {
-    return [
-      {
-        source: '/socket.io/:path*',
-        destination: 'http://localhost:3000/socket.io/:path*',
-      },
-      {
-        source: '/api/:path*',
-        destination: 'http://localhost:3000/api/:path*',
-      },
-    ]
-  },
   reactStrictMode: true,
 }
 

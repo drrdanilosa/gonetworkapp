@@ -23,7 +23,7 @@ import { Save } from 'lucide-react'
 export default function SettingsWidget() {
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Configurações</h1>
       </div>
 
@@ -69,7 +69,7 @@ export default function SettingsWidget() {
 
               <div className="flex justify-end">
                 <Button>
-                  <Save className="h-4 w-4 mr-2" />
+                  <Save className="mr-2 size-4" />
                   Salvar Alterações
                 </Button>
               </div>
@@ -128,7 +128,7 @@ export default function SettingsWidget() {
 
               <div className="flex justify-end">
                 <Button>
-                  <Save className="h-4 w-4 mr-2" />
+                  <Save className="mr-2 size-4" />
                   Salvar Alterações
                 </Button>
               </div>
@@ -148,16 +148,16 @@ export default function SettingsWidget() {
               <div className="space-y-2">
                 <Label>Tema</Label>
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="border rounded-md p-3 flex flex-col items-center gap-2 cursor-pointer bg-secondary/20">
-                    <div className="w-full h-24 rounded bg-background border"></div>
+                  <div className="flex cursor-pointer flex-col items-center gap-2 rounded-md border bg-secondary/20 p-3">
+                    <div className="h-24 w-full rounded border bg-background"></div>
                     <span className="text-sm font-medium">Escuro (Padrão)</span>
                   </div>
-                  <div className="border rounded-md p-3 flex flex-col items-center gap-2 cursor-pointer">
-                    <div className="w-full h-24 rounded bg-white border"></div>
+                  <div className="flex cursor-pointer flex-col items-center gap-2 rounded-md border p-3">
+                    <div className="h-24 w-full rounded border bg-white"></div>
                     <span className="text-sm">Claro</span>
                   </div>
-                  <div className="border rounded-md p-3 flex flex-col items-center gap-2 cursor-pointer">
-                    <div className="w-full h-24 rounded bg-gradient-to-b from-white to-background border"></div>
+                  <div className="flex cursor-pointer flex-col items-center gap-2 rounded-md border p-3">
+                    <div className="h-24 w-full rounded border bg-gradient-to-b from-white to-background"></div>
                     <span className="text-sm">Sistema</span>
                   </div>
                 </div>
@@ -168,28 +168,28 @@ export default function SettingsWidget() {
               <div className="space-y-2">
                 <Label>Cor de Destaque</Label>
                 <div className="grid grid-cols-6 gap-4">
-                  <div className="border rounded-md p-2 flex flex-col items-center gap-2 cursor-pointer bg-secondary/20">
-                    <div className="w-full h-10 rounded bg-primary"></div>
+                  <div className="flex cursor-pointer flex-col items-center gap-2 rounded-md border bg-secondary/20 p-2">
+                    <div className="h-10 w-full rounded bg-primary"></div>
                     <span className="text-xs">Roxo</span>
                   </div>
-                  <div className="border rounded-md p-2 flex flex-col items-center gap-2 cursor-pointer">
-                    <div className="w-full h-10 rounded bg-blue-500"></div>
+                  <div className="flex cursor-pointer flex-col items-center gap-2 rounded-md border p-2">
+                    <div className="h-10 w-full rounded bg-blue-500"></div>
                     <span className="text-xs">Azul</span>
                   </div>
-                  <div className="border rounded-md p-2 flex flex-col items-center gap-2 cursor-pointer">
-                    <div className="w-full h-10 rounded bg-green-500"></div>
+                  <div className="flex cursor-pointer flex-col items-center gap-2 rounded-md border p-2">
+                    <div className="h-10 w-full rounded bg-green-500"></div>
                     <span className="text-xs">Verde</span>
                   </div>
-                  <div className="border rounded-md p-2 flex flex-col items-center gap-2 cursor-pointer">
-                    <div className="w-full h-10 rounded bg-red-500"></div>
+                  <div className="flex cursor-pointer flex-col items-center gap-2 rounded-md border p-2">
+                    <div className="h-10 w-full rounded bg-red-500"></div>
                     <span className="text-xs">Vermelho</span>
                   </div>
-                  <div className="border rounded-md p-2 flex flex-col items-center gap-2 cursor-pointer">
-                    <div className="w-full h-10 rounded bg-orange-500"></div>
+                  <div className="flex cursor-pointer flex-col items-center gap-2 rounded-md border p-2">
+                    <div className="h-10 w-full rounded bg-orange-500"></div>
                     <span className="text-xs">Laranja</span>
                   </div>
-                  <div className="border rounded-md p-2 flex flex-col items-center gap-2 cursor-pointer">
-                    <div className="w-full h-10 rounded bg-pink-500"></div>
+                  <div className="flex cursor-pointer flex-col items-center gap-2 rounded-md border p-2">
+                    <div className="h-10 w-full rounded bg-pink-500"></div>
                     <span className="text-xs">Rosa</span>
                   </div>
                 </div>
@@ -221,7 +221,7 @@ export default function SettingsWidget() {
 
               <div className="flex justify-end">
                 <Button>
-                  <Save className="h-4 w-4 mr-2" />
+                  <Save className="mr-2 size-4" />
                   Salvar Alterações
                 </Button>
               </div>
@@ -316,7 +316,7 @@ export default function SettingsWidget() {
 
               <div className="flex justify-end">
                 <Button>
-                  <Save className="h-4 w-4 mr-2" />
+                  <Save className="mr-2 size-4" />
                   Salvar Alterações
                 </Button>
               </div>
@@ -420,7 +420,7 @@ export default function SettingsWidget() {
 
               <div className="flex justify-end">
                 <Button>
-                  <Save className="h-4 w-4 mr-2" />
+                  <Save className="mr-2 size-4" />
                   Salvar Alterações
                 </Button>
               </div>

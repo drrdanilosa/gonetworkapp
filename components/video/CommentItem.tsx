@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useProjectsStore } from '@/store/useProjectsStoreUnified'
 import { useAuthStore } from '@/store/useAuthStore'
@@ -55,20 +55,20 @@ export function CommentItem({
   return (
     <div
       className={cn(
-        'mb-3 p-3 rounded-lg border relative',
+        'relative mb-3 rounded-lg border p-3',
         comment.resolved
-          ? 'bg-muted/30 border-green-200 dark:border-green-900'
+          ? 'border-green-200 bg-muted/30 dark:border-green-900'
           : 'bg-card'
       )}
     >
       {comment.resolved && (
-        <div className="absolute top-0 right-0 transform translate-x-1/4 -translate-y-1/4">
-          <div className="bg-green-500 text-white rounded-full p-1">
+        <div className="absolute right-0 top-0 -translate-y-1/4 translate-x-1/4">
+          <div className="rounded-full bg-green-500 p-1 text-white">
             <Check size={12} />
           </div>
         </div>
       )}
-      <div className="flex items-center gap-2 mb-1.5">
+      <div className="mb-1.5 flex items-center gap-2">
         <MessageSquare
           size={16}
           className={cn(
@@ -83,13 +83,13 @@ export function CommentItem({
         </span>
 
         {comment.timestamp > 0 && (
-          <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
+          <span className="rounded bg-muted px-1.5 py-0.5 text-xs">
             @ {formatTime(comment.timestamp)}
           </span>
         )}
       </div>
 
-      <p className="text-sm mb-2">{comment.content}</p>
+      <p className="mb-2 text-sm">{comment.content}</p>
 
       <div className="flex items-center justify-between">
         <div
@@ -113,7 +113,7 @@ export function CommentItem({
             onClick={() =>
               markCommentResolved(projectId, deliverableId, comment.id)
             }
-            className="text-xs h-7"
+            className="h-7 text-xs"
           >
             <Check size={14} className="mr-1" />
             Marcar como resolvido

@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useEffect, useState } from 'react'
 import {
@@ -12,14 +12,27 @@ import {
   Clock,
   BarChart2,
   Settings,
-  CheckCircle2
+  CheckCircle2,
 } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
@@ -33,87 +46,106 @@ import { Skeleton } from '@/components/ui/skeleton'
 function ExpandedEventCard({ event }) {
   const { setCurrentPage, setSelectedEventId } = useUIStore()
   const { projects } = useProjectsStore()
-  
+
   // Buscar briefing e timeline associados ao evento
   const projectDetails = projects.find(p => p.id === event.id)
-  const hasBriefing = projectDetails?.briefing && Object.keys(projectDetails.briefing).length > 0
-  const hasTimeline = projectDetails?.timeline && projectDetails.timeline.length > 0
-  
-  const navigateToSection = (section) => {
+  const hasBriefing =
+    projectDetails?.briefing && Object.keys(projectDetails.briefing).length > 0
+  const hasTimeline =
+    projectDetails?.timeline && projectDetails.timeline.length > 0
+
+  const navigateToSection = section => {
     setSelectedEventId(event.id)
-    
+
     // Mapear para os índices de páginas conforme necessário
     const pageIndices = {
-      'briefing': 3,
-      'timeline': 4,
-      'editing': 5,
-      'team': 2
+      briefing: 3,
+      timeline: 4,
+      editing: 5,
+      team: 2,
     }
-    
+
     setCurrentPage(pageIndices[section])
   }
 
   return (
-    <div className="space-y-4 mt-4 pt-4 border-t">
+    <div className="mt-4 space-y-4 border-t pt-4">
       <Tabs defaultValue="details">
         <TabsList className="mb-3">
           <TabsTrigger value="details">
-            <BarChart2 className="h-4 w-4 mr-2" />
+            <BarChart2 className="mr-2 size-4" />
             Detalhes
           </TabsTrigger>
           <TabsTrigger value="briefing">
-            <FileText className="h-4 w-4 mr-2" />
+            <FileText className="mr-2 size-4" />
             Briefing
           </TabsTrigger>
           <TabsTrigger value="timeline">
-            <Clock className="h-4 w-4 mr-2" />
+            <Clock className="mr-2 size-4" />
             Timeline
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="details" className="space-y-3">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <h4 className="text-sm font-semibold">Informações do Evento</h4>
-              <ul className="text-sm space-y-1 mt-2">
-                <li><strong>Nome:</strong> {event.name}</li>
-                <li><strong>Cliente:</strong> {event.client}</li>
-                <li><strong>Local:</strong> {event.location}</li>
-                <li><strong>Status:</strong> {getStatusText(event.status)}</li>
+              <ul className="mt-2 space-y-1 text-sm">
+                <li>
+                  <strong>Nome:</strong> {event.name}
+                </li>
+                <li>
+                  <strong>Cliente:</strong> {event.client}
+                </li>
+                <li>
+                  <strong>Local:</strong> {event.location}
+                </li>
+                <li>
+                  <strong>Status:</strong> {getStatusText(event.status)}
+                </li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="text-sm font-semibold">Estatísticas</h4>
-              <ul className="text-sm space-y-1 mt-2">
-                <li><strong>Equipe:</strong> {event.team} membros</li>
-                <li><strong>Entregas planejadas:</strong> {event.deliveries}</li>
-                <li><strong>Concluídas:</strong> {event.completed}</li>
-                <li><strong>Taxa de conclusão:</strong> {calculateCompletionRate(event.completed, event.deliveries)}%</li>
+              <ul className="mt-2 space-y-1 text-sm">
+                <li>
+                  <strong>Equipe:</strong> {event.team} membros
+                </li>
+                <li>
+                  <strong>Entregas planejadas:</strong> {event.deliveries}
+                </li>
+                <li>
+                  <strong>Concluídas:</strong> {event.completed}
+                </li>
+                <li>
+                  <strong>Taxa de conclusão:</strong>{' '}
+                  {calculateCompletionRate(event.completed, event.deliveries)}%
+                </li>
               </ul>
             </div>
           </div>
-          
-          <div className="flex justify-end gap-2 mt-4">
-            <Button 
-              variant="outline" 
+
+          <div className="mt-4 flex justify-end gap-2">
+            <Button
+              variant="outline"
               size="sm"
               onClick={() => navigateToSection('team')}
             >
-              <Users className="h-4 w-4 mr-1" />
+              <Users className="mr-1 size-4" />
               Gerenciar Equipe
             </Button>
-            <Button 
-              variant="default" 
+            <Button
+              variant="default"
               size="sm"
               onClick={() => navigateToSection('briefing')}
             >
-              <Settings className="h-4 w-4 mr-1" />
+              <Settings className="mr-1 size-4" />
               Configurar Evento
             </Button>
           </div>
         </TabsContent>
-        
+
         <TabsContent value="briefing">
           {hasBriefing ? (
             <div className="space-y-3">
@@ -123,42 +155,41 @@ function ExpandedEventCard({ event }) {
                   {projectDetails.briefing.objective || 'Objetivo não definido'}
                 </p>
               </div>
-              
+
               <div>
                 <h4 className="text-sm font-semibold">Formato</h4>
                 <p className="text-sm text-muted-foreground">
                   {projectDetails.briefing.format || 'Formato não definido'}
                 </p>
               </div>
-              
+
               {projectDetails.briefing.sponsors?.length > 0 && (
                 <div>
                   <h4 className="text-sm font-semibold">Patrocinadores</h4>
-                  <div className="flex gap-1 flex-wrap mt-1">
+                  <div className="mt-1 flex flex-wrap gap-1">
                     {projectDetails.briefing.sponsors.map(sponsor => (
-                      <Badge key={sponsor.id} variant="outline">{sponsor.name}</Badge>
+                      <Badge key={sponsor.id} variant="outline">
+                        {sponsor.name}
+                      </Badge>
                     ))}
                   </div>
                 </div>
               )}
-              
+
               <div className="mt-3">
-                <Button 
-                  size="sm"
-                  onClick={() => navigateToSection('briefing')}
-                >
+                <Button size="sm" onClick={() => navigateToSection('briefing')}>
                   Ver Briefing Completo
                 </Button>
               </div>
             </div>
           ) : (
-            <div className="text-center py-6">
-              <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+            <div className="py-6 text-center">
+              <FileText className="mx-auto mb-3 size-10 text-muted-foreground" />
               <p className="text-sm font-medium">Briefing não configurado</p>
-              <p className="text-xs text-muted-foreground mb-3">
+              <p className="mb-3 text-xs text-muted-foreground">
                 Configure o briefing para definir todos os detalhes do evento
               </p>
-              <Button 
+              <Button
                 size="sm"
                 variant="outline"
                 onClick={() => navigateToSection('briefing')}
@@ -168,19 +199,21 @@ function ExpandedEventCard({ event }) {
             </div>
           )}
         </TabsContent>
-        
+
         <TabsContent value="timeline">
           {hasTimeline ? (
             <div className="space-y-3">
               <div>
                 <h4 className="text-sm font-semibold">Cronograma</h4>
-                <div className="mt-2 border p-2 rounded-md overflow-x-auto">
-                  <div className="flex gap-1 min-w-[400px]">
+                <div className="mt-2 overflow-x-auto rounded-md border p-2">
+                  <div className="flex min-w-[400px] gap-1">
                     {projectDetails.timeline.map(phase => (
-                      <div 
+                      <div
                         key={phase.id}
-                        className={`py-1 px-2 rounded-sm text-xs ${
-                          phase.completed ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                        className={`rounded-sm px-2 py-1 text-xs ${
+                          phase.completed
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-blue-100 text-blue-800'
                         }`}
                         style={{ width: `${phase.duration}%` }}
                       >
@@ -190,24 +223,22 @@ function ExpandedEventCard({ event }) {
                   </div>
                 </div>
               </div>
-              
+
               <div className="mt-3">
-                <Button 
-                  size="sm"
-                  onClick={() => navigateToSection('timeline')}
-                >
+                <Button size="sm" onClick={() => navigateToSection('timeline')}>
                   Ver Timeline Completa
                 </Button>
               </div>
             </div>
           ) : (
-            <div className="text-center py-6">
-              <Clock className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+            <div className="py-6 text-center">
+              <Clock className="mx-auto mb-3 size-10 text-muted-foreground" />
               <p className="text-sm font-medium">Timeline não gerada</p>
-              <p className="text-xs text-muted-foreground mb-3">
-                Gere a timeline a partir do briefing para visualizar o cronograma
+              <p className="mb-3 text-xs text-muted-foreground">
+                Gere a timeline a partir do briefing para visualizar o
+                cronograma
               </p>
-              <Button 
+              <Button
                 size="sm"
                 variant="outline"
                 onClick={() => navigateToSection('briefing')}
@@ -218,17 +249,17 @@ function ExpandedEventCard({ event }) {
           )}
         </TabsContent>
       </Tabs>
-      
-      <div className="flex justify-between pt-2 border-t">
-        <Button 
+
+      <div className="flex justify-between border-t pt-2">
+        <Button
           variant="default"
-          size="sm" 
+          size="sm"
           onClick={() => navigateToSection('editing')}
         >
           Acessar Entregas
         </Button>
-        
-        <Button 
+
+        <Button
           variant="outline"
           size="sm"
           onClick={() => navigateToSection('briefing')}
@@ -249,20 +280,20 @@ function calculateCompletionRate(completed, total) {
 // Funções auxiliares para formatar texto
 function getStatusText(status) {
   const statusMap = {
-    'planejamento': 'Planejamento',
-    'em_andamento': 'Em andamento',
-    'concluido': 'Concluído',
-    'cancelado': 'Cancelado'
+    planejamento: 'Planejamento',
+    em_andamento: 'Em andamento',
+    concluido: 'Concluído',
+    cancelado: 'Cancelado',
   }
   return statusMap[status] || status
 }
 
 function getStatusVariant(status) {
   const variantMap = {
-    'planejamento': 'secondary',
-    'em_andamento': 'default',
-    'concluido': 'success',
-    'cancelado': 'destructive'
+    planejamento: 'secondary',
+    em_andamento: 'default',
+    concluido: 'success',
+    cancelado: 'destructive',
   }
   return variantMap[status] || 'outline'
 }
@@ -270,14 +301,14 @@ function getStatusVariant(status) {
 export default function EventsWidget() {
   const [isLoading, setIsLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [newEvent, setNewEvent] = useState({ 
-    name: '', 
-    startDate: '', 
-    endDate: '', 
-    location: '', 
-    client: '' 
+  const [newEvent, setNewEvent] = useState({
+    name: '',
+    startDate: '',
+    endDate: '',
+    location: '',
+    client: '',
   })
-  
+
   // Usando estados do Zustand conforme direcionamento
   const { expandedCardId, setExpandedCardId } = useUIStore()
   const { projects, addProject } = useProjectsStore()
@@ -289,16 +320,16 @@ export default function EventsWidget() {
     }, 800)
   }, [])
 
-  const toggleExpand = (id) => {
+  const toggleExpand = id => {
     setExpandedCardId(expandedCardId === id ? null : id)
   }
 
   const handleCreateEvent = () => {
     if (!newEvent.name || !newEvent.startDate || !newEvent.client) {
-      toast({ 
+      toast({
         title: 'Campos obrigatórios',
         description: 'Preencha nome, data de início e cliente.',
-        variant: 'destructive'
+        variant: 'destructive',
       })
       return
     }
@@ -327,21 +358,27 @@ export default function EventsWidget() {
           id: eventId,
           name: newEvent.name,
           date: newEvent.startDate,
-          location: newEvent.location
-        }
-      ]
+          location: newEvent.location,
+        },
+      ],
     }
-    
+
     // Adicionar o projeto via store
     addProject(newProject)
-    
+
     // Fechar modal e limpar form
     setDialogOpen(false)
-    setNewEvent({ name: '', startDate: '', endDate: '', location: '', client: '' })
-    
+    setNewEvent({
+      name: '',
+      startDate: '',
+      endDate: '',
+      location: '',
+      client: '',
+    })
+
     toast({
       title: 'Evento criado com sucesso',
-      description: 'Configure mais detalhes no briefing do evento.'
+      description: 'Configure mais detalhes no briefing do evento.',
     })
   }
 
@@ -360,21 +397,23 @@ export default function EventsWidget() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Eventos</h1>
           <p className="text-muted-foreground">
-            {isLoading ? 'Carregando...' : `${projects.length} eventos encontrados`}
+            {isLoading
+              ? 'Carregando...'
+              : `${projects.length} eventos encontrados`}
           </p>
         </div>
         <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" /> Novo Evento
+          <Plus className="mr-2 size-4" /> Novo Evento
         </Button>
       </div>
 
       {isLoading ? (
         // Loading skeletons
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
             <Card key={`skeleton-${i}`}>
               <CardHeader>
@@ -393,18 +432,18 @@ export default function EventsWidget() {
         </div>
       ) : (
         // Grid de eventos
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {projects.length > 0 ? (
             projects.map(event => (
-              <Card 
-                key={event.id} 
+              <Card
+                key={event.id}
                 className={`transition-shadow hover:shadow-md ${
                   expandedCardId === event.id ? 'ring-1 ring-primary' : ''
                 }`}
               >
-                <CardHeader 
-                  onClick={() => toggleExpand(event.id)} 
-                  className="cursor-pointer flex flex-row items-center justify-between pb-3"
+                <CardHeader
+                  onClick={() => toggleExpand(event.id)}
+                  className="flex cursor-pointer flex-row items-center justify-between pb-3"
                 >
                   <div className="space-y-1">
                     <CardTitle className="text-lg">{event.name}</CardTitle>
@@ -413,49 +452,57 @@ export default function EventsWidget() {
                     </Badge>
                   </div>
                   <div>
-                    {expandedCardId === event.id ? 
-                      <ChevronUp className="h-5 w-5 text-muted-foreground" /> : 
-                      <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                    }
+                    {expandedCardId === event.id ? (
+                      <ChevronUp className="size-5 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="size-5 text-muted-foreground" />
+                    )}
                   </div>
                 </CardHeader>
-                
+
                 <CardContent className="space-y-3">
                   <div className="flex items-center text-sm">
-                    <Calendar className="mr-2 h-4 w-4 text-muted-foreground" /> 
+                    <Calendar className="mr-2 size-4 text-muted-foreground" />
                     {formatDate(event.startDate, event.endDate)}
                   </div>
                   <div className="flex items-center text-sm">
-                    <MapPin className="mr-2 h-4 w-4 text-muted-foreground" /> 
+                    <MapPin className="mr-2 size-4 text-muted-foreground" />
                     <span className="truncate" title={event.location}>
                       {event.location || 'Local não definido'}
                     </span>
                   </div>
                   <div className="flex items-center text-sm">
-                    <Users className="mr-2 h-4 w-4 text-muted-foreground" /> 
-                    <span className="truncate" title={`Cliente: ${event.client}`}>
+                    <Users className="mr-2 size-4 text-muted-foreground" />
+                    <span
+                      className="truncate"
+                      title={`Cliente: ${event.client}`}
+                    >
                       Cliente: {event.client}
                     </span>
                   </div>
-                  
+
                   {/* Progresso de entregas */}
                   <div>
-                    <div className="flex justify-between text-xs mb-1">
+                    <div className="mb-1 flex justify-between text-xs">
                       <span className="text-muted-foreground">Progresso</span>
                       <span className="font-medium">
                         {event.completed}/{event.deliveries} entregas
                       </span>
                     </div>
-                    <Progress 
-                      value={calculateCompletionRate(event.completed, event.deliveries)} 
+                    <Progress
+                      value={calculateCompletionRate(
+                        event.completed,
+                        event.deliveries
+                      )}
                       className={`h-2 ${
-                        event.completed === event.deliveries && event.deliveries > 0
-                          ? "bg-muted [&>div]:bg-green-500"
-                          : ""
+                        event.completed === event.deliveries &&
+                        event.deliveries > 0
+                          ? 'bg-muted [&>div]:bg-green-500'
+                          : ''
                       }`}
                     />
                   </div>
-                  
+
                   {/* Card expandido com detalhes */}
                   {expandedCardId === event.id && (
                     <ExpandedEventCard event={event} />
@@ -465,29 +512,34 @@ export default function EventsWidget() {
             ))
           ) : (
             // Estado vazio
-            <div className="col-span-full text-center p-8 border rounded-lg">
-              <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
-                <Calendar className="h-6 w-6 text-muted-foreground" />
+            <div className="col-span-full rounded-lg border p-8 text-center">
+              <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-muted">
+                <Calendar className="size-6 text-muted-foreground" />
               </div>
-              <h3 className="font-medium mb-1">Nenhum evento encontrado</h3>
-              <p className="text-sm text-muted-foreground mb-4">
+              <h3 className="mb-1 font-medium">Nenhum evento encontrado</h3>
+              <p className="mb-4 text-sm text-muted-foreground">
                 Adicione seu primeiro evento para começar.
               </p>
               <Button onClick={() => setDialogOpen(true)} variant="outline">
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="mr-2 size-4" />
                 Adicionar Evento
               </Button>
             </div>
           )}
-          
+
           {/* Card para adicionar novo evento */}
           {projects.length > 0 && projects.length < 6 && (
-            <Card className="border-dashed flex flex-col items-center justify-center p-8 cursor-pointer hover:bg-accent/5 transition-colors" onClick={() => setDialogOpen(true)}>
-              <div className="mb-4 w-12 h-12 rounded-full border-2 border-dashed border-muted-foreground/25 flex items-center justify-center">
-                <Plus className="h-6 w-6 text-muted-foreground/50" />
+            <Card
+              className="flex cursor-pointer flex-col items-center justify-center border-dashed p-8 transition-colors hover:bg-accent/5"
+              onClick={() => setDialogOpen(true)}
+            >
+              <div className="mb-4 flex size-12 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/25">
+                <Plus className="size-6 text-muted-foreground/50" />
               </div>
-              <p className="text-sm font-medium text-center">Adicionar Evento</p>
-              <p className="text-xs text-muted-foreground text-center mt-1">
+              <p className="text-center text-sm font-medium">
+                Adicionar Evento
+              </p>
+              <p className="mt-1 text-center text-xs text-muted-foreground">
                 Criar um novo evento para gerenciar
               </p>
             </Card>
@@ -501,76 +553,82 @@ export default function EventsWidget() {
           <DialogHeader>
             <DialogTitle>Novo Evento</DialogTitle>
             <DialogDescription>
-              Preencha os dados básicos do evento. Você poderá configurar detalhes adicionais depois.
+              Preencha os dados básicos do evento. Você poderá configurar
+              detalhes adicionais depois.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-2">
             <div className="grid gap-2">
               <Label htmlFor="event-name">Nome do Evento *</Label>
-              <Input 
+              <Input
                 id="event-name"
-                value={newEvent.name} 
-                onChange={e => setNewEvent(v => ({ ...v, name: e.target.value }))} 
+                value={newEvent.name}
+                onChange={e =>
+                  setNewEvent(v => ({ ...v, name: e.target.value }))
+                }
                 placeholder="Ex: Nome do Evento 2025"
               />
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="event-start">Data de Início *</Label>
-                <Input 
+                <Input
                   id="event-start"
-                  type="date" 
-                  value={newEvent.startDate} 
-                  onChange={e => setNewEvent(v => ({ ...v, startDate: e.target.value }))} 
+                  type="date"
+                  value={newEvent.startDate}
+                  onChange={e =>
+                    setNewEvent(v => ({ ...v, startDate: e.target.value }))
+                  }
                 />
               </div>
-              
+
               <div className="grid gap-2">
                 <Label htmlFor="event-end">Data de Término</Label>
-                <Input 
+                <Input
                   id="event-end"
-                  type="date" 
-                  value={newEvent.endDate} 
-                  onChange={e => setNewEvent(v => ({ ...v, endDate: e.target.value }))} 
+                  type="date"
+                  value={newEvent.endDate}
+                  onChange={e =>
+                    setNewEvent(v => ({ ...v, endDate: e.target.value }))
+                  }
                 />
               </div>
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="event-location">Local do Evento</Label>
-              <Input 
+              <Input
                 id="event-location"
-                value={newEvent.location} 
-                onChange={e => setNewEvent(v => ({ ...v, location: e.target.value }))} 
+                value={newEvent.location}
+                onChange={e =>
+                  setNewEvent(v => ({ ...v, location: e.target.value }))
+                }
                 placeholder="Ex: Centro de Convenções"
               />
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="event-client">Cliente *</Label>
-              <Input 
+              <Input
                 id="event-client"
-                value={newEvent.client} 
-                onChange={e => setNewEvent(v => ({ ...v, client: e.target.value }))} 
+                value={newEvent.client}
+                onChange={e =>
+                  setNewEvent(v => ({ ...v, client: e.target.value }))
+                }
                 placeholder="Ex: Empresa ABC"
               />
             </div>
           </div>
-          
+
           <DialogFooter className="flex justify-between">
-            <Button 
-              variant="ghost" 
-              onClick={() => setDialogOpen(false)}
-            >
+            <Button variant="ghost" onClick={() => setDialogOpen(false)}>
               Cancelar
             </Button>
-            
-            <Button 
-              onClick={handleCreateEvent}
-            >
-              <CheckCircle2 className="h-4 w-4 mr-2" />
+
+            <Button onClick={handleCreateEvent}>
+              <CheckCircle2 className="mr-2 size-4" />
               Criar Evento
             </Button>
           </DialogFooter>

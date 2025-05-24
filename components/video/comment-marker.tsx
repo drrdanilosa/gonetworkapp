@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -97,7 +97,7 @@ export default function CommentMarker({
         <TooltipContent side="top" className="max-w-xs">
           <div className="space-y-1">
             <div className="font-medium">{formatTime(time)}</div>
-            <p className="text-xs line-clamp-2">{commentText}</p>
+            <p className="line-clamp-2 text-xs">{commentText}</p>
             <div className="text-xs text-muted-foreground">
               {isResolved ? 'Resolvido' : 'Pendente'}
             </div>

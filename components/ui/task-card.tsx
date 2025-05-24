@@ -38,28 +38,28 @@ export function TaskCard({
     <Card className="overflow-hidden transition-all hover:shadow-dracula-md">
       <CardHeader className={`${isMobile ? 'p-3' : 'pb-3'} relative`}>
         {status === 'pending' && (
-          <div className="absolute right-3 md:right-4 top-3 md:top-4">
+          <div className="absolute right-3 top-3 md:right-4 md:top-4">
             <Badge
               variant="outline"
-              className="text-dracula-orange border-dracula-orange text-xs"
+              className="border-dracula-orange text-xs text-dracula-orange"
             >
-              <Clock className="mr-1 h-3 w-3" /> {isMobile ? 'P' : 'Pendente'}
+              <Clock className="mr-1 size-3" /> {isMobile ? 'P' : 'Pendente'}
             </Badge>
           </div>
         )}
 
         {status === 'in-progress' && (
-          <div className="absolute right-3 md:right-4 top-3 md:top-4">
-            <Badge className="bg-dracula-purple text-white text-xs">
+          <div className="absolute right-3 top-3 md:right-4 md:top-4">
+            <Badge className="bg-dracula-purple text-xs text-white">
               {isMobile ? 'Em prog.' : 'Em Progresso'}
             </Badge>
           </div>
         )}
 
         {status === 'completed' && (
-          <div className="absolute right-3 md:right-4 top-3 md:top-4">
-            <Badge className="bg-dracula-green text-white text-xs">
-              <Check className="mr-1 h-3 w-3" /> {isMobile ? 'Ok' : 'Concluído'}
+          <div className="absolute right-3 top-3 md:right-4 md:top-4">
+            <Badge className="bg-dracula-green text-xs text-white">
+              <Check className="mr-1 size-3" /> {isMobile ? 'Ok' : 'Concluído'}
             </Badge>
           </div>
         )}
@@ -74,12 +74,12 @@ export function TaskCard({
         </CardDescription>
       </CardHeader>{' '}
       <CardContent className={`${isMobile ? 'p-3 pb-2' : 'pb-3'}`}>
-        <div className="flex flex-wrap gap-1 md:gap-2 mb-2 md:mb-3">
+        <div className="mb-2 flex flex-wrap gap-1 md:mb-3 md:gap-2">
           {tags.map(tag => (
             <Badge
               key={tag}
               variant="secondary"
-              className={`${isMobile ? 'text-[10px] px-1.5 h-5' : 'text-xs'}`}
+              className={`${isMobile ? 'h-5 px-1.5 text-[10px]' : 'text-xs'}`}
             >
               {tag}
             </Badge>
@@ -102,13 +102,13 @@ export function TaskCard({
         {assignedTo ? (
           <div className="flex items-center gap-2">
             <div
-              className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} rounded-full bg-dracula-purple/20 flex items-center justify-center`}
+              className={`${isMobile ? 'size-6' : 'size-8'} flex items-center justify-center rounded-full bg-dracula-purple/20`}
             >
               {assignedTo.avatar ? (
                 <img
                   src={assignedTo.avatar}
                   alt={assignedTo.name}
-                  className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} rounded-full object-cover`}
+                  className={`${isMobile ? 'size-6' : 'size-8'} rounded-full object-cover`}
                 />
               ) : (
                 <span
@@ -119,7 +119,7 @@ export function TaskCard({
               )}
             </div>
             <span
-              className={`${isMobile ? 'text-xs' : 'text-sm'} truncate max-w-[100px] md:max-w-full`}
+              className={`${isMobile ? 'text-xs' : 'text-sm'} max-w-[100px] truncate md:max-w-full`}
             >
               {assignedTo.name}
             </span>
@@ -136,7 +136,7 @@ export function TaskCard({
           variant="ghost"
           className={isMobile ? 'px-2' : ''}
         >
-          <PlusCircle className="h-4 w-4 mr-1" /> {isMobile ? '' : 'Detalhes'}
+          <PlusCircle className="mr-1 size-4" /> {isMobile ? '' : 'Detalhes'}
         </Button>
       </CardFooter>
     </Card>

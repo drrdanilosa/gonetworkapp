@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
@@ -18,10 +18,10 @@ import {
 } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
+import { _Separator } from '@/components/ui/separator'
 import {
-  Check,
-  X,
+  _Check,
+  _X,
   ArrowLeft,
   Clock,
   AlertTriangle,
@@ -39,7 +39,7 @@ import VideoErrorDisplay from '@/components/video/VideoErrorDisplay'
 const VideoPlayer = dynamic(() => import('@/components/video/VideoPlayer'), {
   ssr: false,
   loading: () => (
-    <div className="aspect-video bg-muted animate-pulse rounded-md" />
+    <div className="aspect-video animate-pulse rounded-md bg-muted" />
   ),
 })
 
@@ -96,8 +96,8 @@ export default function ApprovalPage() {
       <div className="container mx-auto p-4">
         <Card>
           <CardContent className="pt-6">
-            <div className="flex justify-center items-center h-24">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <div className="flex h-24 items-center justify-center">
+              <div className="size-8 animate-spin rounded-full border-b-2 border-primary"></div>
             </div>
           </CardContent>
         </Card>
@@ -114,7 +114,7 @@ export default function ApprovalPage() {
           variant="outline"
           onClick={() => router.push(`/eventos/${eventId}`)}
         >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
+          <ArrowLeft className="mr-2 size-4" /> Voltar
         </Button>
         <Card className="mt-4">
           <CardHeader>
@@ -122,11 +122,11 @@ export default function ApprovalPage() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-col items-center justify-center py-8">
-              <AlertTriangle className="h-12 w-12 text-yellow-500 mb-4" />
+              <AlertTriangle className="mb-4 size-12 text-yellow-500" />
               <h2 className="text-xl font-semibold">
                 Nenhum vídeo disponível para aprovação
               </h2>
-              <p className="text-muted-foreground mt-2">
+              <p className="mt-2 text-muted-foreground">
                 Ainda não há vídeos exportados para este projeto. Os vídeos
                 serão exibidos aqui automaticamente quando forem detectados pelo
                 watcher.
@@ -212,7 +212,7 @@ export default function ApprovalPage() {
             <CardContent className="pt-6">
               <div className="text-center">
                 <p>Você não tem permissão para acessar esta página.</p>
-                <p className="text-muted-foreground mt-2">
+                <p className="mt-2 text-muted-foreground">
                   Entre em contato com o administrador para solicitar acesso.
                 </p>
               </div>
@@ -222,12 +222,12 @@ export default function ApprovalPage() {
       }
     >
       <div className="container mx-auto p-4">
-        <div className="flex justify-between items-center mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <Button
             variant="outline"
             onClick={() => router.push(`/eventos/${eventId}`)}
           >
-            <ArrowLeft className="mr-2 h-4 w-4" /> Voltar para o Projeto
+            <ArrowLeft className="mr-2 size-4" /> Voltar para o Projeto
           </Button>
           <h1 className="text-2xl font-bold">
             {currentProject.name || 'Sem nome'}
@@ -239,7 +239,7 @@ export default function ApprovalPage() {
           value={activeTab}
           onValueChange={setActiveTab}
         >
-          <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsList className="mb-6 grid w-full grid-cols-2">
             <TabsTrigger value="revisao">Revisão e Aprovação</TabsTrigger>
             <TabsTrigger value="historico">
               Histórico de Comentários
@@ -247,7 +247,7 @@ export default function ApprovalPage() {
           </TabsList>
 
           <TabsContent value="revisao">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               {/* Player de vídeo e controles */}
               <div className="md:col-span-2">
                 <Card>
@@ -275,7 +275,7 @@ export default function ApprovalPage() {
                         {/* Seleção de versões */}
                         {deliverable.versions.length > 1 && (
                           <div className="mt-4">
-                            <h3 className="text-sm font-medium mb-2">
+                            <h3 className="mb-2 text-sm font-medium">
                               Versões Disponíveis:
                             </h3>
                             <div className="flex flex-wrap gap-2">
@@ -300,37 +300,37 @@ export default function ApprovalPage() {
                         )}
                         {/* Área de aprovação/rejeição para clientes */}
                         {canApprove && (
-                          <div className="mt-6 border rounded-md p-4">
-                            <h3 className="font-medium mb-2">
+                          <div className="mt-6 rounded-md border p-4">
+                            <h3 className="mb-2 font-medium">
                               Decisão de Aprovação
                             </h3>
-                            <p className="text-sm text-muted-foreground mb-4">
+                            <p className="mb-4 text-sm text-muted-foreground">
                               Você pode aprovar esta versão do vídeo ou
                               solicitar alterações
                             </p>
 
-                            <div className="flex gap-2 mt-2">
+                            <div className="mt-2 flex gap-2">
                               <Button
                                 variant="outline"
-                                className="w-1/2 bg-green-50 text-green-600 border-green-200 hover:bg-green-100 hover:text-green-700"
+                                className="w-1/2 border-green-200 bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700"
                                 onClick={handleApprove}
                               >
-                                <ThumbsUp className="mr-2 h-4 w-4" />
+                                <ThumbsUp className="mr-2 size-4" />
                                 Aprovar Vídeo
                               </Button>
 
                               <Button
                                 variant="outline"
-                                className="w-1/2 bg-red-50 text-red-600 border-red-200 hover:bg-red-100 hover:text-red-700"
+                                className="w-1/2 border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
                                 onClick={handleReject}
                               >
-                                <ThumbsDown className="mr-2 h-4 w-4" />
+                                <ThumbsDown className="mr-2 size-4" />
                                 Solicitar Alterações
                               </Button>
                             </div>
 
                             <textarea
-                              className="w-full mt-2 p-2 border rounded-md"
+                              className="mt-2 w-full rounded-md border p-2"
                               placeholder="Descreva aqui as alterações necessárias (opcional)"
                               rows={3}
                               value={rejectReason}
@@ -340,19 +340,19 @@ export default function ApprovalPage() {
                         )}
                         {/* Informações de status para editores */}
                         {!canApprove && (
-                          <div className="mt-6 border rounded-md p-4">
-                            <h3 className="font-medium mb-2">
+                          <div className="mt-6 rounded-md border p-4">
+                            <h3 className="mb-2 font-medium">
                               Status de Aprovação
                             </h3>
                             <div className="flex items-center">
-                              <Clock className="mr-2 h-5 w-5 text-yellow-500" />
+                              <Clock className="mr-2 size-5 text-yellow-500" />
                               <span>Aguardando aprovação do cliente</span>
                             </div>
                           </div>
                         )}
                         {/* Área de comentários */}
                         <div className="mt-6">
-                          <h3 className="font-medium mb-2">
+                          <h3 className="mb-2 font-medium">
                             Adicionar comentário
                           </h3>
                           <VideoComments

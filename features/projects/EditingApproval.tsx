@@ -1,8 +1,6 @@
 // features/projects/EditingApproval.tsx
 'use client'
 
-"use client"
-
 import React from 'react'
 import { useProjectsStore } from '@/store/useProjectsStoreUnified'
 import { Button } from '@/components/ui/button'
@@ -16,10 +14,27 @@ export function EditingApprovalTab() {
     approveVideoVersion,
   } = useProjectsStore()
 
+  // Definindo handleFileChange fora do condicional
+  const deliverable = currentProject?.videos?.[0]
+
+  const handleFileChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files
+      if (!files || !currentProject || !deliverable) return
+      Array.from(files).forEach(file => {
+        addVideoVersion(currentProject.id, deliverable.id, file)
+      })
+      e.target.value = '' // Reset the input
+    },
+    [addVideoVersion, currentProject, deliverable]
+  )
+
+  // Verificação antes do retorno
   if (
     !currentProject ||
     !currentProject.videos ||
-    currentProject.videos.length === 0
+    currentProject.videos.length === 0 ||
+    !deliverable
   ) {
     return (
       <div className="p-4">
@@ -27,20 +42,6 @@ export function EditingApprovalTab() {
       </div>
     )
   }
-
-  const deliverable = currentProject.videos[0]
-
-  const handleFileChange = React.useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const files = e.target.files
-      if (!files) return
-      Array.from(files).forEach(file => {
-        addVideoVersion(currentProject.id, deliverable.id, file)
-      })
-      e.target.value = '' // Reset the input
-    },
-    [addVideoVersion, currentProject.id, deliverable.id]
-  )
 
   return (
     <div className="p-4">
@@ -73,14 +74,14 @@ export function EditingApprovalTab() {
       {/* List of video versions */}
       <div className="mt-6">
         <h3 className="text-lg font-medium">
-          Versões do vídeo para "{deliverable.title}"
+          Versões do vídeo para &quot;{deliverable.title}&quot;
         </h3>
         {deliverable.versions.length === 0 && (
           <p className="mt-2 text-gray-500">Nenhum vídeo carregado ainda.</p>
         )}
-        <div className="space-y-4 mt-4">
+        <div className="mt-4 space-y-4">
           {deliverable.versions.map(version => (
-            <div key={version.id} className="border p-4 rounded-lg">
+            <div key={version.id} className="rounded-lg border p-4">
               <p className="font-semibold">{version.name}</p>
               <p className="text-sm text-gray-500">
                 Carregado em: {new Date(version.uploadedAt).toLocaleString()}

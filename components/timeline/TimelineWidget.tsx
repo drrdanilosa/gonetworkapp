@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
@@ -11,7 +11,12 @@ import {
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { RefreshCcw, Download, Calendar, Timeline as TimelineIcon } from 'lucide-react'
+import {
+  RefreshCcw,
+  Download,
+  Calendar,
+  GanttChart as TimelineIcon,
+} from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useProjectsStore } from '@/store/useProjectsStoreUnified'
 import { useUIStore } from '@/store/useUIStore'
@@ -57,22 +62,24 @@ export default function TimelineWidget({
   eventId,
   initialData,
   onExport,
-  onRefresh
+  onRefresh,
 }: TimelineWidgetProps) {
   // Estado para armazenar dados da timeline
-  const [timelineData, setTimelineData] = useState<TimelineData | null>(initialData || null)
-  
+  const [timelineData, setTimelineData] = useState<TimelineData | null>(
+    initialData || null
+  )
+
   // Estados para filtros
-  const [selectedEvent, setSelectedEvent] = useState<string>(eventId || "")
-  const [selectedMember, setSelectedMember] = useState<string>("all")
-  const [selectedActivity, setSelectedActivity] = useState<string>("all")
-  const [selectedStatus, setSelectedStatus] = useState<string>("all")
-  const [activeView, setActiveView] = useState<string>("detailed")
-  
+  const [selectedEvent, setSelectedEvent] = useState<string>(eventId || '')
+  const [selectedMember, setSelectedMember] = useState<string>('all')
+  const [selectedActivity, setSelectedActivity] = useState<string>('all')
+  const [selectedStatus, setSelectedStatus] = useState<string>('all')
+  const [activeView, setActiveView] = useState<string>('detailed')
+
   // Obter dados do state unificado
   const { projects } = useProjectsStore()
   const { selectedEventId, setSelectedEventId } = useUIStore()
-  
+
   // Obter membros da equipe do projeto selecionado
   const selectedProject = projects.find(p => p.id === selectedEventId)
   const teamMembers = selectedProject?.teamMembers || []
@@ -80,234 +87,241 @@ export default function TimelineWidget({
   // Efeito para carregar dados com base no evento selecionado
   useEffect(() => {
     if (!selectedEvent) return
-    
+
     // Buscar dados da timeline da API
     const fetchTimelineData = async () => {
       try {
         const response = await fetch(`/api/timeline/${selectedEvent}`)
         const data = await response.json()
-        
+
         if (data.success && data.timeline) {
           setTimelineData({
             projectId: selectedEvent,
-            projectName: projects.find(p => p.id === selectedEvent)?.name || "",
+            projectName: projects.find(p => p.id === selectedEvent)?.name || '',
             phases: data.timeline.map((phase: any) => ({
               id: phase.id,
               name: phase.name,
               plannedStart: new Date(phase.startDate),
               plannedEnd: new Date(phase.endDate),
-              completed: phase.status === 'completed'
+              completed: phase.status === 'completed',
             })),
-            tasks: data.timeline.flatMap((phase: any) => 
+            tasks: data.timeline.flatMap((phase: any) =>
               (phase.tasks || []).map((task: any) => ({
                 id: task.id,
                 name: task.name,
-                memberId: task.memberId || "unassigned",
-                memberName: task.memberName || "Não atribuído",
-                memberRole: task.memberRole || "N/A",
-                startTime: task.startTime || "00:00",
-                endTime: task.endTime || "23:59",
-                type: task.type || "outro",
-                status: task.status || "pendente",
-                date: new Date(task.dueDate)
+                memberId: task.memberId || 'unassigned',
+                memberName: task.memberName || 'Não atribuído',
+                memberRole: task.memberRole || 'N/A',
+                startTime: task.startTime || '00:00',
+                endTime: task.endTime || '23:59',
+                type: task.type || 'outro',
+                status: task.status || 'pendente',
+                date: new Date(task.dueDate),
               }))
-            )
+            ),
           })
         } else {
           // Caso a API retorne dados vazios, usamos os dados de exemplo
           const mockData: TimelineData = {
             projectId: selectedEvent,
-            projectName: projects.find(p => p.id === selectedEvent)?.name || "",
+            projectName: projects.find(p => p.id === selectedEvent)?.name || '',
             phases: [
               {
-                id: "phase1",
-                name: "Planejamento",
+                id: 'phase1',
+                name: 'Planejamento',
                 plannedStart: new Date(2025, 4, 1), // 1 de maio
                 plannedEnd: new Date(2025, 4, 10), // 10 de maio
-                completed: true
+                completed: true,
               },
               {
-                id: "phase2",
-                name: "Pré-produção",
+                id: 'phase2',
+                name: 'Pré-produção',
                 plannedStart: new Date(2025, 4, 10), // 10 de maio
                 plannedEnd: new Date(2025, 4, 15), // 15 de maio
-                completed: true
+                completed: true,
               },
               {
-                id: "phase3",
-                name: "Evento",
+                id: 'phase3',
+                name: 'Evento',
                 plannedStart: new Date(2025, 4, 18), // 18 de maio
                 plannedEnd: new Date(2025, 4, 20), // 20 de maio
-                completed: false
+                completed: false,
               },
               {
-                id: "phase4",
-                name: "Pós-produção",
+                id: 'phase4',
+                name: 'Pós-produção',
                 plannedStart: new Date(2025, 4, 21), // 21 de maio
                 plannedEnd: new Date(2025, 4, 28), // 28 de maio
-                completed: false
-              }
+                completed: false,
+              },
             ],
             tasks: [
               {
-                id: "task1",
-                name: "Captação - Palco Principal",
-                memberId: "joao",
-                memberName: "João Silva",
-                memberRole: "Cinegrafia",
-                startTime: "12:00",
-                endTime: "14:00",
-                type: "captacao",
-                status: "andamento",
-                date: new Date(2025, 4, 18) // 18 de maio
+                id: 'task1',
+                name: 'Captação - Palco Principal',
+                memberId: 'joao',
+                memberName: 'João Silva',
+                memberRole: 'Cinegrafia',
+                startTime: '12:00',
+                endTime: '14:00',
+                type: 'captacao',
+                status: 'andamento',
+                date: new Date(2025, 4, 18), // 18 de maio
               },
               {
-                id: "task2",
-                name: "Patrocinador A - Stand",
-                memberId: "joao",
-                memberName: "João Silva",
-                memberRole: "Cinegrafia",
-                startTime: "14:00",
-                endTime: "15:00",
-                type: "captacao",
-                status: "pendente",
-                date: new Date(2025, 4, 18) // 18 de maio
+                id: 'task2',
+                name: 'Patrocinador A - Stand',
+                memberId: 'joao',
+                memberName: 'João Silva',
+                memberRole: 'Cinegrafia',
+                startTime: '14:00',
+                endTime: '15:00',
+                type: 'captacao',
+                status: 'pendente',
+                date: new Date(2025, 4, 18), // 18 de maio
               },
               {
-                id: "task3",
-                name: "Captação - Backstage",
-                memberId: "joao",
-                memberName: "João Silva",
-                memberRole: "Cinegrafia",
-                startTime: "17:00",
-                endTime: "19:00",
-                type: "captacao",
-                status: "pendente",
-                date: new Date(2025, 4, 19) // 19 de maio
+                id: 'task3',
+                name: 'Captação - Backstage',
+                memberId: 'joao',
+                memberName: 'João Silva',
+                memberRole: 'Cinegrafia',
+                startTime: '17:00',
+                endTime: '19:00',
+                type: 'captacao',
+                status: 'pendente',
+                date: new Date(2025, 4, 19), // 19 de maio
               },
               {
-                id: "task4",
-                name: "Edição - Abertura",
-                memberId: "maria",
-                memberName: "Maria Souza",
-                memberRole: "Edição",
-                startTime: "12:30",
-                endTime: "14:30",
-                type: "edicao",
-                status: "andamento",
-                date: new Date(2025, 4, 18) // 18 de maio
+                id: 'task4',
+                name: 'Edição - Abertura',
+                memberId: 'maria',
+                memberName: 'Maria Souza',
+                memberRole: 'Edição',
+                startTime: '12:30',
+                endTime: '14:30',
+                type: 'edicao',
+                status: 'andamento',
+                date: new Date(2025, 4, 18), // 18 de maio
               },
               {
-                id: "task5",
-                name: "Entrega - Reels",
-                memberId: "maria",
-                memberName: "Maria Souza",
-                memberRole: "Edição",
-                startTime: "15:00",
-                endTime: "15:30",
-                type: "entrega",
-                status: "pendente",
-                date: new Date(2025, 4, 18) // 18 de maio
+                id: 'task5',
+                name: 'Entrega - Reels',
+                memberId: 'maria',
+                memberName: 'Maria Souza',
+                memberRole: 'Edição',
+                startTime: '15:00',
+                endTime: '15:30',
+                type: 'entrega',
+                status: 'pendente',
+                date: new Date(2025, 4, 18), // 18 de maio
               },
               {
-                id: "task6",
-                name: "Edição - Teaser Final",
-                memberId: "maria",
-                memberName: "Maria Souza",
-                memberRole: "Edição",
-                startTime: "18:00",
-                endTime: "20:00",
-                type: "edicao",
-                status: "andamento",
-                date: new Date(2025, 4, 19) // 19 de maio
+                id: 'task6',
+                name: 'Edição - Teaser Final',
+                memberId: 'maria',
+                memberName: 'Maria Souza',
+                memberRole: 'Edição',
+                startTime: '18:00',
+                endTime: '20:00',
+                type: 'edicao',
+                status: 'andamento',
+                date: new Date(2025, 4, 19), // 19 de maio
               },
               {
-                id: "task7",
-                name: "Captação Drone - Área Externa",
-                memberId: "carlos",
-                memberName: "Carlos Lima",
-                memberRole: "Drone",
-                startTime: "13:00",
-                endTime: "14:00",
-                type: "captacao",
-                status: "andamento",
-                date: new Date(2025, 4, 18) // 18 de maio
+                id: 'task7',
+                name: 'Captação Drone - Área Externa',
+                memberId: 'carlos',
+                memberName: 'Carlos Lima',
+                memberRole: 'Drone',
+                startTime: '13:00',
+                endTime: '14:00',
+                type: 'captacao',
+                status: 'andamento',
+                date: new Date(2025, 4, 18), // 18 de maio
               },
               {
-                id: "task8",
-                name: "Captação Drone - Vista Geral",
-                memberId: "carlos",
-                memberName: "Carlos Lima",
-                memberRole: "Drone",
-                startTime: "16:00",
-                endTime: "16:30",
-                type: "captacao",
-                status: "atrasado",
-                date: new Date(2025, 4, 19) // 19 de maio
+                id: 'task8',
+                name: 'Captação Drone - Vista Geral',
+                memberId: 'carlos',
+                memberName: 'Carlos Lima',
+                memberRole: 'Drone',
+                startTime: '16:00',
+                endTime: '16:30',
+                type: 'captacao',
+                status: 'atrasado',
+                date: new Date(2025, 4, 19), // 19 de maio
               },
               {
-                id: "task9",
-                name: "Aprovação - Material Inicial",
-                memberId: "ana",
-                memberName: "Ana Costa",
-                memberRole: "Coordenação",
-                startTime: "12:50",
-                endTime: "13:20",
-                type: "aprovacao",
-                status: "concluido",
-                date: new Date(2025, 4, 18) // 18 de maio
+                id: 'task9',
+                name: 'Aprovação - Material Inicial',
+                memberId: 'ana',
+                memberName: 'Ana Costa',
+                memberRole: 'Coordenação',
+                startTime: '12:50',
+                endTime: '13:20',
+                type: 'aprovacao',
+                status: 'concluido',
+                date: new Date(2025, 4, 18), // 18 de maio
               },
               {
-                id: "task10",
-                name: "Entrega - Stories",
-                memberId: "ana",
-                memberName: "Ana Costa",
-                memberRole: "Coordenação",
-                startTime: "14:30",
-                endTime: "15:00",
-                type: "entrega",
-                status: "concluido",
-                date: new Date(2025, 4, 18) // 18 de maio
+                id: 'task10',
+                name: 'Entrega - Stories',
+                memberId: 'ana',
+                memberName: 'Ana Costa',
+                memberRole: 'Coordenação',
+                startTime: '14:30',
+                endTime: '15:00',
+                type: 'entrega',
+                status: 'concluido',
+                date: new Date(2025, 4, 18), // 18 de maio
               },
               {
-                id: "task11",
-                name: "Aprovação - Teaser",
-                memberId: "ana",
-                memberName: "Ana Costa",
-                memberRole: "Coordenação",
-                startTime: "19:00",
-                endTime: "20:00",
-                type: "aprovacao",
-                status: "pendente",
-                date: new Date(2025, 4, 19) // 19 de maio
-              }
+                id: 'task11',
+                name: 'Aprovação - Teaser',
+                memberId: 'ana',
+                memberName: 'Ana Costa',
+                memberRole: 'Coordenação',
+                startTime: '19:00',
+                endTime: '20:00',
+                type: 'aprovacao',
+                status: 'pendente',
+                date: new Date(2025, 4, 19), // 19 de maio
+              },
             ],
-            finalDueDate: new Date(2025, 4, 28) // 28 de maio
+            finalDueDate: new Date(2025, 4, 28), // 28 de maio
           }
-          
+
           setTimelineData(mockData)
         }
       } catch (error) {
-        console.error("Erro ao buscar dados da timeline:", error)
+        console.error('Erro ao buscar dados da timeline:', error)
       }
     }
-    
+
     fetchTimelineData()
   }, [selectedEvent])
 
   // Filtra tarefas com base nos filtros selecionados
-  const filteredTasks = timelineData?.tasks.filter(task => {
-    if (selectedMember !== "all" && task.memberId !== selectedMember) return false
-    if (selectedActivity !== "all" && task.type !== selectedActivity) return false
-    if (selectedStatus !== "all" && task.status !== selectedStatus) return false
-    return true
-  }) || []
+  const filteredTasks =
+    timelineData?.tasks.filter(task => {
+      if (selectedMember !== 'all' && task.memberId !== selectedMember)
+        return false
+      if (selectedActivity !== 'all' && task.type !== selectedActivity)
+        return false
+      if (selectedStatus !== 'all' && task.status !== selectedStatus)
+        return false
+      return true
+    }) || []
 
   // Agrupa tarefas por membro para visualização detalhada
-  const tasksByMember = members.reduce((acc, member) => {
-    acc[member.id] = filteredTasks.filter(task => task.memberId === member.id)
-    return acc
-  }, {} as Record<string, Task[]>)
+  const tasksByMember = members.reduce(
+    (acc, member) => {
+      acc[member.id] = filteredTasks.filter(task => task.memberId === member.id)
+      return acc
+    },
+    {} as Record<string, Task[]>
+  )
 
   const handleRefresh = () => {
     if (onRefresh) {
@@ -317,7 +331,7 @@ export default function TimelineWidget({
       if (selectedEvent) {
         // Simular uma atualização - em um cenário real, recarregaria da API
         const currentEvent = selectedEvent
-        setSelectedEvent("")
+        setSelectedEvent('')
         setTimeout(() => setSelectedEvent(currentEvent), 100)
       }
     }
@@ -330,9 +344,9 @@ export default function TimelineWidget({
       // Implementação padrão de exportação - poderia gerar CSV, PDF, etc.
       const dataStr = JSON.stringify(timelineData, null, 2)
       const dataUri = `data:application/json;charset=utf-8,${encodeURIComponent(dataStr)}`
-      
+
       const exportFileDefaultName = `timeline-${selectedEvent}-${new Date().toISOString().slice(0, 10)}.json`
-      
+
       const linkElement = document.createElement('a')
       linkElement.setAttribute('href', dataUri)
       linkElement.setAttribute('download', exportFileDefaultName)
@@ -346,7 +360,7 @@ export default function TimelineWidget({
     // Consideramos apenas horário das 10h às 22h (12 horas)
     const startHour = 10
     const totalHours = 12
-    
+
     const timeValue = hours - startHour + minutes / 60
     return (timeValue / totalHours) * 100
   }
@@ -359,8 +373,9 @@ export default function TimelineWidget({
   // Define cor de fundo da tarefa com base no tipo e status
   const getTaskColorClass = (task: Task): string => {
     if (task.status === 'concluido') return 'bg-success text-success-foreground'
-    if (task.status === 'atrasado') return 'bg-destructive text-destructive-foreground'
-    
+    if (task.status === 'atrasado')
+      return 'bg-destructive text-destructive-foreground'
+
     switch (task.type) {
       case 'captacao':
         return 'bg-primary text-primary-foreground'
@@ -376,21 +391,27 @@ export default function TimelineWidget({
   }
 
   // Componente para visualização de cronograma de fases do projeto
-  const PhasesTimeline = ({ phases, finalDueDate }: { phases: Phase[], finalDueDate?: Date }) => {
+  const PhasesTimeline = ({
+    phases,
+    finalDueDate,
+  }: {
+    phases: Phase[]
+    finalDueDate?: Date | undefined
+  }) => {
     if (!phases || phases.length === 0) return null
-    
+
     // Ordena as fases por data de início para garantir ordem cronológica
     const sortedPhases = [...phases].sort(
       (a, b) => a.plannedStart.getTime() - b.plannedStart.getTime()
     )
     const timelineStart = sortedPhases[0].plannedStart
     const lastPhaseEnd = sortedPhases[sortedPhases.length - 1].plannedEnd
-    
+
     // Determina o fim da timeline (considera prazo final se for após a última fase)
     const timelineEnd =
       finalDueDate && finalDueDate > lastPhaseEnd ? finalDueDate : lastPhaseEnd
     const totalDurationMs = timelineEnd.getTime() - timelineStart.getTime()
-    
+
     // Calcula a largura proporcional de cada fase em relação ao tempo total
     const columns: string[] = sortedPhases.map(phase => {
       let durationMs = phase.plannedEnd.getTime() - phase.plannedStart.getTime()
@@ -403,7 +424,7 @@ export default function TimelineWidget({
       return `${fractionStr}fr`
     })
     const gridTemplate = columns.join(' ')
-    
+
     // Define cor de fundo da fase conforme status e datas
     const getPhaseColorClass = (phase: Phase) => {
       if (phase.completed) return 'bg-green-600' // concluída: verde
@@ -414,7 +435,7 @@ export default function TimelineWidget({
       }
       return 'bg-blue-600' // futura/pendente: azul
     }
-    
+
     // Calcula posição do marcador de prazo final (linha vertical) se houver prazo
     let finalDueMarkerStyle: React.CSSProperties | undefined
     if (finalDueDate) {
@@ -430,31 +451,31 @@ export default function TimelineWidget({
         finalDueMarkerStyle = { left: '100%' }
       }
     }
-    
+
     return (
-      <div className="relative w-full p-4 mt-4 mb-8">
-        <div className="flex items-center justify-between mb-2">
+      <div className="relative mb-8 mt-4 w-full p-4">
+        <div className="mb-2 flex items-center justify-between">
           <h3 className="font-semibold">Cronograma de Fases</h3>
           <div className="flex gap-4 text-xs">
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-full bg-green-600"></div>
+              <div className="size-3 rounded-full bg-green-600"></div>
               <span>Concluída</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+              <div className="size-3 rounded-full bg-yellow-500"></div>
               <span>Em Andamento</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-full bg-blue-600"></div>
+              <div className="size-3 rounded-full bg-blue-600"></div>
               <span>Pendente</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-full bg-red-600"></div>
+              <div className="size-3 rounded-full bg-red-600"></div>
               <span>Atrasada</span>
             </div>
           </div>
         </div>
-        
+
         {/* Datas na parte superior */}
         <div className="mb-1">
           <div
@@ -463,15 +484,18 @@ export default function TimelineWidget({
           >
             {sortedPhases.map(phase => (
               <div key={`date-${phase.id}`} className="px-1">
-                {phase.plannedStart.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                {phase.plannedStart.toLocaleDateString('pt-BR', {
+                  day: '2-digit',
+                  month: '2-digit',
+                })}
               </div>
             ))}
           </div>
         </div>
-        
+
         {/* Barra de timeline usando CSS Grid */}
         <div
-          className="grid items-center gap-1 w-full"
+          className="grid w-full items-center gap-1"
           style={{ gridTemplateColumns: gridTemplate }}
         >
           {sortedPhases.map(phase => {
@@ -479,12 +503,12 @@ export default function TimelineWidget({
             const phaseEndsAfterDue =
               finalDueDate && phase.plannedEnd > finalDueDate
             return (
-              <div 
-                key={phase.id} 
-                className={`${colorClass} relative h-10 rounded-md flex items-center justify-center`}
+              <div
+                key={phase.id}
+                className={`${colorClass} relative flex h-10 items-center justify-center rounded-md`}
               >
                 {/* Nome da fase centralizado + indicadores */}
-                <span className="text-xs text-white text-center whitespace-nowrap px-1">
+                <span className="whitespace-nowrap px-1 text-center text-xs text-white">
                   {phase.name}
                   {phase.completed && ' ✓'}
                   {/* Indicador de atraso */}
@@ -500,20 +524,20 @@ export default function TimelineWidget({
             )
           })}
         </div>
-        
+
         {/* Marcador vertical do Prazo Final */}
         {finalDueMarkerStyle && (
           <>
             <div
-              className="absolute top-0 bottom-0 border-l-2 border-yellow-400 opacity-70"
+              className="absolute inset-y-0 border-l-2 border-yellow-400 opacity-70"
               style={finalDueMarkerStyle}
             />
-            <div 
-              className="absolute text-xs text-yellow-600 font-semibold"
-              style={{ 
-                ...finalDueMarkerStyle, 
+            <div
+              className="absolute text-xs font-semibold text-yellow-600"
+              style={{
+                ...finalDueMarkerStyle,
                 transform: 'translateX(-50%)',
-                top: '-20px'
+                top: '-20px',
               }}
             >
               Prazo Final
@@ -527,16 +551,13 @@ export default function TimelineWidget({
   return (
     <Card className="w-full">
       <CardHeader>
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <CardTitle>Timeline</CardTitle>
-          
+
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Label>Evento:</Label>
-              <Select 
-                value={selectedEvent}
-                onValueChange={setSelectedEvent}
-              >
+              <Select value={selectedEvent} onValueChange={setSelectedEvent}>
                 <SelectTrigger className="w-[250px]">
                   <SelectValue placeholder="Selecione um evento" />
                 </SelectTrigger>
@@ -551,26 +572,26 @@ export default function TimelineWidget({
             </div>
 
             <Button variant="outline" size="sm" onClick={handleRefresh}>
-              <RefreshCcw className="h-4 w-4 mr-2" />
+              <RefreshCcw className="mr-2 size-4" />
               Atualizar
             </Button>
 
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handleExport}
               disabled={!timelineData}
             >
-              <Download className="h-4 w-4 mr-2" />
+              <Download className="mr-2 size-4" />
               Exportar
             </Button>
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent>
         {!timelineData ? (
-          <div className="text-center py-8">
+          <div className="py-8 text-center">
             <p>Selecione um evento para visualizar a timeline.</p>
           </div>
         ) : (
@@ -578,21 +599,21 @@ export default function TimelineWidget({
             <Tabs value={activeView} onValueChange={setActiveView}>
               <TabsList className="mb-4">
                 <TabsTrigger value="detailed">
-                  <Calendar className="h-4 w-4 mr-2" />
+                  <Calendar className="mr-2 size-4" />
                   Visualização Detalhada
                 </TabsTrigger>
                 <TabsTrigger value="phases">
-                  <TimelineIcon className="h-4 w-4 mr-2" />
+                  <TimelineIcon className="mr-2 size-4" />
                   Fases do Projeto
                 </TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="detailed">
-                <div className="flex items-center gap-4 mb-4">
+                <div className="mb-4 flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <Label>Membro:</Label>
-                    <Select 
-                      value={selectedMember} 
+                    <Select
+                      value={selectedMember}
                       onValueChange={setSelectedMember}
                     >
                       <SelectTrigger className="w-[200px]">
@@ -611,8 +632,8 @@ export default function TimelineWidget({
 
                   <div className="flex items-center gap-2">
                     <Label>Atividade:</Label>
-                    <Select 
-                      value={selectedActivity} 
+                    <Select
+                      value={selectedActivity}
                       onValueChange={setSelectedActivity}
                     >
                       <SelectTrigger className="w-[200px]">
@@ -630,8 +651,8 @@ export default function TimelineWidget({
 
                   <div className="flex items-center gap-2">
                     <Label>Status:</Label>
-                    <Select 
-                      value={selectedStatus} 
+                    <Select
+                      value={selectedStatus}
                       onValueChange={setSelectedStatus}
                     >
                       <SelectTrigger className="w-[200px]">
@@ -648,8 +669,8 @@ export default function TimelineWidget({
                   </div>
                 </div>
 
-                <div className="border rounded-md overflow-hidden">
-                  <div className="bg-secondary/30 p-2 border-b">
+                <div className="overflow-hidden rounded-md border">
+                  <div className="border-b bg-secondary/30 p-2">
                     <div className="grid grid-cols-12 gap-2 text-sm font-medium">
                       <div className="col-span-2">Membro</div>
                       <div className="col-span-10 flex">
@@ -663,34 +684,44 @@ export default function TimelineWidget({
                   </div>
 
                   <div className="bg-background">
-                    {members.map((member) => {
+                    {members.map(member => {
                       const memberTasks = tasksByMember[member.id] || []
-                      
+
                       // Não mostrar membros sem tarefas quando houver filtro
-                      if (memberTasks.length === 0 && 
-                          (selectedMember !== "all" || 
-                           selectedActivity !== "all" || 
-                           selectedStatus !== "all")) {
+                      if (
+                        memberTasks.length === 0 &&
+                        (selectedMember !== 'all' ||
+                          selectedActivity !== 'all' ||
+                          selectedStatus !== 'all')
+                      ) {
                         return null
                       }
-                      
+
                       return (
-                        <div key={member.id} className="border-b last:border-b-0">
+                        <div
+                          key={member.id}
+                          className="border-b last:border-b-0"
+                        >
                           <div className="grid grid-cols-12 gap-2 p-2">
-                            <div className="col-span-2 text-sm">{member.name} ({member.role})</div>
-                            <div className="col-span-10 relative h-16">
+                            <div className="col-span-2 text-sm">
+                              {member.name} ({member.role})
+                            </div>
+                            <div className="relative col-span-10 h-16">
                               {memberTasks.map(task => {
                                 const left = timeToPercentage(task.startTime)
-                                const width = calculateTaskWidth(task.startTime, task.endTime)
+                                const width = calculateTaskWidth(
+                                  task.startTime,
+                                  task.endTime
+                                )
                                 const colorClass = getTaskColorClass(task)
-                                
+
                                 return (
                                   <div
                                     key={task.id}
-                                    className={`absolute h-12 top-2 rounded-md flex items-center justify-center text-xs px-2 overflow-hidden ${colorClass}`}
-                                    style={{ 
-                                      left: `${left}%`, 
-                                      width: `${width}%` 
+                                    className={`absolute top-2 flex h-12 items-center justify-center overflow-hidden rounded-md px-2 text-xs ${colorClass}`}
+                                    style={{
+                                      left: `${left}%`,
+                                      width: `${width}%`,
                                     }}
                                     title={`${task.name} (${task.startTime}-${task.endTime})`}
                                   >
@@ -706,7 +737,7 @@ export default function TimelineWidget({
                         </div>
                       )
                     })}
-                    
+
                     {filteredTasks.length === 0 && (
                       <div className="p-6 text-center text-muted-foreground">
                         Nenhuma tarefa encontrada com os filtros selecionados.
@@ -714,67 +745,72 @@ export default function TimelineWidget({
                     )}
                   </div>
                 </div>
-                
+
                 {/* Legenda das cores */}
                 <div className="mt-4 flex flex-wrap gap-4 text-xs">
                   <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full bg-primary"></div>
+                    <div className="size-3 rounded-full bg-primary"></div>
                     <span>Captação</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full bg-warning"></div>
+                    <div className="size-3 rounded-full bg-warning"></div>
                     <span>Edição</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full bg-secondary"></div>
+                    <div className="size-3 rounded-full bg-secondary"></div>
                     <span>Entrega</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full bg-cyan-500"></div>
+                    <div className="size-3 rounded-full bg-cyan-500"></div>
                     <span>Aprovação</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full bg-success"></div>
+                    <div className="size-3 rounded-full bg-success"></div>
                     <span>Concluído</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full bg-destructive"></div>
+                    <div className="size-3 rounded-full bg-destructive"></div>
                     <span>Atrasado</span>
                   </div>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="phases">
                 {timelineData && (
-                  <PhasesTimeline 
-                    phases={timelineData.phases} 
-                    finalDueDate={timelineData.finalDueDate} 
+                  <PhasesTimeline
+                    phases={timelineData.phases}
+                    finalDueDate={timelineData.finalDueDate}
                   />
                 )}
-                
-                <div className="bg-muted/30 rounded-lg p-4 mt-4">
-                  <h3 className="text-lg font-medium mb-2">Resumo das Fases</h3>
+
+                <div className="mt-4 rounded-lg bg-muted/30 p-4">
+                  <h3 className="mb-2 text-lg font-medium">Resumo das Fases</h3>
                   <div className="space-y-2">
                     {timelineData?.phases.map(phase => {
-                      const startDate = phase.plannedStart.toLocaleDateString('pt-BR')
-                      const endDate = phase.plannedEnd.toLocaleDateString('pt-BR')
+                      const startDate =
+                        phase.plannedStart.toLocaleDateString('pt-BR')
+                      const endDate =
+                        phase.plannedEnd.toLocaleDateString('pt-BR')
                       const completed = phase.completed
-                      
+
                       return (
-                        <div key={phase.id} className="flex items-center justify-between border-b pb-2">
+                        <div
+                          key={phase.id}
+                          className="flex items-center justify-between border-b pb-2"
+                        >
                           <div>
                             <span className="font-medium">{phase.name}</span>
-                            <span className="text-sm text-muted-foreground ml-2">
+                            <span className="ml-2 text-sm text-muted-foreground">
                               {startDate} até {endDate}
                             </span>
                           </div>
                           <div>
                             {completed ? (
-                              <span className="text-green-600 font-medium flex items-center">
+                              <span className="flex items-center font-medium text-green-600">
                                 Concluído ✓
                               </span>
                             ) : (
-                              <span className="text-blue-600 font-medium">
+                              <span className="font-medium text-blue-600">
                                 Pendente
                               </span>
                             )}

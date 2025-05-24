@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { Button } from '@/components/ui/button'
 import { MessageSquarePlus, Clock } from 'lucide-react'
@@ -36,9 +36,9 @@ export default function AddCommentButton({
   }, [isPaused])
 
   return (
-    <div className="absolute top-4 right-4 z-50">
+    <div className="absolute right-4 top-4 z-50">
       {showTooltip && (
-        <div className="bg-black/80 text-white text-xs p-2 rounded-md mb-2 animate-fade-in">
+        <div className="mb-2 animate-fade-in rounded-md bg-black/80 p-2 text-xs text-white">
           Vídeo pausado. Deseja adicionar um comentário neste momento?
         </div>
       )}
@@ -47,13 +47,13 @@ export default function AddCommentButton({
         onClick={onClick}
         variant="secondary"
         size="sm"
-        className={`relative group bg-purple-600 text-white hover:bg-purple-700 transition-all ${className}`}
+        className={`group relative bg-purple-600 text-white transition-all hover:bg-purple-700 ${className}`}
       >
-        <MessageSquarePlus className="mr-2 h-4 w-4" />
+        <MessageSquarePlus className="mr-2 size-4" />
         <span>
           {time !== undefined ? (
             <span className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
+              <Clock className="size-3" />
               {formatTime(time)}
             </span>
           ) : (
@@ -63,7 +63,7 @@ export default function AddCommentButton({
 
         {/* Efeito de pulso quando o vídeo está pausado */}
         {isPaused && (
-          <span className="absolute -inset-1 rounded-full animate-pulse bg-purple-500/30"></span>
+          <span className="absolute -inset-1 animate-pulse rounded-full bg-purple-500/30"></span>
         )}
       </Button>
     </div>

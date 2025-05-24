@@ -3,7 +3,7 @@ import { ptBR } from 'date-fns/locale'
 
 /**
  * Formata uma data de forma segura, retornando um valor padrão se a data for inválida.
- * 
+ *
  * @param date Data a ser formatada (string ISO, Date ou timestamp)
  * @param formatStr String de formato para date-fns
  * @param options Opções adicionais, incluindo locale
@@ -20,7 +20,7 @@ export function formatDate(
 
   try {
     let dateObj: Date
-    
+
     if (typeof date === 'string') {
       // Tenta converter string para Date
       dateObj = parseISO(date)
@@ -46,16 +46,18 @@ export function formatDate(
 
 /**
  * Verifica se uma data é válida
- * 
+ *
  * @param date Data a ser verificada (string ISO, Date ou timestamp)
  * @returns Boolean indicando se a data é válida
  */
-export function isValidDate(date: string | Date | number | undefined | null): boolean {
+export function isValidDate(
+  date: string | Date | number | undefined | null
+): boolean {
   if (!date) return false
 
   try {
     let dateObj: Date
-    
+
     if (typeof date === 'string') {
       dateObj = parseISO(date)
     } else if (date instanceof Date) {

@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useState } from 'react'
 import { useAuthStore } from '@/store/useAuthStore'
@@ -42,28 +42,28 @@ export function DeliverableActions({
     switch (status) {
       case 'editing':
         return (
-          <div className="flex items-center gap-1.5 text-muted-foreground text-sm">
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <Clock size={16} />
             <span>Em edição</span>
           </div>
         )
       case 'ready_for_review':
         return (
-          <div className="flex items-center gap-1.5 text-amber-500 text-sm">
+          <div className="flex items-center gap-1.5 text-sm text-amber-500">
             <AlertCircle size={16} />
             <span>Aguardando aprovação</span>
           </div>
         )
       case 'changes_requested':
         return (
-          <div className="flex items-center gap-1.5 text-red-500 text-sm">
+          <div className="flex items-center gap-1.5 text-sm text-red-500">
             <AlertCircle size={16} />
             <span>Alterações solicitadas</span>
           </div>
         )
       case 'approved':
         return (
-          <div className="flex items-center gap-1.5 text-green-500 text-sm">
+          <div className="flex items-center gap-1.5 text-sm text-green-500">
             <CheckCircle size={16} />
             <span>Aprovado</span>
           </div>
@@ -96,7 +96,7 @@ export function DeliverableActions({
   if (isEditor) {
     // Ações para o Editor
     return (
-      <div className="space-y-3 mt-4">
+      <div className="mt-4 space-y-3">
         {renderStatusBadge()}
 
         {(status === 'editing' || status === 'changes_requested') && (
@@ -115,7 +115,7 @@ export function DeliverableActions({
   if (isClient) {
     // Ações para o Cliente
     return (
-      <div className="space-y-3 mt-4">
+      <div className="mt-4 space-y-3">
         {renderStatusBadge()}
 
         {status === 'ready_for_review' && (

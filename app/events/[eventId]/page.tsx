@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
@@ -107,7 +107,7 @@ export default function EventDetailPage() {
   // Se não houver projeto carregado
   if (!currentProject) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex h-screen items-center justify-center">
         <p className="text-xl">Carregando projeto...</p>
       </div>
     )
@@ -135,7 +135,7 @@ export default function EventDetailPage() {
           <div>
             <h1 className="text-3xl font-bold">{currentProject.title}</h1>
             {currentProject.description && (
-              <p className="text-muted-foreground mt-2">
+              <p className="mt-2 text-muted-foreground">
                 {currentProject.description}
               </p>
             )}
@@ -143,11 +143,11 @@ export default function EventDetailPage() {
 
           {/* Resumo do status */}
           <div className="flex flex-col items-end">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="mb-1 flex items-center gap-2">
               <span className="text-sm font-medium">Status atual:</span>
               <span
                 className={cn(
-                  'px-2 py-1 rounded-full text-xs font-medium',
+                  'rounded-full px-2 py-1 text-xs font-medium',
                   currentProject.status === 'draft' &&
                     'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
                   currentProject.status === 'review' &&
@@ -181,7 +181,7 @@ export default function EventDetailPage() {
                   )}
                   %
                 </span>
-                <div className="w-24 h-1.5 bg-muted rounded-full overflow-hidden">
+                <div className="h-1.5 w-24 overflow-hidden rounded-full bg-muted">
                   <div
                     className="h-full bg-primary"
                     style={{
@@ -230,7 +230,7 @@ export default function EventDetailPage() {
               <div className="mb-6">
                 <label
                   htmlFor="deliverable"
-                  className="block text-sm font-medium mb-2"
+                  className="mb-2 block text-sm font-medium"
                 >
                   Selecionar Vídeo
                 </label>
@@ -253,7 +253,7 @@ export default function EventDetailPage() {
 
               {/* Upload de nova versão */}
               <div className="mb-6">
-                <p className="text-sm font-medium mb-2">
+                <p className="mb-2 text-sm font-medium">
                   Adicionar Nova Versão
                 </p>
                 <div className="flex items-center gap-2">
@@ -285,31 +285,31 @@ export default function EventDetailPage() {
                   <h3 className="text-lg font-medium">Versões Disponíveis</h3>
 
                   {/* Versões disponíveis */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {selectedDeliverable.versions.map(version => (
                       <Card
                         key={version.id}
                         className={`relative ${
                           selectedVersionsForComparison.includes(version.id)
-                            ? 'border-primary border-2'
+                            ? 'border-2 border-primary'
                             : 'border'
                         }`}
                       >
-                        <div className="aspect-video bg-muted relative">
+                        <div className="relative aspect-video bg-muted">
                           {version.thumbnailUrl ? (
                             <img
                               src={version.thumbnailUrl}
                               alt={`Thumbnail para ${version.name}`}
-                              className="w-full h-full object-cover"
+                              className="size-full object-cover"
                             />
                           ) : (
-                            <div className="flex items-center justify-center h-full bg-muted">
+                            <div className="flex h-full items-center justify-center bg-muted">
                               <span className="text-3xl">🎬</span>
                             </div>
                           )}
                         </div>
                         <CardContent className="p-4">
-                          <div className="flex justify-between items-center">
+                          <div className="flex items-center justify-between">
                             <h4 className="font-medium">{version.name}</h4>
                             <span className="text-xs text-muted-foreground">
                               {new Date(version.uploadedAt).toLocaleDateString(
@@ -317,7 +317,7 @@ export default function EventDetailPage() {
                               )}
                             </span>
                           </div>
-                          <div className="flex gap-2 mt-3">
+                          <div className="mt-3 flex gap-2">
                             <Button
                               size="sm"
                               variant="outline"
@@ -353,31 +353,31 @@ export default function EventDetailPage() {
                   {/* Comparativo */}
                   {comparisonVersions.length === 2 && (
                     <div className="mt-8">
-                      <h3 className="text-lg font-medium mb-4">
+                      <h3 className="mb-4 text-lg font-medium">
                         Comparativo de Versões
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         {comparisonVersions.map(version => (
                           <div key={version.id}>
-                            <h4 className="text-sm font-medium mb-2">
+                            <h4 className="mb-2 text-sm font-medium">
                               {version.name}
                             </h4>
                             <div className="aspect-video bg-black">
                               <video
                                 src={version.url}
                                 controls
-                                className="w-full h-full"
+                                className="size-full"
                                 title={`Vídeo ${version.name}`}
                               />
                             </div>
                           </div>
                         ))}
                       </div>
-                      <div className="mt-4 p-4 bg-muted rounded-md">
-                        <h4 className="font-medium mb-2">
+                      <div className="mt-4 rounded-md bg-muted p-4">
+                        <h4 className="mb-2 font-medium">
                           Diferenças Principais
                         </h4>
-                        <ul className="list-disc pl-5 space-y-1">
+                        <ul className="list-disc space-y-1 pl-5">
                           <li>
                             Data de upload:{' '}
                             {comparisonVersions[0].uploadedAt !==

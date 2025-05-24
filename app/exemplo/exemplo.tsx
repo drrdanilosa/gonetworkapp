@@ -72,12 +72,12 @@ export default function ExamplePage() {
 
   return (
     <div className="container py-10">
-      <div className="flex items-center justify-between mb-8">
+      <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">
             Tarefas do Projeto
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="mt-1 text-muted-foreground">
             Gerenciamento de tarefas utilizando o tema Dracula
           </p>
         </div>
@@ -87,27 +87,27 @@ export default function ExamplePage() {
             <Button variant="outline">Voltar</Button>
           </Link>
           <Button className="dracula-gradient">
-            <Plus className="mr-1 h-4 w-4" />
+            <Plus className="mr-1 size-4" />
             Nova Tarefa
           </Button>
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-3 size-4 text-muted-foreground" />
           <Input
             placeholder="Pesquisar tarefas..."
-            className="pl-9 bg-background"
+            className="bg-background pl-9"
           />
         </div>
         <Button variant="outline" className="flex gap-2">
-          <Filter className="h-4 w-4" />
+          <Filter className="size-4" />
           Filtrar
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {mockTasks.map((task, index) => (
           <TaskCard
             key={index}

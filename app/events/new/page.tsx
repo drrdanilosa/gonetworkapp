@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
@@ -176,7 +176,7 @@ export default function NewProjectPage() {
 
   return (
     <div className="container py-10">
-      <Card className="w-full max-w-4xl mx-auto">
+      <Card className="mx-auto w-full max-w-4xl">
         <CardHeader>
           <CardTitle className="text-2xl">Criar Novo Projeto</CardTitle>
         </CardHeader>
@@ -215,7 +215,7 @@ export default function NewProjectPage() {
                 )}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="eventDate"
@@ -271,8 +271,8 @@ export default function NewProjectPage() {
 
               {/* Preview da timeline */}
               {previewVisible && generatedTimeline.length > 0 && (
-                <div className="border rounded-lg p-4 bg-muted/20">
-                  <h3 className="text-lg font-medium mb-2">
+                <div className="rounded-lg border bg-muted/20 p-4">
+                  <h3 className="mb-2 text-lg font-medium">
                     Cronograma Gerado
                   </h3>
                   <Timeline

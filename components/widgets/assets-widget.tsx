@@ -27,13 +27,15 @@ import { useUIStore } from '@/store/useUIStore'
 export default function AssetsWidget() {
   const { projects, assets } = useProjectsStore()
   const { selectedEventId } = useUIStore()
-  
+
   // Buscar projeto selecionado
   const selectedProject = projects.find(p => p.id === selectedEventId)
-  
+
   // Buscar assets do projeto selecionado
-  const projectAssets = assets.filter(asset => asset.projectId === selectedEventId)
-  
+  const projectAssets = assets.filter(
+    asset => asset.projectId === selectedEventId
+  )
+
   // Organizar por pastas baseado no tipo
   const folders = [
     {
@@ -63,26 +65,36 @@ export default function AssetsWidget() {
     id: asset.id,
     name: asset.name,
     type: asset.type,
-    size: asset.fileSize ? `${(asset.fileSize / 1024 / 1024).toFixed(1)} MB` : 'N/A',
+    size: asset.fileSize
+      ? `${(asset.fileSize / 1024 / 1024).toFixed(1)} MB`
+      : 'N/A',
     date: new Date(asset.createdAt).toLocaleDateString('pt-BR'),
   }))
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Assets</h1>
 
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Label>Evento:</Label>
-            <Select value={selectedEventId || ''} onValueChange={(value) => useUIStore.getState().setSelectedEventId(value)}>
+            <Select
+              value={selectedEventId || ''}
+              onValueChange={value =>
+                useUIStore.getState().setSelectedEventId(value)
+              }
+            >
               <SelectTrigger className="w-[250px]">
                 <SelectValue placeholder="Selecione um evento" />
               </SelectTrigger>
               <SelectContent>
                 {projects.map(project => (
                   <SelectItem key={project.id} value={project.id}>
-                    {project.name} - {project.startDate ? new Date(project.startDate).toLocaleDateString('pt-BR') : 'Data não definida'}
+                    {project.name} -{' '}
+                    {project.startDate
+                      ? new Date(project.startDate).toLocaleDateString('pt-BR')
+                      : 'Data não definida'}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -90,7 +102,7 @@ export default function AssetsWidget() {
           </div>
 
           <Button>
-            <Upload className="h-4 w-4 mr-2" />
+            <Upload className="mr-2 size-4" />
             Upload
           </Button>
         </div>
@@ -98,7 +110,7 @@ export default function AssetsWidget() {
 
       <div className="flex items-center gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2 top-2.5 size-4 text-muted-foreground" />
           <Input placeholder="Buscar arquivos..." className="pl-8" />
         </div>
 
@@ -126,19 +138,19 @@ export default function AssetsWidget() {
         <TabsContent value="all" className="mt-6">
           <div className="space-y-6">
             <div>
-              <h2 className="text-lg font-medium mb-4">Pastas</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <h2 className="mb-4 text-lg font-medium">Pastas</h2>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
                 {folders.map(folder => (
                   <Card
                     key={folder.id}
-                    className="cursor-pointer hover:bg-secondary/10 transition-colors"
+                    className="cursor-pointer transition-colors hover:bg-secondary/10"
                   >
-                    <CardContent className="p-4 flex items-center gap-4">
-                      <div className="bg-secondary/20 p-3 rounded-md">
-                        <FolderOpen className="h-6 w-6 text-primary" />
+                    <CardContent className="flex items-center gap-4 p-4">
+                      <div className="rounded-md bg-secondary/20 p-3">
+                        <FolderOpen className="size-6 text-primary" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate">
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-medium">
                           {folder.name}
                         </div>
                         <div className="text-xs text-muted-foreground">
@@ -149,9 +161,9 @@ export default function AssetsWidget() {
                   </Card>
                 ))}
 
-                <Card className="border-dashed cursor-pointer hover:bg-secondary/10 transition-colors">
-                  <CardContent className="p-4 flex items-center justify-center gap-2 h-full">
-                    <Plus className="h-5 w-5 text-muted-foreground" />
+                <Card className="cursor-pointer border-dashed transition-colors hover:bg-secondary/10">
+                  <CardContent className="flex h-full items-center justify-center gap-2 p-4">
+                    <Plus className="size-5 text-muted-foreground" />
                     <span>Nova Pasta</span>
                   </CardContent>
                 </Card>
@@ -159,33 +171,33 @@ export default function AssetsWidget() {
             </div>
 
             <div>
-              <h2 className="text-lg font-medium mb-4">Arquivos Recentes</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <h2 className="mb-4 text-lg font-medium">Arquivos Recentes</h2>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
                 {files.map(file => (
                   <Card
                     key={file.id}
-                    className="cursor-pointer hover:bg-secondary/10 transition-colors"
+                    className="cursor-pointer transition-colors hover:bg-secondary/10"
                   >
-                    <CardContent className="p-4 flex items-center gap-4">
-                      <div className="bg-secondary/20 p-3 rounded-md">
+                    <CardContent className="flex items-center gap-4 p-4">
+                      <div className="rounded-md bg-secondary/20 p-3">
                         {file.type === 'video' && (
-                          <Video className="h-6 w-6 text-warning" />
+                          <Video className="size-6 text-warning" />
                         )}
                         {file.type === 'image' && (
-                          <ImageIcon className="h-6 w-6 text-success" />
+                          <ImageIcon className="size-6 text-success" />
                         )}
                         {file.type === 'document' && (
-                          <FileText className="h-6 w-6 text-primary" />
+                          <FileText className="size-6 text-primary" />
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate">{file.name}</div>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-medium">{file.name}</div>
                         <div className="text-xs text-muted-foreground">
                           {file.size} • {file.date}
                         </div>
                       </div>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <Download className="h-4 w-4" />
+                      <Button variant="ghost" size="icon" className="size-8">
+                        <Download className="size-4" />
                       </Button>
                     </CardContent>
                   </Card>
@@ -196,26 +208,26 @@ export default function AssetsWidget() {
         </TabsContent>
 
         <TabsContent value="videos" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
             {files
               .filter(file => file.type === 'video')
               .map(file => (
                 <Card
                   key={file.id}
-                  className="cursor-pointer hover:bg-secondary/10 transition-colors"
+                  className="cursor-pointer transition-colors hover:bg-secondary/10"
                 >
-                  <CardContent className="p-4 flex items-center gap-4">
-                    <div className="bg-secondary/20 p-3 rounded-md">
-                      <Video className="h-6 w-6 text-warning" />
+                  <CardContent className="flex items-center gap-4 p-4">
+                    <div className="rounded-md bg-secondary/20 p-3">
+                      <Video className="size-6 text-warning" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{file.name}</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-medium">{file.name}</div>
                       <div className="text-xs text-muted-foreground">
                         {file.size} • {file.date}
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Download className="h-4 w-4" />
+                    <Button variant="ghost" size="icon" className="size-8">
+                      <Download className="size-4" />
                     </Button>
                   </CardContent>
                 </Card>
@@ -224,26 +236,26 @@ export default function AssetsWidget() {
         </TabsContent>
 
         <TabsContent value="images" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
             {files
               .filter(file => file.type === 'image')
               .map(file => (
                 <Card
                   key={file.id}
-                  className="cursor-pointer hover:bg-secondary/10 transition-colors"
+                  className="cursor-pointer transition-colors hover:bg-secondary/10"
                 >
-                  <CardContent className="p-4 flex items-center gap-4">
-                    <div className="bg-secondary/20 p-3 rounded-md">
-                      <ImageIcon className="h-6 w-6 text-success" />
+                  <CardContent className="flex items-center gap-4 p-4">
+                    <div className="rounded-md bg-secondary/20 p-3">
+                      <ImageIcon className="size-6 text-success" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{file.name}</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-medium">{file.name}</div>
                       <div className="text-xs text-muted-foreground">
                         {file.size} • {file.date}
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Download className="h-4 w-4" />
+                    <Button variant="ghost" size="icon" className="size-8">
+                      <Download className="size-4" />
                     </Button>
                   </CardContent>
                 </Card>
@@ -252,26 +264,26 @@ export default function AssetsWidget() {
         </TabsContent>
 
         <TabsContent value="documents" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
             {files
               .filter(file => file.type === 'document')
               .map(file => (
                 <Card
                   key={file.id}
-                  className="cursor-pointer hover:bg-secondary/10 transition-colors"
+                  className="cursor-pointer transition-colors hover:bg-secondary/10"
                 >
-                  <CardContent className="p-4 flex items-center gap-4">
-                    <div className="bg-secondary/20 p-3 rounded-md">
-                      <FileText className="h-6 w-6 text-primary" />
+                  <CardContent className="flex items-center gap-4 p-4">
+                    <div className="rounded-md bg-secondary/20 p-3">
+                      <FileText className="size-6 text-primary" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{file.name}</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-medium">{file.name}</div>
                       <div className="text-xs text-muted-foreground">
                         {file.size} • {file.date}
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Download className="h-4 w-4" />
+                    <Button variant="ghost" size="icon" className="size-8">
+                      <Download className="size-4" />
                     </Button>
                   </CardContent>
                 </Card>

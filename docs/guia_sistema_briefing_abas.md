@@ -15,6 +15,7 @@ O sistema de briefing em abas permite gerenciar informações de eventos de form
 ### Aba "Briefing"
 
 Contém informações gerais sobre o evento:
+
 - Nome do projeto
 - Cliente
 - Data do evento
@@ -28,6 +29,7 @@ Para salvar informações, preencha os campos e clique em "Salvar Briefing".
 ### Aba "Equipe"
 
 Permite gerenciar os membros da equipe para o evento:
+
 - Adicionar novos membros com nome, função, email e habilidades
 - Visualizar todos os membros da equipe
 - Remover membros quando necessário
@@ -35,6 +37,7 @@ Permite gerenciar os membros da equipe para o evento:
 ### Aba "Entregas"
 
 Gerencia as entregas relacionadas ao projeto:
+
 - Adicionar novas entregas com nome, tipo, data e responsáveis
 - Visualizar o status de cada entrega
 - Atualizar o status (Pendente, Em andamento, Em revisão, Concluído, Cancelado)
@@ -43,6 +46,7 @@ Gerencia as entregas relacionadas ao projeto:
 ## Sincronização de Dados
 
 Todas as abas usam o mesmo sistema de armazenamento, garantindo que:
+
 1. Se você criar um briefing na aba "Briefing", ele estará disponível nas outras abas
 2. Se você adicionar membros na aba "Equipe", eles estarão vinculados ao mesmo briefing
 3. Se você atualizar qualquer informação, ela será refletida em todas as abas e para todos os usuários
@@ -50,6 +54,7 @@ Todas as abas usam o mesmo sistema de armazenamento, garantindo que:
 ## Recuperação de Erros
 
 Se ocorrer algum erro durante o carregamento ou salvamento:
+
 1. Uma mensagem será exibida explicando o problema
 2. O botão "Tentar novamente" permite recarregar os dados
 3. Se necessário, você pode voltar à página inicial e acessar o evento novamente

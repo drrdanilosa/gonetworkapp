@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -51,13 +51,15 @@ export default function Home() {
               {projects.map(project => (
                 <li
                   key={project.id}
-                  className="flex items-center justify-between p-4 bg-card rounded-lg mb-3 shadow-sm"
+                  className="mb-3 flex items-center justify-between rounded-lg bg-card p-4 shadow-sm"
                 >
                   <span className="font-medium">{project.name}</span>
                   <div className="flex space-x-2">
-                    <Button 
+                    <Button
                       variant="outline"
-                      onClick={() => router.push(`/eventos/${project.id}/gerenciar`)}
+                      onClick={() =>
+                        router.push(`/eventos/${project.id}/gerenciar`)
+                      }
                     >
                       Gerenciar
                     </Button>

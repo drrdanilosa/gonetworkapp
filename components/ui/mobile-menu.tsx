@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useState } from 'react'
 import { useMobile } from '@/hooks/use-mobile'
@@ -25,7 +25,7 @@ export function MobileMenu() {
   // Se não for mobile, mostrar menu horizontal
   if (!isMobile) {
     return (
-      <nav className="hidden md:flex gap-2">
+      <nav className="hidden gap-2 md:flex">
         {links.map(link => (
           <Link key={link.href} href={link.href}>
             <Button variant="ghost" size="sm">
@@ -47,7 +47,7 @@ export function MobileMenu() {
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Menu"
       >
-        {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        {isOpen ? <X className="size-6" /> : <Menu className="size-6" />}
       </Button>
 
       <AnimatePresence>
@@ -57,7 +57,7 @@ export function MobileMenu() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-full right-0 dracula-backdrop rounded-lg shadow-dracula p-4 min-w-[200px]"
+            className="dracula-backdrop absolute right-0 top-full min-w-[200px] rounded-lg p-4 shadow-dracula"
           >
             <nav className="flex flex-col gap-2">
               {links.map(link => (

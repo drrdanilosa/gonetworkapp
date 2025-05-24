@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useRef } from 'react'
 import CommentMarker from './comment-marker'
@@ -35,7 +35,7 @@ export default function CommentMarkersTimeline({
   return (
     <div
       ref={containerRef}
-      className={`relative h-8 bg-secondary/30 rounded-md ${className || ''}`}
+      className={`relative h-8 rounded-md bg-secondary/30 ${className || ''}`}
     >
       {comments.map(comment => (
         <CommentMarker

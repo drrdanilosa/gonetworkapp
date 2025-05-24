@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import {
   Card,
@@ -17,18 +17,23 @@ import { ptBR } from 'date-fns/locale'
 export default function DashboardWidget() {
   // Obter dados dinâmicos das stores
   const { projects } = useProjectsStore()
-  
+
   // Calcular métricas com base nos dados reais
-  const activeProjects = projects.filter(p => p.status !== 'completed' && p.status !== 'archived').length
-  const pendingDeliverables = projects.flatMap(p => p.videos?.filter(v => v.status !== 'approved') || []).length
+  const activeProjects = projects.filter(
+    p => p.status !== 'completed' && p.status !== 'archived'
+  ).length
+  const pendingDeliverables = projects.flatMap(
+    p => p.videos?.filter(v => v.status !== 'approved') || []
+  ).length
   const teamMembers = projects.flatMap(p => p.teamMembers || [])
-  const uniqueTeamMembers = teamMembers.length > 0 ? [...new Set(teamMembers.map(m => m.id))].length : 0
-  
+  const uniqueTeamMembers =
+    teamMembers.length > 0 ? [...new Set(teamMembers.map(m => m.id))].length : 0
+
   // Gerar atividades recentes com base nos projetos reais da store
   const recentActivities = projects
     .flatMap(project => {
       const activities = []
-      
+
       // Verificar vídeos recentes
       if (project.videos && project.videos.length > 0) {
         project.videos.forEach(video => {
@@ -39,13 +44,13 @@ export default function DashboardWidget() {
               project: project.name,
               description: video.title,
               date: new Date(video.lastUpdated),
-              icon: <Video className="h-5 w-5 text-primary" />,
-              bgColor: 'bg-primary/20'
+              icon: <Video className="size-5 text-primary" />,
+              bgColor: 'bg-primary/20',
             })
           }
         })
       }
-      
+
       // Verificar atualizações de briefing
       if (project.briefing?.createdAt) {
         activities.push({
@@ -54,47 +59,51 @@ export default function DashboardWidget() {
           project: project.name,
           description: 'Detalhes do evento atualizados',
           date: new Date(project.briefing.createdAt),
-          icon: <FileText className="h-5 w-5 text-success" />,
-          bgColor: 'bg-success/20'
+          icon: <FileText className="size-5 text-success" />,
+          bgColor: 'bg-success/20',
         })
       }
-      
+
       // Evento criado
       activities.push({
         type: 'created',
         title: 'Novo evento criado',
         project: project.name,
-        description: project.startDate ? `Data: ${format(new Date(project.startDate), 'dd MMM yyyy', { locale: ptBR })}` : 'Data não definida',
+        description: project.startDate
+          ? `Data: ${format(new Date(project.startDate), 'dd MMM yyyy', { locale: ptBR })}`
+          : 'Data não definida',
         date: new Date(project.createdAt),
-        icon: <Calendar className="h-5 w-5 text-warning" />,
-        bgColor: 'bg-warning/20'
+        icon: <Calendar className="size-5 text-warning" />,
+        bgColor: 'bg-warning/20',
       })
-      
+
       // Membros da equipe
       if (project.teamMembers && project.teamMembers.length > 0) {
         const latestMember = project.teamMembers.sort((a, b) => {
           if (!a.addedAt || !b.addedAt) return 0
           return new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime()
         })[0]
-        
+
         if (latestMember) {
           activities.push({
             type: 'team',
             title: 'Membro adicionado à equipe',
             project: project.name,
             description: `${latestMember.name} - ${latestMember.role || 'Membro da equipe'}`,
-            date: latestMember.addedAt ? new Date(latestMember.addedAt) : new Date(project.updatedAt),
-            icon: <Users className="h-5 w-5 text-muted-foreground" />,
-            bgColor: 'bg-muted/20'
+            date: latestMember.addedAt
+              ? new Date(latestMember.addedAt)
+              : new Date(project.updatedAt),
+            icon: <Users className="size-5 text-muted-foreground" />,
+            bgColor: 'bg-muted/20',
           })
         }
       }
-      
+
       return activities
     })
     .sort((a, b) => b.date.getTime() - a.date.getTime())
     .slice(0, 4) // Limitar a 4 atividades recentes
-  
+
   // Encontrar próximos prazos
   const upcomingDeadlines = projects
     .flatMap(project => {
@@ -104,7 +113,9 @@ export default function DashboardWidget() {
           title: `Entrega de ${video.title}`,
           project: project.name,
           date: new Date(video.dueDate),
-          urgent: new Date(video.dueDate).getTime() - Date.now() < 24 * 60 * 60 * 1000
+          urgent:
+            new Date(video.dueDate).getTime() - Date.now() <
+            24 * 60 * 60 * 1000,
         }))
     })
     .sort((a, b) => a.date.getTime() - b.date.getTime())
@@ -114,15 +125,17 @@ export default function DashboardWidget() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Dashboard</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">Eventos Ativos</CardTitle>
             <CardDescription>Eventos em andamento</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-primary">{activeProjects}</div>
-            <Button variant="link" className="p-0 h-auto">
+            <div className="text-3xl font-bold text-primary">
+              {activeProjects}
+            </div>
+            <Button variant="link" className="h-auto p-0">
               Ver todos
             </Button>
           </CardContent>
@@ -134,8 +147,10 @@ export default function DashboardWidget() {
             <CardDescription>Aguardando aprovação</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-warning">{pendingDeliverables}</div>
-            <Button variant="link" className="p-0 h-auto">
+            <div className="text-3xl font-bold text-warning">
+              {pendingDeliverables}
+            </div>
+            <Button variant="link" className="h-auto p-0">
               Ver todas
             </Button>
           </CardContent>
@@ -147,21 +162,23 @@ export default function DashboardWidget() {
             <CardDescription>Em todos os projetos</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-success">{uniqueTeamMembers}</div>
-            <Button variant="link" className="p-0 h-auto">
+            <div className="text-3xl font-bold text-success">
+              {uniqueTeamMembers}
+            </div>
+            <Button variant="link" className="h-auto p-0">
               Ver detalhes
             </Button>
           </CardContent>
         </Card>
       </div>
 
-      <h2 className="text-xl font-bold mt-8">Atividades Recentes</h2>
+      <h2 className="mt-8 text-xl font-bold">Atividades Recentes</h2>
       <div className="space-y-4">
         {recentActivities.length > 0 ? (
           recentActivities.map((activity, index) => (
             <Card key={index}>
-              <CardContent className="p-4 flex items-center gap-4">
-                <div className={`${activity.bgColor} p-2 rounded-full`}>
+              <CardContent className="flex items-center gap-4 p-4">
+                <div className={`${activity.bgColor} rounded-full p-2`}>
                   {activity.icon}
                 </div>
                 <div className="flex-1">
@@ -171,7 +188,10 @@ export default function DashboardWidget() {
                   </p>
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  {formatDistance(activity.date, new Date(), { addSuffix: true, locale: ptBR })}
+                  {formatDistance(activity.date, new Date(), {
+                    addSuffix: true,
+                    locale: ptBR,
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -185,14 +205,18 @@ export default function DashboardWidget() {
         )}
       </div>
 
-      <h2 className="text-xl font-bold mt-8">Próximos Prazos</h2>
+      <h2 className="mt-8 text-xl font-bold">Próximos Prazos</h2>
       <div className="space-y-4">
         {upcomingDeadlines.length > 0 ? (
           upcomingDeadlines.map((deadline, index) => (
             <Card key={index}>
-              <CardContent className="p-4 flex items-center gap-4">
-                <div className={`${deadline.urgent ? 'bg-destructive/20' : 'bg-warning/20'} p-2 rounded-full`}>
-                  <Clock className={`h-5 w-5 ${deadline.urgent ? 'text-destructive' : 'text-warning'}`} />
+              <CardContent className="flex items-center gap-4 p-4">
+                <div
+                  className={`${deadline.urgent ? 'bg-destructive/20' : 'bg-warning/20'} rounded-full p-2`}
+                >
+                  <Clock
+                    className={`size-5 ${deadline.urgent ? 'text-destructive' : 'text-warning'}`}
+                  />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-medium">{deadline.title}</h3>
@@ -200,8 +224,10 @@ export default function DashboardWidget() {
                     {deadline.project}
                   </p>
                 </div>
-                <div className={`text-sm font-medium ${deadline.urgent ? 'text-destructive' : 'text-warning'}`}>
-                  {format(deadline.date, "dd MMM, HH:mm", { locale: ptBR })}
+                <div
+                  className={`text-sm font-medium ${deadline.urgent ? 'text-destructive' : 'text-warning'}`}
+                >
+                  {format(deadline.date, 'dd MMM, HH:mm', { locale: ptBR })}
                 </div>
               </CardContent>
             </Card>

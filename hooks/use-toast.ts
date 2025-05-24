@@ -3,7 +3,7 @@
 // Inspired by react-hot-toast library
 'use client'
 
-"use client"
+'use client'
 
 import * as React from 'react'
 
@@ -188,10 +188,11 @@ function useToast() {
   return {
     ...state,
     toast,
-    dismiss: (toastId?: string) => dispatch({ 
-      type: 'DISMISS_TOAST', 
-      toastId: toastId || undefined 
-    }),
+    dismiss: (toastId?: string) =>
+      dispatch({
+        type: 'DISMISS_TOAST',
+        toastId: toastId || undefined,
+      }),
   }
 }
 

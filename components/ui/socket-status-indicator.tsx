@@ -3,7 +3,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useEffect, useState } from 'react'
 import { Wifi, WifiOff, AlertTriangle, CheckCircle2 } from 'lucide-react'
@@ -75,17 +75,17 @@ export function SocketStatusIndicator({
         latency !== null ? (
           <Tooltip>
             <TooltipTrigger>
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              <CheckCircle2 className="size-4 text-green-500" />
             </TooltipTrigger>
             <TooltipContent side="bottom">
               <p className="text-xs">Latência: {latency}ms</p>
             </TooltipContent>
           </Tooltip>
         ) : (
-          <Wifi className="h-4 w-4 text-green-500" />
+          <Wifi className="size-4 text-green-500" />
         )
       ) : (
-        <WifiOff className="h-4 w-4 text-red-500" />
+        <WifiOff className="size-4 text-red-500" />
       )}
     </div>
   )
@@ -108,7 +108,7 @@ export function SocketStatusIndicator({
           </span>
         </p>
       )}
-      {error && <p className="text-red-500 text-xs mt-1">{error.message}</p>}
+      {error && <p className="mt-1 text-xs text-red-500">{error.message}</p>}
       {showDetailsButton && (
         <div className="mt-2">
           <Link

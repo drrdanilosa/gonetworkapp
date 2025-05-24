@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -93,13 +93,13 @@ export default function ExportModal({
           value={exportFormat}
           onValueChange={v => setExportFormat(v as 'pdf' | 'csv')}
         >
-          <TabsList className="grid grid-cols-2 mb-4">
+          <TabsList className="mb-4 grid grid-cols-2">
             <TabsTrigger value="pdf" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
+              <FileText className="size-4" />
               PDF
             </TabsTrigger>
             <TabsTrigger value="csv" className="flex items-center gap-2">
-              <FileSpreadsheet className="h-4 w-4" />
+              <FileSpreadsheet className="size-4" />
               CSV
             </TabsTrigger>
           </TabsList>
@@ -340,7 +340,7 @@ export default function ExportModal({
             Cancelar
           </Button>
           <Button onClick={handleExport} disabled={isExporting}>
-            {isExporting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isExporting && <Loader2 className="mr-2 size-4 animate-spin" />}
             Exportar {exportFormat.toUpperCase()}
           </Button>
         </DialogFooter>

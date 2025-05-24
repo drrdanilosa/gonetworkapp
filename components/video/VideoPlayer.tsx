@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { debounce } from 'lodash'
@@ -235,12 +235,12 @@ export default function VideoPlayer({
   return (
     <div
       ref={containerRef}
-      className={`relative bg-black rounded-lg overflow-hidden ${className}`}
+      className={`relative overflow-hidden rounded-lg bg-black ${className}`}
     >
       {/* Overlay de carregamento/buffer */}
       {isBuffering && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
-          <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50">
+          <div className="size-12 animate-spin rounded-full border-4 border-gray-300 border-t-blue-500"></div>
         </div>
       )}
 
@@ -248,7 +248,7 @@ export default function VideoPlayer({
         ref={videoRef}
         src={src}
         poster={poster}
-        className="w-full h-full object-contain"
+        className="size-full object-contain"
         onTimeUpdate={handleTimeUpdate}
         onEnded={handleEnded}
         onLoadedMetadata={handleLoadedMetadata}
@@ -258,7 +258,7 @@ export default function VideoPlayer({
       />
 
       {/* Controles de vídeo */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 transition-opacity opacity-100 hover:opacity-100">
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-2 opacity-100 transition-opacity hover:opacity-100">
         <div className="flex flex-col gap-2">
           {/* Barra de progresso */}
           <input
@@ -267,7 +267,7 @@ export default function VideoPlayer({
             max={duration || 100}
             value={currentTime}
             onChange={seekTo}
-            className="w-full h-2 bg-gray-700 rounded-full appearance-none cursor-pointer"
+            className="h-2 w-full cursor-pointer appearance-none rounded-full bg-gray-700"
             style={{
               backgroundSize: `${(currentTime / duration) * 100}% 100%`,
               backgroundImage: 'linear-gradient(#3b82f6, #3b82f6)',
@@ -280,7 +280,7 @@ export default function VideoPlayer({
               {/* Play/Pause */}
               <button
                 onClick={togglePlay}
-                className="p-1 rounded-full bg-gray-800/50 hover:bg-gray-700/60"
+                className="rounded-full bg-gray-800/50 p-1 hover:bg-gray-700/60"
               >
                 {isPlaying ? <Pause size={18} /> : <Play size={18} />}
               </button>
@@ -288,14 +288,14 @@ export default function VideoPlayer({
               {/* Skip backward/forward */}
               <button
                 onClick={skipBackward}
-                className="p-1 rounded-full bg-gray-800/50 hover:bg-gray-700/60"
+                className="rounded-full bg-gray-800/50 p-1 hover:bg-gray-700/60"
               >
                 <SkipBack size={18} />
               </button>
 
               <button
                 onClick={skipForward}
-                className="p-1 rounded-full bg-gray-800/50 hover:bg-gray-700/60"
+                className="rounded-full bg-gray-800/50 p-1 hover:bg-gray-700/60"
               >
                 <SkipForward size={18} />
               </button>
@@ -303,13 +303,13 @@ export default function VideoPlayer({
               {/* Mute/Unmute */}
               <button
                 onClick={toggleMute}
-                className="p-1 rounded-full bg-gray-800/50 hover:bg-gray-700/60"
+                className="rounded-full bg-gray-800/50 p-1 hover:bg-gray-700/60"
               >
                 {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
               </button>
 
               {/* Volume Slider - apenas visível em desktop */}
-              <div className="hidden sm:block w-20">
+              <div className="hidden w-20 sm:block">
                 <input
                   type="range"
                   min="0"
@@ -317,7 +317,7 @@ export default function VideoPlayer({
                   step="0.1"
                   value={volume}
                   onChange={handleVolumeChange}
-                  className="w-full h-1 bg-gray-700 rounded-full appearance-none cursor-pointer"
+                  className="h-1 w-full cursor-pointer appearance-none rounded-full bg-gray-700"
                 />
               </div>
 
@@ -331,7 +331,7 @@ export default function VideoPlayer({
             {allowFullscreen && (
               <button
                 onClick={toggleFullscreen}
-                className="p-1 rounded-full bg-gray-800/50 hover:bg-gray-700/60"
+                className="rounded-full bg-gray-800/50 p-1 hover:bg-gray-700/60"
               >
                 {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
               </button>

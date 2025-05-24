@@ -1,7 +1,5 @@
-import { io, type Socket } from 'socket.io-client'
-import type { Comment } from '@/components/video/comment-markers-timeline'
-import type { Annotation } from '@/components/video/annotation-canvas'
-import type { VideoVersion } from '@/types/project'
+import io, { Socket } from 'socket.io-client'
+import { Annotation, VideoVersion } from '@/types/project'
 
 // Tipos para os eventos do socket
 export interface ServerToClientEvents {
@@ -118,7 +116,7 @@ export interface CollaborationState {
  * Serviço Singleton para gerenciar conexões Socket.io
  * Implementa padrão Singleton para garantir apenas uma instância do socket em toda a aplicação
  */
-class SocketService {
+export class SocketService {
   private socket: Socket<ServerToClientEvents, ClientToServerEvents> | null =
     null
   private connected = false
@@ -228,86 +226,6 @@ class SocketService {
     }
 
     return this.socket
-  }
-
-  private createSocket(): void {
-    const serverUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001'
-    const socketPath = process.env.NEXT_PUBLIC_SOCKET_PATH
-    
-    this.socket = io(serverUrl, {
-      autoConnect: true,
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      path: socketPath || '/socket.io/',
-      transports: ['websocket', 'polling'],
-      timeout: 20000,
-      auth: this.authToken ? { token: this.authToken } : undefined,
-    })
-
-    // Logs de conexão
-    this.socket.on('connect', () => {
-      console.log('[Socket.io] Conectado ao servidor de colaboração')
-      this.connected = true
-      this.connectionInProgress = false
-      this.connectionAttempts = 0
-
-      // Se temos token de autenticação, autenticamos após a conexão
-      if (this.authToken) {
-        this.authenticate()
-      }
-    })
-
-    // Importante: Log detalhado de erros de conexão
-    this.socket.on('connect_error', error => {
-      this.connectionAttempts++
-
-      console.error(
-        `[Socket.io] Erro de conexão (tentativa ${this.connectionAttempts}/${this.maxReconnectAttempts}):`,
-        error.message
-      )
-
-      if (error.message.includes('CORS') || error.message.includes('cors')) {
-        console.error('[Socket.io] Erro de CORS detectado. Verifique:')
-        console.error(
-          '1. O servidor Socket.io tem CORS configurado corretamente?'
-        )
-        console.error(
-          '2. O proxy no next.config.mjs está configurado corretamente?'
-        )
-        console.error(
-          '3. Tente usar a conexão direta em produção com NEXT_PUBLIC_SOCKET_URL'
-        )
-      }
-
-      if (this.connectionAttempts >= this.maxReconnectAttempts) {
-        console.error(
-          '[Socket.io] Número máximo de tentativas excedido. Desistindo...'
-        )
-        this.connectionInProgress = false
-      }
-    })
-
-    // Log de desconexão
-    this.socket.on('disconnect', reason => {
-      console.log('[Socket.io] Desconectado do servidor:', reason)
-      this.connected = false
-
-      // Se for desconexão por erro, tentamos reconectar
-      if (reason === 'io server disconnect') {
-        // Desconexão foi iniciada pelo servidor, precisamos reconectar manualmente
-        console.log('[Socket.io] Tentando reconectar manualmente...')
-        this.socket?.connect()
-      }
-      // Se for qualquer outro motivo, o socket tentará reconectar automaticamente
-    })
-
-    // Monitor de eventos para depuração em modo de desenvolvimento
-    if (process.env.NODE_ENV === 'development') {
-      this.socket.onAny((event, ...args) => {
-        console.log(`[Socket.io] [DEV] Evento recebido: ${event}`, args)
-      })
-    }
   }
 
   // Desconectar do servidor
@@ -464,6 +382,22 @@ class SocketService {
     if (this.socket?.connected) {
       this.socket.emit(event, ...args)
     }
+  }
+
+  private setupEventListeners(): void {
+    if (!this.socket) return
+
+    this.socket.on('connect', () => {
+      console.log('Socket conectado')
+    })
+
+    this.socket.on('disconnect', () => {
+      console.log('Socket desconectado')
+    })
+
+    this.socket.on('error', (error: any) => {
+      console.error('Erro no socket:', error)
+    })
   }
 }
 

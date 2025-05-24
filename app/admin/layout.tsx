@@ -14,24 +14,24 @@ export default function AdminLayout({
 }) {
   return (
     <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900">
-      <div className="w-64 bg-white dark:bg-gray-800 border-r dark:border-gray-700 p-4">
-        <div className="text-lg font-bold mb-6">Admin MelhorApp</div>
+      <div className="w-64 border-r bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+        <div className="mb-6 text-lg font-bold">Admin MelhorApp</div>
         <nav className="space-y-1">
           <Link
             href="/admin"
-            className="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="block rounded-md px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
           >
             Dashboard
           </Link>
           <Link
             href="/admin/diagnosticos"
-            className="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="block rounded-md px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
           >
             Diagnósticos
           </Link>
           <Link
             href="/"
-            className="block px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="block rounded-md px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
           >
             Voltar ao App
           </Link>

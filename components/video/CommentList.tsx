@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useProjectsStore } from '@/store/useProjectsStore'
 import { Comment } from '@/types/project'
@@ -139,8 +139,8 @@ export default function CommentList({
   // Renderização vazia
   if (sortedComments.length === 0) {
     return (
-      <div className="mt-4 p-6 border border-dashed rounded-md text-center text-muted-foreground">
-        <MessageSquare className="mx-auto h-8 w-8 mb-2 opacity-50" />
+      <div className="mt-4 rounded-md border border-dashed p-6 text-center text-muted-foreground">
+        <MessageSquare className="mx-auto mb-2 size-8 opacity-50" />
         <p>Nenhum comentário neste vídeo ainda.</p>
         {onAddComment && (
           <Button
@@ -157,12 +157,12 @@ export default function CommentList({
   }
 
   return (
-    <div className="space-y-4 mt-2">
+    <div className="mt-2 space-y-4">
       <Tabs
         defaultValue={filter}
         onValueChange={value => setFilter(value as any)}
       >
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <TabsList>
             <TabsTrigger value="all">Todos ({comments.length})</TabsTrigger>
             <TabsTrigger value="unresolved">
@@ -183,7 +183,7 @@ export default function CommentList({
                 onAddComment(videoRef?.current?.currentTime || 0)
               }
             >
-              <Plus className="h-4 w-4 mr-1" />
+              <Plus className="mr-1 size-4" />
               <span className="text-xs">Novo</span>
             </Button>
           </div>
@@ -198,13 +198,13 @@ export default function CommentList({
           />
         </div>
 
-        <TabsContent value="all" className="space-y-3 mt-2">
+        <TabsContent value="all" className="mt-2 space-y-3">
           {renderComments(sortedComments)}
         </TabsContent>
-        <TabsContent value="unresolved" className="space-y-3 mt-2">
+        <TabsContent value="unresolved" className="mt-2 space-y-3">
           {renderComments(sortedComments.filter(c => !c.resolved))}
         </TabsContent>
-        <TabsContent value="resolved" className="space-y-3 mt-2">
+        <TabsContent value="resolved" className="mt-2 space-y-3">
           {renderComments(sortedComments.filter(c => c.resolved))}
         </TabsContent>
       </Tabs>
@@ -215,7 +215,7 @@ export default function CommentList({
   function renderComments(comments: Comment[]) {
     if (comments.length === 0) {
       return (
-        <div className="text-center text-sm text-muted-foreground py-4">
+        <div className="py-4 text-center text-sm text-muted-foreground">
           Nenhum comentário encontrado com estes critérios.
         </div>
       )
@@ -225,39 +225,41 @@ export default function CommentList({
       <div
         key={comment.id}
         className={cn(
-          'p-3 rounded-md shadow-sm border transition-colors',
+          'rounded-md border p-3 shadow-sm transition-colors',
           comment.resolved
-            ? 'bg-muted/30 border-muted'
-            : 'bg-card border-yellow-200 hover:border-yellow-300 dark:border-yellow-900 dark:hover:border-yellow-800'
+            ? 'border-muted bg-muted/30'
+            : 'border-yellow-200 bg-card hover:border-yellow-300 dark:border-yellow-900 dark:hover:border-yellow-800'
         )}
       >
-        <div className="flex justify-between items-start mb-2">
+        <div className="mb-2 flex items-start justify-between">
           <div
-            className="flex items-center space-x-2 cursor-pointer hover:text-blue-500 transition-colors"
+            className="flex cursor-pointer items-center space-x-2 transition-colors hover:text-blue-500"
             onClick={() => seekTo(comment.timestamp)}
             title="Clique para ir para este momento no vídeo"
           >
-            <Clock className="h-4 w-4" />
-            <span className="text-xs font-medium bg-muted/50 px-1.5 py-0.5 rounded">
+            <Clock className="size-4" />
+            <span className="rounded bg-muted/50 px-1.5 py-0.5 text-xs font-medium">
               {formatTime(comment.timestamp)}
             </span>
           </div>
 
           <div className="flex items-center text-xs text-muted-foreground">
-            <User className="h-3 w-3 mr-1" />
+            <User className="mr-1 size-3" />
             <span>{comment.userName || 'Usuário'}</span>
             <span className="mx-1">•</span>
             <span>
-              {comment.createdAt ? format(new Date(comment.createdAt), 'dd/MM/yy HH:mm', {
-                locale: ptBR,
-              }) : 'Data desconhecida'}
+              {comment.createdAt
+                ? format(new Date(comment.createdAt), 'dd/MM/yy HH:mm', {
+                    locale: ptBR,
+                  })
+                : 'Data desconhecida'}
             </span>
           </div>
         </div>
 
-        <p className="text-sm mb-2">{comment.content}</p>
+        <p className="mb-2 text-sm">{comment.content}</p>
 
-        <div className="flex justify-between items-center mt-3">
+        <div className="mt-3 flex items-center justify-between">
           <div className="flex gap-2">
             <Button
               variant="ghost"
@@ -267,26 +269,26 @@ export default function CommentList({
                 setReplyingTo(replyingTo === comment.id ? null : comment.id)
               }
             >
-              <Reply className="h-3 w-3 mr-1" />
+              <Reply className="mr-1 size-3" />
               Responder
             </Button>
 
             <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
-              <ThumbsUp className="h-3 w-3 mr-1" />
+              <ThumbsUp className="mr-1 size-3" />
               Concordar
             </Button>
           </div>
 
           {comment.resolved ? (
-            <div className="text-xs text-green-600 flex items-center">
-              <CheckCircle className="h-3 w-3 mr-1" />
+            <div className="flex items-center text-xs text-green-600">
+              <CheckCircle className="mr-1 size-3" />
               <span>Resolvido</span>
             </div>
           ) : isEditor ? (
             <Button
               variant="outline"
               size="sm"
-              className="text-xs h-6 px-2"
+              className="h-6 px-2 text-xs"
               onClick={() => handleResolveComment(comment.id)}
             >
               Marcar como resolvido
@@ -303,7 +305,7 @@ export default function CommentList({
               placeholder="Escreva sua resposta..."
               value={replyText}
               onChange={e => setReplyText(e.target.value)}
-              className="text-xs h-8"
+              className="h-8 text-xs"
               autoFocus
             />
             <Button

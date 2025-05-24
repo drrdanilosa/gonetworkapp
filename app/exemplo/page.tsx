@@ -74,12 +74,12 @@ export default function ExamplePage() {
   ]
   return (
     <div className="container py-4 md:py-10">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-0 mb-6 md:mb-8">
+      <div className="mb-6 flex flex-col justify-between gap-4 md:mb-8 md:flex-row md:items-center md:gap-0">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+          <h1 className="text-2xl font-bold text-foreground md:text-3xl">
             Tarefas do Projeto
           </h1>
-          <p className="text-sm md:text-base text-muted-foreground mt-1">
+          <p className="mt-1 text-sm text-muted-foreground md:text-base">
             Gerenciamento de tarefas utilizando o tema Dracula
           </p>
         </div>
@@ -91,7 +91,7 @@ export default function ExamplePage() {
                 <Button variant="outline">Voltar</Button>
               </Link>
               <Button className="dracula-gradient">
-                <Plus className="mr-1 h-4 w-4" />
+                <Plus className="mr-1 size-4" />
                 Nova Tarefa
               </Button>
             </>
@@ -99,27 +99,27 @@ export default function ExamplePage() {
             <>
               <MobileMenu />
               <Button size="icon" className="dracula-gradient">
-                <Plus className="h-4 w-4" />
+                <Plus className="size-4" />
               </Button>
             </>
           )}
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-3 size-4 text-muted-foreground" />
           <Input
             placeholder="Pesquisar tarefas..."
-            className="pl-9 bg-background"
+            className="bg-background pl-9"
           />
         </div>
         <Button variant="outline" className="flex gap-2">
-          <Filter className="h-4 w-4" />
+          <Filter className="size-4" />
           Filtrar
         </Button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
         {mockTasks.map((task, index) => (
           <TaskCard
             key={index}
@@ -135,14 +135,14 @@ export default function ExamplePage() {
       </div>
 
       {isMobile && (
-        <div className="fixed bottom-4 right-4 left-4 flex justify-between">
-          <Link href="/" className="w-1/2 mr-2">
+        <div className="fixed inset-x-4 bottom-4 flex justify-between">
+          <Link href="/" className="mr-2 w-1/2">
             <Button variant="outline" className="w-full">
               Voltar
             </Button>
           </Link>
           <Button className="dracula-gradient w-1/2">
-            <Plus className="mr-1 h-4 w-4" />
+            <Plus className="mr-1 size-4" />
             Nova Tarefa
           </Button>
         </div>

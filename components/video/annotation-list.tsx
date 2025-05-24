@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -66,7 +66,7 @@ export default function AnnotationList({
         <h3 className="text-sm font-medium">Anotações Visuais</h3>
         <div className="flex items-center gap-2">
           <select
-            className="text-xs bg-secondary rounded px-2 py-1"
+            className="rounded bg-secondary px-2 py-1 text-xs"
             value={filter}
             onChange={e => setFilter(e.target.value)}
           >
@@ -86,7 +86,7 @@ export default function AnnotationList({
               onClick={onExport}
               className="h-7"
             >
-              <FileText className="h-3.5 w-3.5 mr-1" />
+              <FileText className="mr-1 size-3.5" />
               Exportar
             </Button>
           )}
@@ -98,11 +98,11 @@ export default function AnnotationList({
           {filteredAnnotations.length > 0 ? (
             filteredAnnotations.map(annotation => (
               <Card key={annotation.id} className="overflow-hidden">
-                <CardContent className="p-3 space-y-1">
-                  <div className="flex justify-between items-center">
+                <CardContent className="space-y-1 p-3">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div
-                        className="w-3 h-3 rounded-full"
+                        className="size-3 rounded-full"
                         style={{ backgroundColor: annotation.color }}
                       ></div>
                       <span className="text-sm font-medium">
@@ -110,24 +110,24 @@ export default function AnnotationList({
                       </span>
                     </div>
                     <div
-                      className="text-xs text-muted-foreground cursor-pointer flex items-center gap-1"
+                      className="flex cursor-pointer items-center gap-1 text-xs text-muted-foreground"
                       onClick={() => onJumpToTime(annotation.timeStart)}
                     >
-                      <Clock className="h-3 w-3" />
+                      <Clock className="size-3" />
                       {formatTime(annotation.timeStart)}
                     </div>
                   </div>
 
                   {annotation.tool === 'text' && (
                     <p
-                      className="text-xs border-l-2 pl-2 my-1"
+                      className="my-1 border-l-2 pl-2 text-xs"
                       style={{ borderColor: annotation.color }}
                     >
                       {annotation.text}
                     </p>
                   )}
 
-                  <div className="flex justify-between items-center">
+                  <div className="flex items-center justify-between">
                     <div className="text-xs text-muted-foreground">
                       {formatDistanceToNow(
                         new Date(Date.now() - Math.random() * 3600000),
@@ -142,10 +142,10 @@ export default function AnnotationList({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6"
+                        className="size-6"
                         onClick={() => onDeleteAnnotation(annotation.id)}
                       >
-                        <Trash2 className="h-3 w-3" />
+                        <Trash2 className="size-3" />
                       </Button>
                     </div>
                   </div>
@@ -153,7 +153,7 @@ export default function AnnotationList({
               </Card>
             ))
           ) : (
-            <div className="text-center text-sm text-muted-foreground py-4">
+            <div className="py-4 text-center text-sm text-muted-foreground">
               Nenhuma anotação encontrada com o filtro atual.
             </div>
           )}

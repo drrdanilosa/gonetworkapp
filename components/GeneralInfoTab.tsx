@@ -1,11 +1,11 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 
-import { Button } from "@/components/ui/button"
+import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
@@ -13,30 +13,32 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { DatePicker } from "@/components/ui/date-picker"
-import { Separator } from "@/components/ui/separator"
+} from '@/components/ui/select'
+import { DatePicker } from '@/components/ui/date-picker'
+import { Separator } from '@/components/ui/separator'
 
 // Form schema validation
 const formSchema = z.object({
-  eventName: z.string().min(3, "Nome do evento deve ter pelo menos 3 caracteres"),
+  eventName: z
+    .string()
+    .min(3, 'Nome do evento deve ter pelo menos 3 caracteres'),
   eventDate: z.date({
-    required_error: "Data do evento é obrigatória",
+    required_error: 'Data do evento é obrigatória',
   }),
-  eventLocation: z.string().min(3, "Local do evento é obrigatório"),
-  eventType: z.string().min(1, "Tipo de evento é obrigatório"),
+  eventLocation: z.string().min(3, 'Local do evento é obrigatório'),
+  eventType: z.string().min(1, 'Tipo de evento é obrigatório'),
   contactName: z.string().optional(),
   contactPhone: z.string().optional(),
-  contactEmail: z.string().email("Email inválido").optional(),
+  contactEmail: z.string().email('Email inválido').optional(),
   description: z.string().optional(),
 })
 
@@ -47,29 +49,31 @@ export default function GeneralInfoTab() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      eventName: "",
-      eventLocation: "",
-      eventType: "",
-      contactName: "",
-      contactPhone: "",
-      contactEmail: "",
-      description: "",
+      eventName: '',
+      eventLocation: '',
+      eventType: '',
+      contactName: '',
+      contactPhone: '',
+      contactEmail: '',
+      description: '',
     },
   })
 
   // Handler for form submission
   const onSubmit = (values: FormValues) => {
-    console.log("Form values:", values)
+    console.log('Form values:', values)
     // Here you would typically save the data or pass it to a parent component
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-medium mb-4">Informações do Evento</h3>
+              <h3 className="mb-4 text-lg font-medium">
+                Informações do Evento
+              </h3>
               <div className="space-y-4">
                 <FormField
                   control={form.control}
@@ -78,7 +82,10 @@ export default function GeneralInfoTab() {
                     <FormItem>
                       <FormLabel>Nome do Evento</FormLabel>
                       <FormControl>
-                        <Input placeholder="Insira o nome do evento" {...field} />
+                        <Input
+                          placeholder="Insira o nome do evento"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -123,7 +130,10 @@ export default function GeneralInfoTab() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Tipo de Evento</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Selecione o tipo de evento" />
@@ -138,9 +148,13 @@ export default function GeneralInfoTab() {
                           )) || (
                             <>
                               <SelectItem value="festival">Festival</SelectItem>
-                              <SelectItem value="conferencia">Conferência</SelectItem>
+                              <SelectItem value="conferencia">
+                                Conferência
+                              </SelectItem>
                               <SelectItem value="feira">Feira</SelectItem>
-                              <SelectItem value="corporativo">Evento Corporativo</SelectItem>
+                              <SelectItem value="corporativo">
+                                Evento Corporativo
+                              </SelectItem>
                               <SelectItem value="outro">Outro</SelectItem>
                             </>
                           )}
@@ -156,7 +170,7 @@ export default function GeneralInfoTab() {
 
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-medium mb-4">Contato</h3>
+              <h3 className="mb-4 text-lg font-medium">Contato</h3>
               <div className="space-y-4">
                 <FormField
                   control={form.control}
@@ -207,7 +221,7 @@ export default function GeneralInfoTab() {
         <Separator />
 
         <div>
-          <h3 className="text-lg font-medium mb-4">Descrição do Evento</h3>
+          <h3 className="mb-4 text-lg font-medium">Descrição do Evento</h3>
           <FormField
             control={form.control}
             name="description"

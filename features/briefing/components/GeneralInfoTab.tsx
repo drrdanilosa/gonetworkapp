@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
@@ -15,6 +15,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import GenerateTimelineButton from './GenerateTimelineButton'
 
 // Definição do esquema de validação com Zod
 const formSchema = z.object({
@@ -41,6 +42,8 @@ interface GeneralInfoTabProps {
 }
 
 const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
+  const [isSaving, setIsSaving] = useState(false)
+
   // Inicializar o formulário com react-hook-form
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -67,7 +70,7 @@ const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
 
   // Extrair métodos e estados do formulário
   const { watch, control, handleSubmit, reset } = form
-  
+
   // Observar campos para lógica condicional
   const hasCredentialing = watch('hasCredentialing')
   const hasMediaRoom = watch('hasMediaRoom')
@@ -94,30 +97,94 @@ const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
 
   // Manipulador de envio do formulário
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    if (!eventId) return
+
+    setIsSaving(true)
     try {
       console.log('Dados do formulário:', data)
-      // Aqui você implementaria a lógica para salvar os dados
-      // Ex: await fetch(`/api/events/${eventId}`, { method: 'PUT', body: JSON.stringify(data) })
-      
-      // Mostrar feedback de sucesso (através de um toast, por exemplo)
+
+      // Preparar dados do briefing para envio
+      const briefingData = {
+        sections: {
+          overview: {
+            title: 'Visão Geral',
+            content: `Data: ${data.eventDate}
+Horário: ${data.startTime} às ${data.endTime}
+Local: ${data.eventLocation}
+Acesso: ${data.eventAccessLocation}
+
+${data.generalInfo}`,
+            completed: true,
+          },
+          logistics: {
+            title: 'Logística',
+            content: `Credenciamento: ${data.hasCredentialing}
+${
+  data.hasCredentialing === 'sim'
+    ? `Local: ${data.accessLocation}
+Responsável: ${data.credentialingResponsible}
+Horário: ${data.credentialingStart} às ${data.credentialingEnd}`
+    : ''
+}
+
+Sala de Imprensa: ${data.hasMediaRoom}
+${data.hasMediaRoom === 'sim' ? `Local: ${data.mediaRoomLocation}` : ''}
+
+Internet: ${data.hasInternet}
+${
+  data.hasInternet === 'sim'
+    ? `Login: ${data.internetLogin}
+Senha: ${data.internetPassword}`
+    : ''
+}`,
+            completed: true,
+          },
+        },
+        formData: data,
+      }
+
+      // Salvar briefing via API
+      const response = await fetch(`/api/briefings/${eventId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(briefingData),
+      })
+
+      if (!response.ok) {
+        throw new Error('Erro ao salvar briefing')
+      }
+
+      console.log('Briefing salvo com sucesso!')
+
+      // Toast de sucesso
+      if (typeof window !== 'undefined') {
+        console.log('✅ Briefing salvo com sucesso!')
+        // Aqui seria adicionado um toast real em produção
+      }
     } catch (error) {
       console.error('Erro ao salvar:', error)
-      // Mostrar feedback de erro
+
+      // Toast de erro
+      if (typeof window !== 'undefined') {
+        console.error('❌ Erro ao salvar briefing:', error.message)
+        // Aqui seria adicionado um toast de erro real em produção
+      }
+    } finally {
+      setIsSaving(false)
     }
   }
 
   return (
-    <div className="bg-[#282A36] text-[#F8F8F2] p-6 rounded-xl">
-      <h2 className="text-2xl font-bold text-[#BD93F9] mb-6">
+    <div className="rounded-xl bg-[#282A36] p-6 text-[#F8F8F2]">
+      <h2 className="mb-6 text-2xl font-bold text-[#BD93F9]">
         Informações Gerais
       </h2>
 
       <Form {...form}>
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="space-y-6"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {/* Data do Evento */}
             <FormField
               control={control}
@@ -131,7 +198,7 @@ const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
                     <Input
                       type="date"
                       placeholder="Selecione a data"
-                      className="bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
+                      className="rounded-md border border-[#44475A] bg-[#21222C] p-2 text-[#F8F8F2]"
                       {...field}
                       aria-required="true"
                     />
@@ -154,7 +221,7 @@ const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
                     <Input
                       type="time"
                       placeholder="Selecione o horário"
-                      className="bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
+                      className="rounded-md border border-[#44475A] bg-[#21222C] p-2 text-[#F8F8F2]"
                       {...field}
                     />
                   </FormControl>
@@ -176,7 +243,7 @@ const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
                     <Input
                       type="time"
                       placeholder="Selecione o horário"
-                      className="bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
+                      className="rounded-md border border-[#44475A] bg-[#21222C] p-2 text-[#F8F8F2]"
                       {...field}
                     />
                   </FormControl>
@@ -197,7 +264,7 @@ const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
                   <FormControl>
                     <Input
                       placeholder="Endereço completo do evento"
-                      className="bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
+                      className="rounded-md border border-[#44475A] bg-[#21222C] p-2 text-[#F8F8F2]"
                       {...field}
                     />
                   </FormControl>
@@ -217,7 +284,7 @@ const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
                   </FormLabel>
                   <FormControl>
                     <select
-                      className="w-full bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
+                      className="w-full rounded-md border border-[#44475A] bg-[#21222C] p-2 text-[#F8F8F2]"
                       {...field}
                     >
                       <option value="sim">Sim</option>
@@ -241,7 +308,7 @@ const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
                   <FormControl>
                     <Input
                       placeholder="Descreva o local de acesso"
-                      className="bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
+                      className="rounded-md border border-[#44475A] bg-[#21222C] p-2 text-[#F8F8F2]"
                       {...field}
                     />
                   </FormControl>
@@ -253,12 +320,12 @@ const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
 
           {/* Campos condicionais de Credenciamento */}
           {hasCredentialing === 'sim' && (
-            <div className="bg-[#21222C] p-4 rounded-md border-l-4 border-purple-400 space-y-4">
+            <div className="space-y-4 rounded-md border-l-4 border-purple-400 bg-[#21222C] p-4">
               <h3 className="text-xl text-[#8BE9FD]">
                 Informações de Credenciamento
               </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {/* Local de Acesso */}
                 <FormField
                   control={control}
@@ -271,7 +338,7 @@ const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
                       <FormControl>
                         <Input
                           placeholder="Local específico do credenciamento"
-                          className="bg-[#282A36] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
+                          className="rounded-md border border-[#44475A] bg-[#282A36] p-2 text-[#F8F8F2]"
                           {...field}
                         />
                       </FormControl>
@@ -291,7 +358,7 @@ const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
                       </FormLabel>
                       <FormControl>
                         <select
-                          className="w-full bg-[#282A36] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
+                          className="w-full rounded-md border border-[#44475A] bg-[#282A36] p-2 text-[#F8F8F2]"
                           {...field}
                         >
                           <option value="">Selecione um responsável</option>
@@ -317,7 +384,7 @@ const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
                         <Input
                           type="time"
                           placeholder="Horário de início"
-                          className="bg-[#282A36] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
+                          className="rounded-md border border-[#44475A] bg-[#282A36] p-2 text-[#F8F8F2]"
                           {...field}
                         />
                       </FormControl>
@@ -339,7 +406,7 @@ const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
                         <Input
                           type="time"
                           placeholder="Horário de término"
-                          className="bg-[#282A36] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
+                          className="rounded-md border border-[#44475A] bg-[#282A36] p-2 text-[#F8F8F2]"
                           {...field}
                         />
                       </FormControl>
@@ -351,7 +418,7 @@ const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {/* Sala de Mídia? */}
             <FormField
               control={control}
@@ -363,7 +430,7 @@ const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
                   </FormLabel>
                   <FormControl>
                     <select
-                      className="w-full bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
+                      className="w-full rounded-md border border-[#44475A] bg-[#21222C] p-2 text-[#F8F8F2]"
                       {...field}
                     >
                       <option value="sim">Sim</option>
@@ -386,7 +453,7 @@ const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
                   </FormLabel>
                   <FormControl>
                     <select
-                      className="w-full bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
+                      className="w-full rounded-md border border-[#44475A] bg-[#21222C] p-2 text-[#F8F8F2]"
                       {...field}
                     >
                       <option value="sim">Sim</option>
@@ -412,7 +479,7 @@ const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
                   <FormControl>
                     <Input
                       placeholder="Descreva o local da sala de mídia"
-                      className="bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
+                      className="rounded-md border border-[#44475A] bg-[#21222C] p-2 text-[#F8F8F2]"
                       {...field}
                     />
                   </FormControl>
@@ -424,7 +491,7 @@ const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
 
           {/* Campos condicionais de Internet */}
           {hasInternet === 'sim' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               {/* Login da Internet */}
               <FormField
                 control={control}
@@ -437,7 +504,7 @@ const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
                     <FormControl>
                       <Input
                         placeholder="Login/usuário para acesso"
-                        className="bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
+                        className="rounded-md border border-[#44475A] bg-[#21222C] p-2 text-[#F8F8F2]"
                         {...field}
                       />
                     </FormControl>
@@ -459,7 +526,7 @@ const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
                       <Input
                         type="password"
                         placeholder="Senha para acesso"
-                        className="bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md"
+                        className="rounded-md border border-[#44475A] bg-[#21222C] p-2 text-[#F8F8F2]"
                         {...field}
                       />
                     </FormControl>
@@ -482,7 +549,7 @@ const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
                 <FormControl>
                   <Textarea
                     placeholder="Informações adicionais, detalhes importantes sobre o evento..."
-                    className="bg-[#21222C] text-[#F8F8F2] border border-[#44475A] p-2 rounded-md min-h-[100px]"
+                    className="min-h-[100px] rounded-md border border-[#44475A] bg-[#21222C] p-2 text-[#F8F8F2]"
                     {...field}
                   />
                 </FormControl>
@@ -491,12 +558,25 @@ const GeneralInfoTab = ({ eventId }: GeneralInfoTabProps) => {
             )}
           />
 
-          <Button
-            type="submit"
-            className="bg-[#6272A4] hover:bg-[#50587E] text-white"
-          >
-            Salvar Informações
-          </Button>
+          <div className="flex gap-4">
+            <Button
+              type="submit"
+              disabled={isSaving}
+              className="bg-[#6272A4] text-white hover:bg-[#50587E]"
+            >
+              {isSaving ? 'Salvando...' : 'Salvar Informações'}
+            </Button>
+
+            <GenerateTimelineButton
+              projectId={eventId || ''}
+              disabled={!eventId || isSaving}
+              onGenerated={success => {
+                if (success) {
+                  console.log('Timeline gerada com sucesso!')
+                }
+              }}
+            />
+          </div>
         </form>
       </Form>
     </div>

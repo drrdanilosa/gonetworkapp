@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import React, { useRef, useState, useEffect } from 'react'
 import { useToast } from '@/hooks/use-toast'
@@ -196,7 +196,7 @@ export function VideoPlayerWithComments({
   return (
     <div className="w-full space-y-2">
       {/* Container de vídeo */}
-      <div className="relative w-full bg-black rounded-lg overflow-hidden">
+      <div className="relative w-full overflow-hidden rounded-lg bg-black">
         <video
           ref={videoRef}
           src={src}
@@ -212,12 +212,12 @@ export function VideoPlayerWithComments({
         <div className="relative">
           <div
             ref={timelineRef}
-            className="h-6 bg-secondary/40 rounded-full cursor-pointer relative"
+            className="relative h-6 cursor-pointer rounded-full bg-secondary/40"
             onClick={handleTimelineClick}
           >
             {/* Progresso do vídeo */}
             <div
-              className="absolute top-0 left-0 h-full bg-primary/30 rounded-full"
+              className="absolute left-0 top-0 h-full rounded-full bg-primary/30"
               style={{ width: `${(currentTime / duration) * 100}%` }}
             />
 
@@ -225,7 +225,7 @@ export function VideoPlayerWithComments({
             {comments.map(comment => (
               <div
                 key={comment.id}
-                className={`absolute top-0 w-1 h-full cursor-pointer ${comment.resolved ? 'bg-green-500' : 'bg-amber-500'}`}
+                className={`absolute top-0 h-full w-1 cursor-pointer ${comment.resolved ? 'bg-green-500' : 'bg-amber-500'}`}
                 style={{ left: `${(comment.timestamp / duration) * 100}%` }}
                 onClick={e => {
                   e.stopPropagation()
@@ -252,7 +252,7 @@ export function VideoPlayerWithComments({
             max={duration || 100}
             value={currentTime}
             onChange={handleProgressChange}
-            className="absolute top-0 left-0 w-full h-6 opacity-0 cursor-pointer"
+            className="absolute left-0 top-0 h-6 w-full cursor-pointer opacity-0"
             style={{ zIndex: 10 }}
           />
         </div>
@@ -289,7 +289,7 @@ export function VideoPlayerWithComments({
             onClick={openCommentDialog}
             className="flex items-center gap-1"
           >
-            <MessageSquare className="h-4 w-4" />
+            <MessageSquare className="size-4" />
             <span>Adicionar Comentário</span>
           </Button>
         </div>
@@ -308,9 +308,9 @@ export function VideoPlayerWithComments({
             {comments.map(comment => (
               <div
                 key={comment.id}
-                className={`p-3 rounded-lg border ${comment.resolved ? 'bg-muted/30' : 'bg-card'}`}
+                className={`rounded-lg border p-3 ${comment.resolved ? 'bg-muted/30' : 'bg-card'}`}
               >
-                <div className="flex justify-between items-start mb-1">
+                <div className="mb-1 flex items-start justify-between">
                   <div className="flex items-center gap-2">
                     <Badge
                       variant="outline"
@@ -323,7 +323,7 @@ export function VideoPlayerWithComments({
                     >
                       {formatTime(comment.timestamp)}
                     </Badge>
-                    <span className="font-medium text-sm">
+                    <span className="text-sm font-medium">
                       {comment.authorName || comment.userName || 'Usuário'}
                     </span>
                     <span className="text-xs text-muted-foreground">
@@ -338,10 +338,10 @@ export function VideoPlayerWithComments({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7"
+                            className="size-7"
                             onClick={() => onResolveComment(comment.id)}
                           >
-                            <CheckCircle className="h-4 w-4" />
+                            <CheckCircle className="size-4" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -354,14 +354,14 @@ export function VideoPlayerWithComments({
                   {comment.resolved && (
                     <Badge
                       variant="outline"
-                      className="bg-green-100 text-green-800 border-green-300"
+                      className="border-green-300 bg-green-100 text-green-800"
                     >
                       Resolvido
                     </Badge>
                   )}
                 </div>
 
-                <p className="text-sm whitespace-pre-wrap">{comment.content}</p>
+                <p className="whitespace-pre-wrap text-sm">{comment.content}</p>
               </div>
             ))}
           </div>

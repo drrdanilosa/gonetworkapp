@@ -1,6 +1,6 @@
 'use client'
 
-"use client"
+'use client'
 
 import { useState, useEffect } from 'react'
 import { useProjectsStore } from '@/store/useProjectsStore'
@@ -117,7 +117,7 @@ const WatcherDiagnostics = ({ onStatusChange }: WatcherDiagnosticsProps) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-medium">Diagnóstico do Sistema</h2>
         {lastChecked && (
           <div className="text-xs text-gray-500">
@@ -251,7 +251,7 @@ const WatcherDiagnostics = ({ onStatusChange }: WatcherDiagnosticsProps) => {
       <div className="flex justify-end">
         <button
           onClick={checkWatcherStatus}
-          className="text-sm bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
+          className="rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600"
         >
           Atualizar diagnóstico
         </button>

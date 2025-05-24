@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useAuthStore } from '@/store/useAuthStore'
 import { useProjectsStore } from '@/store/useProjectsStoreUnified'
@@ -34,15 +34,15 @@ export function TaskList({ projectId }: TaskListProps) {
     totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
 
   return (
-    <div className="bg-card rounded-lg p-4 mb-4 shadow-sm border">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-lg">Tarefas do Projeto</h3>
+    <div className="mb-4 rounded-lg border bg-card p-4 shadow-sm">
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Tarefas do Projeto</h3>
         <span className="text-sm text-muted-foreground">
           {completedTasks}/{totalTasks} concluídas
         </span>
       </div>
 
-      <div className="w-full bg-muted h-2 rounded-full overflow-hidden mb-4">
+      <div className="mb-4 h-2 w-full overflow-hidden rounded-full bg-muted">
         <div
           className="h-full bg-primary transition-all duration-500"
           style={{ width: `${progressPercentage}%` }}
@@ -63,7 +63,7 @@ export function TaskList({ projectId }: TaskListProps) {
             .map(task => (
               <li
                 key={task.id}
-                className="flex items-center justify-between group"
+                className="group flex items-center justify-between"
               >
                 <div className="flex items-center gap-2">
                   <div
@@ -71,7 +71,7 @@ export function TaskList({ projectId }: TaskListProps) {
                       if (isEditor) toggleTaskCompletion(projectId, task.id)
                     }}
                     className={cn(
-                      'w-5 h-5 rounded flex items-center justify-center',
+                      'flex size-5 items-center justify-center rounded',
                       task.status === 'completed'
                         ? 'bg-green-600'
                         : 'border border-muted-foreground',
@@ -86,13 +86,13 @@ export function TaskList({ projectId }: TaskListProps) {
                     className={cn(
                       'text-sm',
                       task.status === 'completed' &&
-                        'line-through text-muted-foreground'
+                        'text-muted-foreground line-through'
                     )}
                   >
                     {task.title}
                   </span>
                 </div>
-                <div className="text-xs text-muted-foreground flex items-center gap-1">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Clock size={14} />
                   {task.status === 'completed' ? 'Concluído' : 'Pendente'}
                 </div>

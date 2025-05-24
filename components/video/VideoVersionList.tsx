@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useState, useRef } from 'react'
 import { useProjectsStore } from '@/store/useProjectsStore'
@@ -217,15 +217,15 @@ export default function VideoVersionList({
         {/* Status summary */}
         <div className="flex items-center gap-2">
           {approvedVersion && (
-            <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:text-green-300">
-              <CheckCircle2 className="h-3 w-3 mr-1" />
+            <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300">
+              <CheckCircle2 className="mr-1 size-3" />
               Aprovado
             </span>
           )}
 
           {activeVersion && !activeVersion.approved && (
-            <span className="inline-flex items-center rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2.5 py-0.5 text-xs font-medium text-yellow-800 dark:text-yellow-300">
-              <Clock className="h-3 w-3 mr-1" />
+            <span className="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+              <Clock className="mr-1 size-3" />
               Em revisão
             </span>
           )}
@@ -237,7 +237,7 @@ export default function VideoVersionList({
           variant="outline"
           size="sm"
         >
-          <Upload className="mr-2 h-4 w-4" />
+          <Upload className="mr-2 size-4" />
           {isUploading ? 'Enviando...' : 'Adicionar Versão'}
         </Button>
         <input
@@ -249,8 +249,8 @@ export default function VideoVersionList({
         />
       </div>
 
-      <div className="flex items-center text-sm text-muted-foreground mb-4">
-        <FileVideo2 className="h-4 w-4 mr-1" />
+      <div className="mb-4 flex items-center text-sm text-muted-foreground">
+        <FileVideo2 className="mr-1 size-4" />
         <span>
           {versions.length} {versions.length === 1 ? 'versão' : 'versões'}
         </span>
@@ -258,7 +258,7 @@ export default function VideoVersionList({
         {activeVersion && (
           <>
             <span className="mx-2">•</span>
-            <Clock className="h-4 w-4 mr-1" />
+            <Clock className="mr-1 size-4" />
             <span>Ativa: {activeVersion.name}</span>
           </>
         )}
@@ -266,16 +266,16 @@ export default function VideoVersionList({
         {approvedVersion && (
           <>
             <span className="mx-2">•</span>
-            <CheckCircle className="h-4 w-4 mr-1" />
+            <CheckCircle className="mr-1 size-4" />
             <span>Última aprovada: {approvedVersion.name}</span>
           </>
         )}
       </div>
 
       {versions.length === 0 ? (
-        <div className="text-center p-8 border border-dashed rounded-md">
+        <div className="rounded-md border border-dashed p-8 text-center">
           <p className="text-muted-foreground">Nenhuma versão disponível</p>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="mt-1 text-sm text-muted-foreground">
             {isEditor
               ? 'Faça upload da primeira versão do vídeo'
               : 'Aguardando upload da primeira versão pelo editor'}
@@ -287,43 +287,43 @@ export default function VideoVersionList({
             <div
               key={version.id}
               className={cn(
-                'border p-4 rounded-md shadow-sm transition-colors duration-200',
+                'rounded-md border p-4 shadow-sm transition-colors duration-200',
                 version.status === 'approved'
-                  ? 'border-green-200 dark:border-green-900 bg-green-50/30 dark:bg-green-950/10'
+                  ? 'border-green-200 bg-green-50/30 dark:border-green-900 dark:bg-green-950/10'
                   : version.status === 'rejected'
-                    ? 'border-red-200 dark:border-red-900 bg-red-50/30 dark:bg-red-950/10'
+                    ? 'border-red-200 bg-red-50/30 dark:border-red-900 dark:bg-red-950/10'
                     : version.active
-                      ? 'border-yellow-200 dark:border-yellow-900 bg-yellow-50/30 dark:bg-yellow-950/10'
+                      ? 'border-yellow-200 bg-yellow-50/30 dark:border-yellow-900 dark:bg-yellow-950/10'
                       : 'border-muted'
               )}
             >
-              <div className="flex justify-between items-start mb-3">
+              <div className="mb-3 flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2">
                     <h4 className="font-medium">{version.name}</h4>
                     {version.active &&
                       version.status !== 'approved' &&
                       version.status !== 'rejected' && (
-                        <span className="bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300 text-xs px-2 py-0.5 rounded flex items-center">
-                          <Activity className="h-3 w-3 mr-1" />
+                        <span className="flex items-center rounded bg-yellow-100 px-2 py-0.5 text-xs text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300">
+                          <Activity className="mr-1 size-3" />
                           Em revisão
                         </span>
                       )}
                     {version.status === 'approved' && (
-                      <span className="bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 text-xs px-2 py-0.5 rounded flex items-center">
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                      <span className="flex items-center rounded bg-green-100 px-2 py-0.5 text-xs text-green-800 dark:bg-green-900/50 dark:text-green-300">
+                        <CheckCircle2 className="mr-1 size-3" />
                         Aprovada
                       </span>
                     )}
                     {version.status === 'rejected' && (
-                      <span className="bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300 text-xs px-2 py-0.5 rounded flex items-center">
-                        <XCircle className="h-3 w-3 mr-1" />
+                      <span className="flex items-center rounded bg-red-100 px-2 py-0.5 text-xs text-red-800 dark:bg-red-900/50 dark:text-red-300">
+                        <XCircle className="mr-1 size-3" />
                         Rejeitada
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center text-xs text-muted-foreground mt-1 gap-1">
-                    <Calendar className="h-3 w-3" />
+                  <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                    <Calendar className="size-3" />
                     <span>
                       Enviada em{' '}
                       {format(
@@ -336,7 +336,7 @@ export default function VideoVersionList({
                     {version.metadata?.fileName && (
                       <>
                         <span className="mx-1">•</span>
-                        <FileBadge className="h-3 w-3" />
+                        <FileBadge className="size-3" />
                         <span>{version.metadata.fileName}</span>
                       </>
                     )}
@@ -350,7 +350,7 @@ export default function VideoVersionList({
                       variant="outline"
                       onClick={() => onSelectVersion(version)}
                     >
-                      <Play className="h-4 w-4 mr-1" />
+                      <Play className="mr-1 size-4" />
                       Assistir
                     </Button>
                   )}
@@ -359,9 +359,9 @@ export default function VideoVersionList({
 
               {/* Se for versão aprovada, mostrar detalhes */}
               {version.status === 'approved' && (
-                <div className="text-sm bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 p-3 rounded mb-3">
-                  <div className="flex items-center mb-1">
-                    <CheckCircle className="h-4 w-4 mr-2" />
+                <div className="mb-3 rounded bg-green-50 p-3 text-sm text-green-800 dark:bg-green-900/20 dark:text-green-300">
+                  <div className="mb-1 flex items-center">
+                    <CheckCircle className="mr-2 size-4" />
                     <span>
                       Aprovado por{' '}
                       <strong>{version.approvedBy || 'Cliente'}</strong> em{' '}
@@ -374,7 +374,7 @@ export default function VideoVersionList({
                   </div>
                   {version.approvalNotes && (
                     <p className="mt-1 pl-6 text-green-700 dark:text-green-400">
-                      "{version.approvalNotes}"
+                      &quot;{version.approvalNotes}&quot;
                     </p>
                   )}
                 </div>
@@ -382,9 +382,9 @@ export default function VideoVersionList({
 
               {/* Se for versão rejeitada, mostrar motivo */}
               {version.status === 'rejected' && (
-                <div className="text-sm bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 p-3 rounded mb-3">
-                  <div className="flex items-center mb-1">
-                    <XCircle className="h-4 w-4 mr-2" />
+                <div className="mb-3 rounded bg-red-50 p-3 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-300">
+                  <div className="mb-1 flex items-center">
+                    <XCircle className="mr-2 size-4" />
                     <span>
                       Rejeitado por{' '}
                       <strong>{version.approvedBy || 'Cliente'}</strong> em{' '}
@@ -397,7 +397,7 @@ export default function VideoVersionList({
                   </div>
                   {version.approvalNotes && (
                     <p className="mt-1 pl-6 text-red-700 dark:text-red-400">
-                      "{version.approvalNotes}"
+                      &quot;{version.approvalNotes}&quot;
                     </p>
                   )}
                 </div>
@@ -414,7 +414,7 @@ export default function VideoVersionList({
                         size="sm"
                         className="mr-2"
                       >
-                        <Clock className="mr-2 h-4 w-4" />
+                        <Clock className="mr-2 size-4" />
                         Definir como Ativa
                       </Button>
                     )}
@@ -433,7 +433,7 @@ export default function VideoVersionList({
                             variant="default"
                             className="flex-1"
                           >
-                            <CheckCheck className="mr-2 h-4 w-4" />
+                            <CheckCheck className="mr-2 size-4" />
                             Aprovar
                           </Button>
 
@@ -442,7 +442,7 @@ export default function VideoVersionList({
                             variant="outline"
                             className="flex-1 border-red-200 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950/30"
                           >
-                            <ThumbsDown className="mr-2 h-4 w-4" />
+                            <ThumbsDown className="mr-2 size-4" />
                             Rejeitar
                           </Button>
                         </div>

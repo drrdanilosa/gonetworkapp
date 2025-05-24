@@ -1,6 +1,6 @@
 'use client'
 
-"use client"
+'use client'
 
 import React, { useState, useEffect } from 'react'
 
@@ -50,12 +50,12 @@ const DiagnosticCard: React.FC<DiagnosticCardProps> = ({
   const colors = statusColors[status]
 
   return (
-    <div className={`${colors.bg} ${colors.border} border rounded-md p-4 mb-4`}>
+    <div className={`${colors.bg} ${colors.border} mb-4 rounded-md border p-4`}>
       <div className="flex items-start">
         <div className="mr-3 text-xl">{colors.icon}</div>
         <div className="flex-1">
-          <h3 className={`${colors.text} font-medium text-sm`}>{title}</h3>
-          <p className="text-sm mt-1">{message}</p>
+          <h3 className={`${colors.text} text-sm font-medium`}>{title}</h3>
+          <p className="mt-1 text-sm">{message}</p>
 
           {details && details.length > 0 && (
             <div className="mt-2 text-xs">
@@ -63,7 +63,7 @@ const DiagnosticCard: React.FC<DiagnosticCardProps> = ({
                 <summary className="cursor-pointer hover:underline">
                   Detalhes
                 </summary>
-                <ul className="list-disc pl-5 mt-1 space-y-1">
+                <ul className="mt-1 list-disc space-y-1 pl-5">
                   {details.map((detail, index) => (
                     <li key={index}>{detail}</li>
                   ))}
@@ -76,7 +76,7 @@ const DiagnosticCard: React.FC<DiagnosticCardProps> = ({
         {onRetry && (
           <button
             onClick={onRetry}
-            className="text-xs bg-white border border-gray-300 rounded px-2 py-1 hover:bg-gray-50"
+            className="rounded border border-gray-300 bg-white px-2 py-1 text-xs hover:bg-gray-50"
           >
             Tentar novamente
           </button>

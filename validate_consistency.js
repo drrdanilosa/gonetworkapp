@@ -58,7 +58,9 @@ function validateBriefings() {
   }
   if (Array.isArray(briefings)) {
     if (briefings.length === 0) {
-      console.log('⚠️ briefings.json está vazio (ok se nenhum briefing criado ainda)')
+      console.log(
+        '⚠️ briefings.json está vazio (ok se nenhum briefing criado ainda)'
+      )
     } else {
       for (const b of briefings) {
         if (!b.eventId) {

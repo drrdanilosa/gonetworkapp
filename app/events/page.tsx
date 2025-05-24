@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -60,9 +60,9 @@ export default function EventsPage() {
 
   if (isLoading) {
     return (
-      <div className="w-full h-screen flex items-center justify-center bg-[#282A36] text-[#F8F8F2]">
+      <div className="flex h-screen w-full items-center justify-center bg-[#282A36] text-[#F8F8F2]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#8BE9FD] mx-auto"></div>
+          <div className="mx-auto size-12 animate-spin rounded-full border-y-2 border-[#8BE9FD]"></div>
           <p className="mt-4 text-lg">Carregando eventos...</p>
         </div>
       </div>
@@ -70,7 +70,7 @@ export default function EventsPage() {
   }
 
   return (
-    <div className="w-full min-h-screen bg-[#282A36] text-[#F8F8F2] p-4 md:p-8">
+    <div className="min-h-screen w-full bg-[#282A36] p-4 text-[#F8F8F2] md:p-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-[#8BE9FD]">Eventos</h1>
         <p className="text-lg text-[#6272A4]">
@@ -78,24 +78,24 @@ export default function EventsPage() {
         </p>
       </div>
 
-      <div className="flex justify-between items-center mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <div className="w-full max-w-md">
           <Input
             placeholder="Buscar eventos..."
-            className="bg-[#21222C] text-[#F8F8F2] border border-[#44475A]"
+            className="border border-[#44475A] bg-[#21222C] text-[#F8F8F2]"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
           />{' '}
         </div>
         <Link href="/events/new">
-          <Button className="bg-[#50FA7B] hover:bg-[#43D669] text-[#282A36]">
+          <Button className="bg-[#50FA7B] text-[#282A36] hover:bg-[#43D669]">
             Novo Evento
           </Button>
         </Link>
       </div>
 
       {filteredEvents.length === 0 ? (
-        <div className="text-center py-12">
+        <div className="py-12 text-center">
           <p className="text-xl text-[#6272A4]">
             {searchTerm
               ? 'Nenhum evento encontrado com esse termo'
@@ -112,10 +112,10 @@ export default function EventsPage() {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredEvents.map(event => (
             <Link href={`/events/${event.id}`} key={event.id} className="block">
-              <Card className="bg-[#21222C] border-[#44475A] text-[#F8F8F2] hover:border-[#BD93F9] transition-all duration-200 h-full">
+              <Card className="h-full border-[#44475A] bg-[#21222C] text-[#F8F8F2] transition-all duration-200 hover:border-[#BD93F9]">
                 <CardHeader>
                   <CardTitle className="text-[#F8F8F2]">{event.name}</CardTitle>
                   <CardDescription className="text-[#6272A4]">
@@ -123,7 +123,7 @@ export default function EventsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex justify-between items-center mb-4">
+                  <div className="mb-4 flex items-center justify-between">
                     <p className="text-sm text-[#6272A4]">
                       Data:{' '}
                       <span className="text-[#F8F8F2]">
@@ -131,7 +131,7 @@ export default function EventsPage() {
                       </span>
                     </p>
                     <div
-                      className={`px-2 py-1 rounded-md text-xs ${
+                      className={`rounded-md px-2 py-1 text-xs ${
                         event.status === 'confirmado'
                           ? 'bg-green-900 text-green-100'
                           : 'bg-yellow-900 text-yellow-100'
@@ -142,7 +142,7 @@ export default function EventsPage() {
                   </div>
                   <p className="text-sm text-[#6272A4]">
                     Tipo:{' '}
-                    <span className="text-[#F8F8F2] capitalize">
+                    <span className="capitalize text-[#F8F8F2]">
                       {event.type}
                     </span>
                   </p>
@@ -150,7 +150,7 @@ export default function EventsPage() {
                 <CardFooter>
                   <Button
                     variant="ghost"
-                    className="w-full text-[#BD93F9] border border-[#BD93F9]"
+                    className="w-full border border-[#BD93F9] text-[#BD93F9]"
                   >
                     Ver Detalhes
                   </Button>

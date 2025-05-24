@@ -225,7 +225,7 @@ export const exportToPDF = async (
     doc.text('Comentários', 14, yPosition)
     yPosition += 8
 
-    // @ts-ignore - jsPDF-autotable não tem tipos TS adequados
+    // @ts-expect-error - jsPDF-autotable não tem tipos TS adequados
     doc.autoTable({
       startY: yPosition,
       head: [['Tempo', 'Autor', 'Status', 'Comentário', 'Data']],
@@ -241,7 +241,7 @@ export const exportToPDF = async (
       margin: { top: 10 },
     })
 
-    // @ts-ignore - Obter a posição Y final da tabela
+    // @ts-expect-error - Obter a posição Y final da tabela
     yPosition = doc.lastAutoTable.finalY + 10
   }
 
@@ -257,7 +257,7 @@ export const exportToPDF = async (
     doc.text('Anotações Visuais', 14, yPosition)
     yPosition += 8
 
-    // @ts-ignore - jsPDF-autotable não tem tipos TS adequados
+    // @ts-expect-error - jsPDF-autotable não tem tipos TS adequados
     doc.autoTable({
       startY: yPosition,
       head: [['Tempo', 'Tipo', 'Descrição']],
@@ -271,7 +271,7 @@ export const exportToPDF = async (
       margin: { top: 10 },
     })
 
-    // @ts-ignore - Obter a posição Y final da tabela
+    // @ts-expect-error - Obter a posição Y final da tabela
     yPosition = doc.lastAutoTable.finalY + 10
   }
 

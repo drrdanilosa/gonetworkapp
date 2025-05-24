@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import React, { useEffect, useState } from 'react'
 import { useAuthStore } from '@/store/useAuthStore'
@@ -79,8 +79,8 @@ const RoleGuard: React.FC<RoleGuardProps> = ({
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-24">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="flex h-24 items-center justify-center">
+        <div className="size-8 animate-spin rounded-full border-b-2 border-primary"></div>
       </div>
     )
   }
@@ -94,7 +94,7 @@ const RoleGuard: React.FC<RoleGuardProps> = ({
     return (
       fallback || (
         <div className="p-6 text-center">
-          <h2 className="text-xl font-semibold text-red-600 mb-2">
+          <h2 className="mb-2 text-xl font-semibold text-red-600">
             Acesso Negado
           </h2>
           <p className="text-gray-600">

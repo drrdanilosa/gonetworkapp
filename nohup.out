@@ -1,0 +1,52 @@
+
+> melhorapp_final02@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://10.0.4.99:3000
+
+ ✓ Starting...
+ ✓ Ready in 12.4s
+ ⚠ Found a change in next.config.mjs. Restarting the server to apply the changes...
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3000
+   - Network:      http://10.0.4.99:3000
+
+ ✓ Starting...
+ ✓ Ready in 4.7s
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/workspaces/melhorapp_final02/.next/cache/webpack/client-development/0.pack.gz_' -> '/workspaces/melhorapp_final02/.next/cache/webpack/client-development/0.pack.gz'
+ ○ Compiling / ...
+ ✓ Compiled / in 64.3s (3026 modules)
+ ✓ Compiled in 3.7s (1488 modules)
+ ✓ Compiled in 1059ms (1488 modules)
+ ✓ Compiled in 524ms (1488 modules)
+ ✓ Compiled in 440ms (1488 modules)
+ ✓ Compiled in 415ms (1488 modules)
+ ✓ Compiled in 432ms (1488 modules)
+ ✓ Compiled in 478ms (1488 modules)
+ ✓ Compiled in 459ms (1488 modules)
+ ✓ Compiled in 428ms (1488 modules)
+ ✓ Compiled in 396ms (1488 modules)
+ ✓ Compiled in 382ms (1488 modules)
+ ✓ Compiled in 405ms (1488 modules)
+ ✓ Compiled in 435ms (1488 modules)
+ ✓ Compiled in 488ms (1488 modules)
+ ✓ Compiled in 373ms (1488 modules)
+ ✓ Compiled in 418ms (1488 modules)
+ ✓ Compiled in 459ms (1488 modules)
+ ✓ Compiled in 445ms (1488 modules)
+ ✓ Compiled in 556ms (1488 modules)
+ ✓ Compiled in 533ms (1488 modules)
+ ✓ Compiled in 376ms (1488 modules)
+ ✓ Compiled in 362ms (1488 modules)
+ ✓ Compiled in 391ms (1488 modules)
+ ✓ Compiled in 387ms (1488 modules)
+ ✓ Compiled in 403ms (1488 modules)
+ ✓ Compiled in 490ms (1488 modules)
+ ✓ Compiled in 450ms (1488 modules)
+ ✓ Compiled in 392ms (1488 modules)
+ ✓ Compiled in 348ms (1488 modules)
+ ✓ Compiled in 405ms (1488 modules)
+ ✓ Compiled in 1014ms (1488 modules)
+[?25h

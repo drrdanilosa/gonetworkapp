@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { readFile, readdir } from 'fs/promises'
 import { join, extname, relative } from 'path'

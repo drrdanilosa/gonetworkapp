@@ -12,7 +12,7 @@ export default function ThemeDemoPage() {
 
   return (
     <div>
-      <div className="container py-2 md:py-4 flex items-center justify-between">
+      <div className="container flex items-center justify-between py-2 md:py-4">
         {!isMobile ? (
           <Link href="/">
             <Button variant="outline" className="mb-4 md:mb-6">
@@ -20,7 +20,7 @@ export default function ThemeDemoPage() {
             </Button>
           </Link>
         ) : (
-          <div className="flex items-center justify-between w-full mb-4">
+          <div className="mb-4 flex w-full items-center justify-between">
             <Link href="/">
               <Button variant="outline" size="sm">
                 Voltar
@@ -32,10 +32,10 @@ export default function ThemeDemoPage() {
       </div>
 
       <div className="container py-4 md:py-8">
-        <h1 className="text-2xl md:text-4xl font-bold tracking-tight text-primary mb-4 md:mb-8">
+        <h1 className="mb-4 text-2xl font-bold tracking-tight text-primary md:mb-8 md:text-4xl">
           Exemplos de Componentes
         </h1>{' '}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 mb-6 md:mb-12">
+        <div className="mb-6 grid grid-cols-1 gap-3 md:mb-12 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
           <DraculaCard
             title="Botões com tema Dracula"
             description="Exemplo de botões estilizados com o tema Dracula"
@@ -81,8 +81,8 @@ export default function ThemeDemoPage() {
 }`}
           >
             <div className="space-y-3">
-              <div className="h-12 rounded-lg dracula-gradient"></div>
-              <div className="h-12 rounded-lg dracula-gradient-alt"></div>
+              <div className="dracula-gradient h-12 rounded-lg"></div>
+              <div className="dracula-gradient-alt h-12 rounded-lg"></div>
               <div className="h-12 rounded-lg bg-gradient-to-r from-dracula-pink to-dracula-purple"></div>
               <div className="h-12 rounded-lg bg-gradient-to-r from-dracula-green to-dracula-yellow"></div>
             </div>
@@ -96,16 +96,16 @@ export default function ThemeDemoPage() {
 }`}
           >
             <div className="grid grid-cols-2 gap-3">
-              <div className="h-16 bg-dracula-background p-2 rounded-lg shadow-dracula flex items-center justify-center text-dracula-comment">
+              <div className="flex h-16 items-center justify-center rounded-lg bg-dracula-background p-2 text-dracula-comment shadow-dracula">
                 Dracula
               </div>
-              <div className="h-16 bg-dracula-background p-2 rounded-lg shadow-dracula-hover flex items-center justify-center text-dracula-comment">
+              <div className="flex h-16 items-center justify-center rounded-lg bg-dracula-background p-2 text-dracula-comment shadow-dracula-hover">
                 Hover
               </div>
-              <div className="h-16 bg-dracula-background p-2 rounded-lg shadow-dracula-cyan flex items-center justify-center text-dracula-cyan">
+              <div className="flex h-16 items-center justify-center rounded-lg bg-dracula-background p-2 text-dracula-cyan shadow-dracula-cyan">
                 Cyan
               </div>
-              <div className="h-16 bg-dracula-background p-2 rounded-lg shadow-dracula-pink flex items-center justify-center text-dracula-pink">
+              <div className="flex h-16 items-center justify-center rounded-lg bg-dracula-background p-2 text-dracula-pink shadow-dracula-pink">
                 Pink
               </div>
             </div>

@@ -1,9 +1,13 @@
-"use client"
+'use client'
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import { 
-  socketService,
-} from '@/lib/socket-service'
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from 'react'
+import { socketService } from '@/lib/socket-service'
 import { Comment, Annotation } from '@/types/project'
 
 interface CollaborationContextType {
@@ -49,7 +53,9 @@ const USER_COLORS = [
   '#8333FF', // Roxo
 ]
 
-export function CollaborationProvider({ children }: CollaborationProviderProps) {
+export function CollaborationProvider({
+  children,
+}: CollaborationProviderProps) {
   const [isConnected, setIsConnected] = useState(false)
   const [isJoined, setIsJoined] = useState(false)
   const [sessionId, setSessionId] = useState<string | null>(null)
@@ -275,7 +281,7 @@ export function CollaborationProvider({ children }: CollaborationProviderProps) 
   const updateComment = useCallback(async (comment: Comment) => {
     try {
       // socketService.updateComment(comment)
-      setComments(prev => prev.map(c => c.id === comment.id ? comment : c))
+      setComments(prev => prev.map(c => (c.id === comment.id ? comment : c)))
     } catch (error) {
       console.error('Erro ao atualizar comentário:', error)
     }
@@ -305,7 +311,9 @@ export function CollaborationProvider({ children }: CollaborationProviderProps) 
   const updateAnnotation = useCallback(async (annotation: Annotation) => {
     try {
       // socketService.updateAnnotation(annotation)
-      setActiveAnnotations(prev => prev.map(a => a.id === annotation.id ? annotation : a))
+      setActiveAnnotations(prev =>
+        prev.map(a => (a.id === annotation.id ? annotation : a))
+      )
     } catch (error) {
       console.error('Erro ao atualizar anotação:', error)
     }

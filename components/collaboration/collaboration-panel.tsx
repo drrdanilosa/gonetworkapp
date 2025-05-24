@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -80,7 +80,7 @@ export default function CollaborationPanel({
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="join">
-            <TabsList className="grid grid-cols-2 mb-4">
+            <TabsList className="mb-4 grid grid-cols-2">
               <TabsTrigger value="join">Entrar em Sessão</TabsTrigger>
               <TabsTrigger value="create">Criar Sessão</TabsTrigger>
             </TabsList>
@@ -176,14 +176,14 @@ export default function CollaborationPanel({
         </CardContent>
         <CardFooter className="flex justify-between">
           <Button variant="outline" disabled={!isConnected}>
-            <Users className="mr-2 h-4 w-4" />
+            <Users className="mr-2 size-4" />
             {isConnected ? 'Conectado' : 'Desconectado'}
           </Button>
           <Button
             onClick={handleJoinSession}
             disabled={!isConnected || !userName.trim()}
           >
-            <UserPlus className="mr-2 h-4 w-4" />
+            <UserPlus className="mr-2 size-4" />
             {isConnected ? 'Entrar na Sessão' : 'Conectando...'}
           </Button>
         </CardFooter>
@@ -194,13 +194,13 @@ export default function CollaborationPanel({
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <CardTitle>Sessão Colaborativa</CardTitle>
           <Button variant="ghost" size="sm" onClick={copySessionLink}>
             {copied ? (
-              <Check className="h-4 w-4 mr-2 text-green-500" />
+              <Check className="mr-2 size-4 text-green-500" />
             ) : (
-              <Link className="h-4 w-4 mr-2" />
+              <Link className="mr-2 size-4" />
             )}
             {copied ? 'Copiado!' : 'Compartilhar'}
           </Button>
@@ -210,10 +210,10 @@ export default function CollaborationPanel({
           <Button
             variant="ghost"
             size="icon"
-            className="h-4 w-4 p-0"
+            className="size-4 p-0"
             onClick={() => navigator.clipboard.writeText(sessionId || '')}
           >
-            <Copy className="h-3 w-3" />
+            <Copy className="size-3" />
           </Button>
         </CardDescription>
       </CardHeader>

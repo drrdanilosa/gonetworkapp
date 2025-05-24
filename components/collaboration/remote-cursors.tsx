@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import type React from 'react'
 
@@ -64,7 +64,7 @@ export default function RemoteCursors({ containerRef }: RemoteCursorsProps) {
         return (
           <div
             key={userId}
-            className="absolute pointer-events-none z-50 transition-all duration-100"
+            className="pointer-events-none absolute z-50 transition-all duration-100"
             style={{
               left: `${x}px`,
               top: `${y}px`,
@@ -93,7 +93,7 @@ export default function RemoteCursors({ containerRef }: RemoteCursorsProps) {
 
               {/* Nome do usuário */}
               <div
-                className="absolute left-6 top-0 px-2 py-1 rounded text-xs whitespace-nowrap"
+                className="absolute left-6 top-0 whitespace-nowrap rounded px-2 py-1 text-xs"
                 style={{ backgroundColor: user.color, color: '#fff' }}
               >
                 {user.name}

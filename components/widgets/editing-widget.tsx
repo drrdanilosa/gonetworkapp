@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -36,7 +36,7 @@ import {
   SquarePen,
   Share2,
   Lock,
-  Unlock
+  Unlock,
 } from 'lucide-react'
 import { Slider } from '@/components/ui/slider'
 import { Label } from '@/components/ui/label'
@@ -370,20 +370,38 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
 
 // Camadas de exemplo
 const INITIAL_LAYERS: Layer[] = [
-  { id: 'video1', name: 'Vídeo principal', type: 'video', visible: true, locked: false },
-  { id: 'audio1', name: 'Áudio principal', type: 'audio', visible: true, locked: false },
+  {
+    id: 'video1',
+    name: 'Vídeo principal',
+    type: 'video',
+    visible: true,
+    locked: false,
+  },
+  {
+    id: 'audio1',
+    name: 'Áudio principal',
+    type: 'audio',
+    visible: true,
+    locked: false,
+  },
   { id: 'text1', name: 'Legendas', type: 'text', visible: true, locked: false },
-  { id: 'image1', name: 'Overlays', type: 'image', visible: true, locked: false },
+  {
+    id: 'image1',
+    name: 'Overlays',
+    type: 'image',
+    visible: true,
+    locked: false,
+  },
 ]
 
 // Tipagem para ações de desfazer/refazer
-type UndoAction = 
+type UndoAction =
   | { type: 'add-clip'; data: TimelineClip }
   | { type: 'delete-clip'; data: TimelineClip }
   | { type: 'add-comment'; data: Comment }
   | { type: 'delete-comment'; data: Comment }
   | { type: 'add-marker'; data: TimelineMarker }
-  | { type: 'delete-marker'; data: TimelineMarker };
+  | { type: 'delete-marker'; data: TimelineMarker }
 
 export interface EditingWidgetProps {
   projectId?: string
@@ -392,21 +410,21 @@ export interface EditingWidgetProps {
 
 /**
  * A comprehensive video editing interface that provides a full suite of editing tools.
- * 
+ *
  * This component offers a complete video editing experience including:
  * - Video playback controls with timeline navigation
  * - Multi-layer timeline editing with clips and markers
  * - Comment and annotation system for collaborative feedback
  * - Asset management for videos, images, and audio files
  * - Export functionality with configurable settings
- * 
+ *
  * The editing widget is organized into tabs (timeline, comments, assets, export) to provide
  * a clean interface while maintaining powerful functionality.
- * 
+ *
  * @param {Object} props - Component props
  * @param {string} props.projectId - ID of the current project being edited
  * @param {string} props.videoId - ID of the video being edited
- * 
+ *
  * @returns A complex video editing interface with playback controls, timeline, and asset management
  */
 export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
@@ -430,17 +448,23 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
   // Comentários
   const [comments, setComments] = useState<Comment[]>(INITIAL_COMMENTS)
   const [newComment, setNewComment] = useState('')
-  const [selectedCommentCategory, setSelectedCommentCategory] = useState('general')
+  const [selectedCommentCategory, setSelectedCommentCategory] =
+    useState('general')
   const [showResolvedComments, setShowResolvedComments] = useState(true)
 
   // Anotações
-  const [annotations, setAnnotations] = useState<Annotation[]>(INITIAL_ANNOTATIONS)
-  const [selectedAnnotation, setSelectedAnnotation] = useState<string | null>(null)
+  const [annotations, setAnnotations] =
+    useState<Annotation[]>(INITIAL_ANNOTATIONS)
+  const [selectedAnnotation, setSelectedAnnotation] = useState<string | null>(
+    null
+  )
 
   // Assets
   const [assets, setAssets] = useState<Asset[]>(SAMPLE_ASSETS)
   const [searchAssetQuery, setSearchAssetQuery] = useState('')
-  const [selectedAssetType, setSelectedAssetType] = useState<string | null>(null)
+  const [selectedAssetType, setSelectedAssetType] = useState<string | null>(
+    null
+  )
   const [uploadProgress, setUploadProgress] = useState(0)
   const [isUploading, setIsUploading] = useState(false)
 
@@ -463,8 +487,10 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
 
   // Filtrar assets usando useMemo para evitar re-renderizações
   const filteredAssets = useMemo(() => {
-    return assets.filter((asset) => {
-      const matchesSearch = asset.name.toLowerCase().includes(searchAssetQuery.toLowerCase())
+    return assets.filter(asset => {
+      const matchesSearch = asset.name
+        .toLowerCase()
+        .includes(searchAssetQuery.toLowerCase())
       const matchesType = !selectedAssetType || asset.type === selectedAssetType
       return matchesSearch && matchesType
     })
@@ -513,11 +539,11 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
   }
 
   const handleZoomIn = () => {
-    setZoomLevel((prev) => Math.min(prev + 10, 200))
+    setZoomLevel(prev => Math.min(prev + 10, 200))
   }
 
   const handleZoomOut = () => {
-    setZoomLevel((prev) => Math.max(prev - 10, 50))
+    setZoomLevel(prev => Math.max(prev - 10, 50))
   }
 
   // Manipulação de clips
@@ -534,15 +560,15 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
       layer: selectedLayer,
       color: '#60a5fa',
     }
-    
+
     setClips([...clips, newClip])
     // Adicionar à pilha de desfazer
     setUndoStack([...undoStack, { type: 'add-clip', data: newClip }])
   }
 
   const handleClipDelete = (clipId: string) => {
-    const clipToDelete = clips.find((clip) => clip.id === clipId)
-    setClips(clips.filter((clip) => clip.id !== clipId))
+    const clipToDelete = clips.find(clip => clip.id === clipId)
+    setClips(clips.filter(clip => clip.id !== clipId))
     setSelectedClip(null)
     // Adicionar à pilha de desfazer
     if (clipToDelete) {
@@ -562,25 +588,26 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
         createdAt: new Date().toISOString(),
         colorCategory: selectedCommentCategory,
       }
-      
+
       setComments([...comments, newCommentObj])
       setNewComment('')
-      
+
       // Adicionar marcador para o comentário
       const newMarker: TimelineMarker = {
         id: `marker-comment-${newCommentObj.id}`,
         time: currentTime,
-        label: newComment.substring(0, 20) + (newComment.length > 20 ? '...' : ''),
+        label:
+          newComment.substring(0, 20) + (newComment.length > 20 ? '...' : ''),
         type: 'comment',
       }
-      
+
       setMarkers([...markers, newMarker])
     }
   }
 
   const handleToggleCommentResolution = (commentId: string) => {
     setComments(
-      comments.map((comment) =>
+      comments.map(comment =>
         comment.id === commentId
           ? { ...comment, isResolved: !comment.isResolved }
           : comment
@@ -589,9 +616,11 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
   }
 
   const handleDeleteComment = (commentId: string) => {
-    setComments(comments.filter((comment) => comment.id !== commentId))
+    setComments(comments.filter(comment => comment.id !== commentId))
     // Remover o marcador associado
-    setMarkers(markers.filter((marker) => marker.id !== `marker-comment-${commentId}`))
+    setMarkers(
+      markers.filter(marker => marker.id !== `marker-comment-${commentId}`)
+    )
   }
 
   // Manipulação de marcadores
@@ -606,12 +635,12 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
       label: `Marcador ${markers.length + 1}`,
       type,
     }
-    
+
     setMarkers([...markers, newMarker])
   }
 
   const handleDeleteMarker = (markerId: string) => {
-    setMarkers(markers.filter((marker) => marker.id !== markerId))
+    setMarkers(markers.filter(marker => marker.id !== markerId))
   }
 
   // Manipulação de assets
@@ -620,53 +649,56 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
     if (!files || files.length === 0) return
 
     setIsUploading(true)
-    
+
     // Simular upload
     let progress = 0
     const interval = setInterval(() => {
       progress += 10
       setUploadProgress(progress)
-      
+
       if (progress >= 100) {
         clearInterval(interval)
         setIsUploading(false)
-        
+
         // Adicionar novo asset
         const file = files[0]
         const newAsset: Asset = {
           id: `asset${assets.length + 1}`,
           name: file.name,
-          type: file.type.startsWith('image/') 
-            ? 'image' 
-            : file.type.startsWith('audio/') 
-              ? 'audio' 
+          type: file.type.startsWith('image/')
+            ? 'image'
+            : file.type.startsWith('audio/')
+              ? 'audio'
               : 'video',
           url: URL.createObjectURL(file),
-          duration: file.type.startsWith('video/') || file.type.startsWith('audio/') ? 60 : undefined,
+          duration:
+            file.type.startsWith('video/') || file.type.startsWith('audio/')
+              ? 60
+              : undefined,
           size: file.size,
           uploadedAt: new Date().toISOString(),
         }
-        
+
         setAssets([...assets, newAsset])
       }
     }, 300)
   }
 
   const handleDeleteAsset = (assetId: string) => {
-    setAssets(assets.filter((asset) => asset.id !== assetId))
+    setAssets(assets.filter(asset => asset.id !== assetId))
   }
 
   // Exportação
   const handleExport = () => {
     setIsExporting(true)
     setExportProgress(0)
-    
+
     // Simular exportação
     let progress = 0
     const interval = setInterval(() => {
       progress += 5
       setExportProgress(progress)
-      
+
       if (progress >= 100) {
         clearInterval(interval)
         setIsExporting(false)
@@ -684,17 +716,17 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
   // Histórico
   const handleUndo = () => {
     if (undoStack.length === 0) return
-    
+
     const action = undoStack[undoStack.length - 1]
     const newUndoStack = undoStack.slice(0, -1)
-    
+
     setUndoStack(newUndoStack)
     setRedoStack([...redoStack, action])
-    
+
     // Desfazer a ação específica
     switch (action.type) {
       case 'add-clip':
-        setClips(clips.filter((clip) => clip.id !== action.data.id))
+        setClips(clips.filter(clip => clip.id !== action.data.id))
         break
       case 'delete-clip':
         setClips([...clips, action.data])
@@ -705,20 +737,20 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
 
   const handleRedo = () => {
     if (redoStack.length === 0) return
-    
+
     const action = redoStack[redoStack.length - 1]
     const newRedoStack = redoStack.slice(0, -1)
-    
+
     setRedoStack(newRedoStack)
     setUndoStack([...undoStack, action])
-    
+
     // Refazer a ação específica
     switch (action.type) {
       case 'add-clip':
         setClips([...clips, action.data])
         break
       case 'delete-clip':
-        setClips(clips.filter((clip) => clip.id !== action.data.id))
+        setClips(clips.filter(clip => clip.id !== action.data.id))
         break
       // Adicionar outros casos conforme necessário
     }
@@ -728,19 +760,19 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
   useEffect(() => {
     if (isPlaying) {
       const interval = setInterval(() => {
-        setCurrentTime((prevTime) => {
+        setCurrentTime(prevTime => {
           const newTime = prevTime + 0.1
           setTimelinePosition(newTime)
-          
+
           if (newTime >= duration) {
             setIsPlaying(false)
             return duration
           }
-          
+
           return newTime
         })
       }, 100)
-      
+
       return () => clearInterval(interval)
     }
   }, [isPlaying, duration])
@@ -750,24 +782,24 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
       {/* Área do Player de Vídeo */}
       <Card className="w-full">
         <CardContent className="p-4">
-          <div className="relative aspect-video bg-black rounded-md overflow-hidden mb-2">
+          <div className="relative mb-2 aspect-video overflow-hidden rounded-md bg-black">
             {/* Player de vídeo */}
             <video
               ref={videoRef}
-              className="w-full h-full object-contain"
+              className="size-full object-contain"
               src="/sample-video.mp4"
               poster="/thumbnail.jpg"
             />
-            
+
             {/* Canvas para anotações */}
             <canvas
               ref={canvasRef}
-              className="absolute top-0 left-0 w-full h-full pointer-events-none"
+              className="pointer-events-none absolute left-0 top-0 size-full"
             />
-            
+
             {/* Feedback de anotações temporárias */}
             {selectedTool !== 'select' && (
-              <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-1 rounded-md text-sm">
+              <div className="absolute bottom-4 left-4 rounded-md bg-black/70 px-3 py-1 text-sm text-white">
                 {selectedTool === 'pen' && 'Desenho livre'}
                 {selectedTool === 'rectangle' && 'Retângulo'}
                 {selectedTool === 'arrow' && 'Seta'}
@@ -775,56 +807,56 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
               </div>
             )}
           </div>
-          
+
           {/* Controles de reprodução */}
           <div className="flex items-center space-x-2">
-            <Button 
-              variant="outline" 
-              size="icon" 
+            <Button
+              variant="outline"
+              size="icon"
               onClick={handleSkipBack}
               aria-label="Voltar 5 segundos"
             >
-              <SkipBack className="h-4 w-4" />
+              <SkipBack className="size-4" />
             </Button>
-            
-            <Button 
-              variant="outline" 
-              size="icon" 
+
+            <Button
+              variant="outline"
+              size="icon"
               onClick={handlePlayPause}
               aria-label={isPlaying ? 'Pausar' : 'Reproduzir'}
             >
               {isPlaying ? (
-                <Pause className="h-4 w-4" />
+                <Pause className="size-4" />
               ) : (
-                <Play className="h-4 w-4" />
+                <Play className="size-4" />
               )}
             </Button>
-            
-            <Button 
-              variant="outline" 
-              size="icon" 
+
+            <Button
+              variant="outline"
+              size="icon"
               onClick={handleSkipForward}
               aria-label="Avançar 5 segundos"
             >
-              <SkipForward className="h-4 w-4" />
+              <SkipForward className="size-4" />
             </Button>
-            
-            <div className="text-sm font-mono">
+
+            <div className="font-mono text-sm">
               {formatTime(currentTime)} / {formatTime(duration)}
             </div>
-            
-            <div className="flex-1 mx-4">
+
+            <div className="mx-4 flex-1">
               <Slider
                 value={[timelinePosition]}
                 min={0}
                 max={duration}
                 step={0.1}
-                onValueChange={(value) => handleTimeUpdate(value[0])}
+                onValueChange={value => handleTimeUpdate(value[0])}
               />
             </div>
-            
+
             <div className="flex items-center space-x-2">
-              <Volume2 className="h-4 w-4" />
+              <Volume2 className="size-4" />
               <div className="w-24">
                 <Slider
                   value={[volume]}
@@ -835,9 +867,9 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
                 />
               </div>
             </div>
-            
+
             <Button variant="outline" size="icon" aria-label="Tela cheia">
-              <Maximize className="h-4 w-4" />
+              <Maximize className="size-4" />
             </Button>
           </div>
         </CardContent>
@@ -852,53 +884,53 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
+                    <Button
+                      variant="outline"
+                      size="icon"
                       onClick={handleUndo}
                       disabled={undoStack.length === 0}
                     >
-                      <Undo className="h-4 w-4" />
+                      <Undo className="size-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Desfazer</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              
+
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
+                    <Button
+                      variant="outline"
+                      size="icon"
                       onClick={handleRedo}
                       disabled={redoStack.length === 0}
                     >
-                      <Redo className="h-4 w-4" />
+                      <Redo className="size-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Refazer</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              
+
               <Separator orientation="vertical" className="h-6" />
-              
+
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="outline" size="icon">
-                      <Save className="h-4 w-4" />
+                      <Save className="size-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Salvar projeto</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              
+
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="outline" size="icon">
-                      <Share2 className="h-4 w-4" />
+                      <Share2 className="size-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Compartilhar</TooltipContent>
@@ -907,89 +939,100 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
             </div>
           </div>
         </CardHeader>
-        
+
         <CardContent className="p-4">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-4 mb-4">
+            <TabsList className="mb-4 grid grid-cols-4">
               <TabsTrigger value="timeline">Linha do Tempo</TabsTrigger>
               <TabsTrigger value="comments">Comentários</TabsTrigger>
               <TabsTrigger value="assets">Assets</TabsTrigger>
               <TabsTrigger value="export">Exportar</TabsTrigger>
             </TabsList>
-            
+
             {/* ABA: LINHA DO TEMPO */}
             <TabsContent value="timeline" className="space-y-4">
               {/* Ferramenta e controles de visualização */}
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
                 <div className="flex space-x-1">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button 
-                          variant={selectedTool === 'select' ? 'default' : 'outline'}
+                        <Button
+                          variant={
+                            selectedTool === 'select' ? 'default' : 'outline'
+                          }
                           size="icon"
                           onClick={() => handleToolSelect('select')}
                         >
-                          <Move className="h-4 w-4" />
+                          <Move className="size-4" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>Selecionar</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                  
+
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button 
-                          variant={selectedTool === 'cut' ? 'default' : 'outline'}
+                        <Button
+                          variant={
+                            selectedTool === 'cut' ? 'default' : 'outline'
+                          }
                           size="icon"
                           onClick={() => handleToolSelect('cut')}
                         >
-                          <Scissors className="h-4 w-4" />
+                          <Scissors className="size-4" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>Cortar</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                  
+
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button 
-                          variant={selectedTool === 'pen' ? 'default' : 'outline'}
+                        <Button
+                          variant={
+                            selectedTool === 'pen' ? 'default' : 'outline'
+                          }
                           size="icon"
                           onClick={() => handleToolSelect('pen')}
                         >
-                          <SquarePen className="h-4 w-4" />
+                          <SquarePen className="size-4" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>Desenhar</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                  
+
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button 
-                          variant={selectedTool === 'text' ? 'default' : 'outline'}
+                        <Button
+                          variant={
+                            selectedTool === 'text' ? 'default' : 'outline'
+                          }
                           size="icon"
                           onClick={() => handleToolSelect('text')}
                         >
-                          <Type className="h-4 w-4" />
+                          <Type className="size-4" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>Texto</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                  
-                  <Separator orientation="vertical" className="h-8 mx-1" />
-                  
-                  <Select defaultValue="video1" onValueChange={setSelectedLayer}>
+
+                  <Separator orientation="vertical" className="mx-1 h-8" />
+
+                  <Select
+                    defaultValue="video1"
+                    onValueChange={setSelectedLayer}
+                  >
                     <SelectTrigger className="w-[200px]">
                       <SelectValue placeholder="Selecionar camada" />
                     </SelectTrigger>
                     <SelectContent>
-                      {layers.map((layer) => (
+                      {layers.map(layer => (
                         <SelectItem key={layer.id} value={layer.id}>
                           {layer.name}
                         </SelectItem>
@@ -997,111 +1040,126 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="flex items-center space-x-1">
                   <Button variant="outline" size="icon" onClick={handleZoomOut}>
-                    <ZoomOut className="h-4 w-4" />
+                    <ZoomOut className="size-4" />
                   </Button>
                   <span className="text-sm font-medium">{zoomLevel}%</span>
                   <Button variant="outline" size="icon" onClick={handleZoomIn}>
-                    <ZoomIn className="h-4 w-4" />
+                    <ZoomIn className="size-4" />
                   </Button>
                 </div>
               </div>
-              
+
               {/* Área da linha do tempo */}
-              <div 
-                ref={timelineRef} 
-                className="border rounded-md p-4 h-64 overflow-x-auto"
+              <div
+                ref={timelineRef}
+                className="h-64 overflow-x-auto rounded-md border p-4"
                 style={{
                   backgroundSize: `${zoomLevel / 10}px 10px`,
-                  backgroundImage: 'repeating-linear-gradient(90deg, #444, #444 1px, transparent 1px, transparent 100%)',
+                  backgroundImage:
+                    'repeating-linear-gradient(90deg, #444, #444 1px, transparent 1px, transparent 100%)',
                 }}
               >
                 {/* Régua de tempo */}
-                <div className="h-8 mb-2 relative">
-                  {Array.from({ length: Math.ceil(duration / 5) + 1 }).map((_, index) => (
-                    <div 
-                      key={`tick-${index}`} 
-                      className="absolute top-0 text-xs"
-                      style={{ left: `${(index * 5 * zoomLevel) / 5}px` }}
-                    >
-                      {formatTime(index * 5)}
-                    </div>
-                  ))}
+                <div className="relative mb-2 h-8">
+                  {Array.from({ length: Math.ceil(duration / 5) + 1 }).map(
+                    (_, index) => (
+                      <div
+                        key={`tick-${index}`}
+                        className="absolute top-0 text-xs"
+                        style={{ left: `${(index * 5 * zoomLevel) / 5}px` }}
+                      >
+                        {formatTime(index * 5)}
+                      </div>
+                    )
+                  )}
                 </div>
-                
+
                 {/* Indicador de posição atual */}
-                <div 
-                  className="absolute top-8 bottom-0 w-[2px] bg-red-500 z-10"
-                  style={{ 
+                <div
+                  className="absolute bottom-0 top-8 z-10 w-[2px] bg-red-500"
+                  style={{
                     left: `${(timelinePosition * zoomLevel) / 5}px`,
                     height: 'calc(100% - 3rem)',
                   }}
                 />
-                
+
                 {/* Camadas e clips */}
                 {layers.map((layer, layerIndex) => (
-                  <div 
+                  <div
                     key={layer.id}
-                    className="flex items-center h-12 mb-2 relative"
+                    className="relative mb-2 flex h-12 items-center"
                   >
-                    <div className="flex items-center justify-between w-32 pr-2">
+                    <div className="flex w-32 items-center justify-between pr-2">
                       <div className="flex items-center">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6 mr-1"
+                          className="mr-1 size-6"
                           onClick={() => {
                             setLayers(
-                              layers.map((l) =>
-                                l.id === layer.id ? { ...l, visible: !l.visible } : l
+                              layers.map(l =>
+                                l.id === layer.id
+                                  ? { ...l, visible: !l.visible }
+                                  : l
                               )
                             )
                           }}
-                          aria-label={layer.visible ? "Esconder camada" : "Mostrar camada"}
+                          aria-label={
+                            layer.visible ? 'Esconder camada' : 'Mostrar camada'
+                          }
                         >
                           {layer.visible ? (
-                            <Eye className="h-4 w-4" />
+                            <Eye className="size-4" />
                           ) : (
-                            <EyeOff className="h-4 w-4" />
+                            <EyeOff className="size-4" />
                           )}
                         </Button>
-                        
+
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6"
+                          className="size-6"
                           onClick={() => {
                             setLayers(
-                              layers.map((l) =>
-                                l.id === layer.id ? { ...l, locked: !l.locked } : l
+                              layers.map(l =>
+                                l.id === layer.id
+                                  ? { ...l, locked: !l.locked }
+                                  : l
                               )
                             )
                           }}
-                          aria-label={layer.locked ? "Desbloquear camada" : "Bloquear camada"}
+                          aria-label={
+                            layer.locked
+                              ? 'Desbloquear camada'
+                              : 'Bloquear camada'
+                          }
                         >
                           {layer.locked ? (
-                            <Lock className="h-4 w-4" />
+                            <Lock className="size-4" />
                           ) : (
-                            <Unlock className="h-4 w-4" />
+                            <Unlock className="size-4" />
                           )}
                         </Button>
                       </div>
-                      <span className="text-xs font-medium truncate">
+                      <span className="truncate text-xs font-medium">
                         {layer.name}
                       </span>
                     </div>
-                    
+
                     {/* Clipes nesta camada */}
-                    <div className="flex-1 relative h-full">
+                    <div className="relative h-full flex-1">
                       {clips
-                        .filter((clip) => clip.layer === layer.id)
-                        .map((clip) => (
+                        .filter(clip => clip.layer === layer.id)
+                        .map(clip => (
                           <div
                             key={clip.id}
-                            className={`absolute top-0 h-full rounded-md flex items-center justify-center text-xs font-medium text-white cursor-pointer transition-all ${
-                              selectedClip === clip.id ? 'ring-2 ring-white' : ''
+                            className={`absolute top-0 flex h-full cursor-pointer items-center justify-center rounded-md text-xs font-medium text-white transition-all ${
+                              selectedClip === clip.id
+                                ? 'ring-2 ring-white'
+                                : ''
                             }`}
                             style={{
                               left: `${(clip.start * zoomLevel) / 5}px`,
@@ -1111,18 +1169,18 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
                             onClick={() => handleClipSelect(clip.id)}
                           >
                             <span className="truncate px-2">{clip.name}</span>
-                            
+
                             {selectedClip === clip.id && (
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-6 w-6 absolute right-0"
-                                onClick={(e) => {
+                                className="absolute right-0 size-6"
+                                onClick={e => {
                                   e.stopPropagation()
                                   handleClipDelete(clip.id)
                                 }}
                               >
-                                <X className="h-3 w-3" />
+                                <X className="size-3" />
                               </Button>
                             )}
                           </div>
@@ -1130,18 +1188,18 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
                     </div>
                   </div>
                 ))}
-                
+
                 {/* Marcadores */}
-                <div className="flex-1 relative h-4 mt-4">
-                  {markers.map((marker) => (
+                <div className="relative mt-4 h-4 flex-1">
+                  {markers.map(marker => (
                     <div
                       key={marker.id}
-                      className={`absolute top-0 h-4 w-4 -translate-x-1/2 cursor-pointer ${
+                      className={`absolute top-0 size-4 -translate-x-1/2 cursor-pointer ${
                         marker.type === 'chapter'
                           ? 'bg-green-500'
                           : marker.type === 'comment'
-                          ? 'bg-blue-500'
-                          : 'bg-red-500'
+                            ? 'bg-blue-500'
+                            : 'bg-red-500'
                       } rounded-full`}
                       style={{
                         left: `${(marker.time * zoomLevel) / 5}px`,
@@ -1151,15 +1209,20 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <div className="w-full h-full"></div>
+                            <div className="size-full"></div>
                           </TooltipTrigger>
                           <TooltipContent side="bottom">
                             <span className="font-medium">
-                              {marker.type === 'chapter' ? 'Capítulo: ' : 
-                               marker.type === 'comment' ? 'Comentário: ' : 'Problema: '}
+                              {marker.type === 'chapter'
+                                ? 'Capítulo: '
+                                : marker.type === 'comment'
+                                  ? 'Comentário: '
+                                  : 'Problema: '}
                               {marker.label}
                             </span>
-                            <div className="text-xs opacity-70">{formatTime(marker.time)}</div>
+                            <div className="text-xs opacity-70">
+                              {formatTime(marker.time)}
+                            </div>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -1167,38 +1230,46 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
                   ))}
                 </div>
               </div>
-              
+
               {/* Controles da linha do tempo */}
               <div className="flex justify-between">
                 <div className="flex space-x-2">
                   <Button variant="outline" size="sm" onClick={handleClipAdd}>
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="mr-2 size-4" />
                     Adicionar Clip
                   </Button>
-                  
+
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" size="sm">
-                        <Plus className="h-4 w-4 mr-2" />
+                        <Plus className="mr-2 size-4" />
                         Adicionar Marcador
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                      <DropdownMenuItem onClick={() => handleAddMarker('chapter')}>
+                      <DropdownMenuItem
+                        onClick={() => handleAddMarker('chapter')}
+                      >
                         Capítulo
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleAddMarker('comment')}>
+                      <DropdownMenuItem
+                        onClick={() => handleAddMarker('comment')}
+                      >
                         Comentário
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleAddMarker('issue')}>
+                      <DropdownMenuItem
+                        onClick={() => handleAddMarker('issue')}
+                      >
                         Problema
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
-                  <Label htmlFor="layer-visibility" className="text-sm">Camadas:</Label>
+                  <Label htmlFor="layer-visibility" className="text-sm">
+                    Camadas:
+                  </Label>
                   <Select defaultValue="all">
                     <SelectTrigger className="w-[150px]" id="layer-visibility">
                       <SelectValue placeholder="Visualização" />
@@ -1213,7 +1284,7 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
                 </div>
               </div>
             </TabsContent>
-            
+
             {/* ABA: COMENTÁRIOS */}
             <TabsContent value="comments" className="space-y-4">
               {/* Adicionar comentário */}
@@ -1222,7 +1293,7 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
                   <Textarea
                     placeholder="Adicionar comentário..."
                     value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
+                    onChange={e => setNewComment(e.target.value)}
                   />
                 </div>
                 <div className="flex flex-col space-y-2">
@@ -1234,11 +1305,11 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
                       <SelectValue placeholder="Categoria" />
                     </SelectTrigger>
                     <SelectContent>
-                      {COMMENT_COLORS.map((category) => (
+                      {COMMENT_COLORS.map(category => (
                         <SelectItem key={category.id} value={category.id}>
                           <div className="flex items-center">
-                            <div 
-                              className="w-3 h-3 rounded-full mr-2"
+                            <div
+                              className="mr-2 size-3 rounded-full"
                               style={{ backgroundColor: category.color }}
                             />
                             {category.name}
@@ -1252,18 +1323,20 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
                   </Button>
                 </div>
               </div>
-              
+
               {/* Filtros e visualização */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <Label htmlFor="comment-filter" className="text-sm">Filtrar:</Label>
+                  <Label htmlFor="comment-filter" className="text-sm">
+                    Filtrar:
+                  </Label>
                   <Select defaultValue="all">
                     <SelectTrigger className="w-[150px]" id="comment-filter">
                       <SelectValue placeholder="Categoria" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todas categorias</SelectItem>
-                      {COMMENT_COLORS.map((category) => (
+                      {COMMENT_COLORS.map(category => (
                         <SelectItem key={category.id} value={category.id}>
                           {category.name}
                         </SelectItem>
@@ -1272,48 +1345,59 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
                   </Select>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Label className="text-sm cursor-pointer">
-                    <input 
-                      type="checkbox" 
+                  <Label className="cursor-pointer text-sm">
+                    <input
+                      type="checkbox"
                       className="mr-2"
                       checked={showResolvedComments}
-                      onChange={() => setShowResolvedComments(!showResolvedComments)}
+                      onChange={() =>
+                        setShowResolvedComments(!showResolvedComments)
+                      }
                     />
                     Mostrar resolvidos
                   </Label>
                 </div>
               </div>
-              
+
               {/* Lista de comentários */}
               <ScrollArea className="h-[400px] pr-4">
                 <div className="space-y-4">
                   {comments
-                    .filter((comment) => showResolvedComments || !comment.isResolved)
-                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                    .map((comment) => {
-                      const commentCategory = COMMENT_COLORS.find(
-                        (c) => c.id === comment.colorCategory
-                      ) || COMMENT_COLORS[0]
-                      
+                    .filter(
+                      comment => showResolvedComments || !comment.isResolved
+                    )
+                    .sort(
+                      (a, b) =>
+                        new Date(b.createdAt).getTime() -
+                        new Date(a.createdAt).getTime()
+                    )
+                    .map(comment => {
+                      const commentCategory =
+                        COMMENT_COLORS.find(
+                          c => c.id === comment.colorCategory
+                        ) || COMMENT_COLORS[0]
+
                       return (
                         <div
                           key={comment.id}
-                          className={`border rounded-lg p-3 transition-opacity ${
+                          className={`rounded-lg border p-3 transition-opacity ${
                             comment.isResolved ? 'opacity-60' : ''
                           }`}
                         >
-                          <div className="flex justify-between items-start mb-2">
+                          <div className="mb-2 flex items-start justify-between">
                             <div className="flex items-center">
-                              <Avatar className="h-6 w-6 mr-2">
+                              <Avatar className="mr-2 size-6">
                                 <AvatarFallback>
                                   {comment.author.slice(0, 2).toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
-                              <span className="font-medium text-sm">{comment.author}</span>
-                              <Badge 
-                                variant="outline" 
+                              <span className="text-sm font-medium">
+                                {comment.author}
+                              </span>
+                              <Badge
+                                variant="outline"
                                 className="ml-2 text-xs"
-                                style={{ 
+                                style={{
                                   borderColor: commentCategory.color,
                                   color: commentCategory.color,
                                 }}
@@ -1322,83 +1406,100 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
                               </Badge>
                             </div>
                             <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <Clock className="h-3 w-3" />
+                              <Clock className="size-3" />
                               <span>{formatTime(comment.time)}</span>
-                              <Button 
+                              <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-6 w-6 ml-1"
+                                className="ml-1 size-6"
                                 onClick={() => handleTimeUpdate(comment.time)}
                               >
-                                <Play className="h-3 w-3" />
+                                <Play className="size-3" />
                               </Button>
                             </div>
                           </div>
-                          <p className="text-sm mb-2">{comment.text}</p>
-                          <div className="flex justify-between items-center">
+                          <p className="mb-2 text-sm">{comment.text}</p>
+                          <div className="flex items-center justify-between">
                             <span className="text-xs text-muted-foreground">
-                              {new Date(comment.createdAt).toLocaleDateString()} {new Date(comment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              {new Date(comment.createdAt).toLocaleDateString()}{' '}
+                              {new Date(comment.createdAt).toLocaleTimeString(
+                                [],
+                                { hour: '2-digit', minute: '2-digit' }
+                              )}
                             </span>
                             <div className="flex gap-1">
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-7 w-7"
-                                onClick={() => handleToggleCommentResolution(comment.id)}
-                                aria-label={comment.isResolved ? "Marcar como não resolvido" : "Marcar como resolvido"}
+                                className="size-7"
+                                onClick={() =>
+                                  handleToggleCommentResolution(comment.id)
+                                }
+                                aria-label={
+                                  comment.isResolved
+                                    ? 'Marcar como não resolvido'
+                                    : 'Marcar como resolvido'
+                                }
                               >
                                 {comment.isResolved ? (
-                                  <MessageSquare className="h-4 w-4" />
+                                  <MessageSquare className="size-4" />
                                 ) : (
-                                  <Check className="h-4 w-4" />
+                                  <Check className="size-4" />
                                 )}
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-7 w-7 text-destructive"
+                                className="size-7 text-destructive"
                                 onClick={() => handleDeleteComment(comment.id)}
                                 aria-label="Excluir comentário"
                               >
-                                <X className="h-4 w-4" />
+                                <X className="size-4" />
                               </Button>
                             </div>
                           </div>
                         </div>
                       )
                     })}
-                    
+
                   {comments.length === 0 && (
                     <div className="p-8 text-center text-muted-foreground">
-                      <MessageSquare className="h-10 w-10 mx-auto opacity-20 mb-2" />
+                      <MessageSquare className="mx-auto mb-2 size-10 opacity-20" />
                       <p>Nenhum comentário adicionado.</p>
-                      <p className="text-sm">Adicione o primeiro comentário acima.</p>
+                      <p className="text-sm">
+                        Adicione o primeiro comentário acima.
+                      </p>
                     </div>
                   )}
                 </div>
               </ScrollArea>
             </TabsContent>
-            
+
             {/* ABA: ASSETS */}
             <TabsContent value="assets" className="space-y-4">
               {/* Upload e filtros */}
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <Input 
-                    placeholder="Buscar assets..." 
+                  <Input
+                    placeholder="Buscar assets..."
                     className="w-80"
                     value={searchAssetQuery}
-                    onChange={(e) => setSearchAssetQuery(e.target.value)}
+                    onChange={e => setSearchAssetQuery(e.target.value)}
                   />
-                  <Button variant="outline" onClick={() => setSearchAssetQuery('')}>
-                    <Filter className="h-4 w-4 mr-2" />
+                  <Button
+                    variant="outline"
+                    onClick={() => setSearchAssetQuery('')}
+                  >
+                    <Filter className="mr-2 size-4" />
                     Limpar
                   </Button>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Select
                     value={selectedAssetType || 'all'}
-                    onValueChange={(value) => setSelectedAssetType(value === 'all' ? null : value)}
+                    onValueChange={value =>
+                      setSelectedAssetType(value === 'all' ? null : value)
+                    }
                   >
                     <SelectTrigger className="w-[150px]">
                       <SelectValue placeholder="Tipo" />
@@ -1415,7 +1516,7 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading}
                   >
-                    <FilePlus className="h-4 w-4 mr-2" />
+                    <FilePlus className="mr-2 size-4" />
                     Adicionar
                   </Button>
                   <input
@@ -1427,7 +1528,7 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
                   />
                 </div>
               </div>
-              
+
               {/* Progresso de upload */}
               {isUploading && (
                 <div className="space-y-2">
@@ -1438,44 +1539,49 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
                   <Progress value={uploadProgress} />
                 </div>
               )}
-              
+
               {/* Lista de assets */}
               <div className="grid grid-cols-3 gap-4">
-                {filteredAssets.map((asset) => (
+                {filteredAssets.map(asset => (
                   <Card key={asset.id}>
                     <CardContent className="p-3">
-                      <div className="aspect-video bg-muted rounded flex items-center justify-center overflow-hidden mb-2">
+                      <div className="mb-2 flex aspect-video items-center justify-center overflow-hidden rounded bg-muted">
                         {asset.type === 'image' ? (
                           <img
                             src={asset.url}
                             alt={asset.name}
-                            className="w-full h-full object-cover"
+                            className="size-full object-cover"
                           />
                         ) : asset.type === 'audio' ? (
-                          <Music className="h-10 w-10 text-muted-foreground" />
+                          <Music className="size-10 text-muted-foreground" />
                         ) : (
-                          <div className="relative w-full h-full bg-black">
+                          <div className="relative size-full bg-black">
                             <video
                               src={asset.url}
-                              className="w-full h-full object-cover"
+                              className="size-full object-cover"
                               controls={false}
                               muted
                               playsInline
                             />
-                            <Play className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-8 w-8 text-white/80" />
+                            <Play className="absolute left-1/2 top-1/2 size-8 -translate-x-1/2 -translate-y-1/2 text-white/80" />
                           </div>
                         )}
                       </div>
-                      
-                      <div className="flex justify-between items-start">
+
+                      <div className="flex items-start justify-between">
                         <div>
-                          <h4 className="font-medium text-sm truncate" title={asset.name}>
+                          <h4
+                            className="truncate text-sm font-medium"
+                            title={asset.name}
+                          >
                             {asset.name}
                           </h4>
                           <div className="flex items-center text-xs text-muted-foreground">
                             <span className="capitalize">{asset.type}</span>
                             <span className="mx-1">•</span>
-                            <span>{(asset.size / 1024 / 1024).toFixed(1)} MB</span>
+                            <span>
+                              {(asset.size / 1024 / 1024).toFixed(1)} MB
+                            </span>
                             {asset.duration && (
                               <>
                                 <span className="mx-1">•</span>
@@ -1486,8 +1592,13 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
                         </div>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Opções do asset">
-                              <Settings className="h-4 w-4" />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8"
+                              aria-label="Opções do asset"
+                            >
+                              <Settings className="size-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
@@ -1497,7 +1608,7 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
                             <DropdownMenuItem onClick={() => {}}>
                               Download
                             </DropdownMenuItem>
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               className="text-destructive"
                               onClick={() => handleDeleteAsset(asset.id)}
                             >
@@ -1509,27 +1620,29 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
                     </CardContent>
                   </Card>
                 ))}
-                
+
                 {filteredAssets.length === 0 && (
                   <div className="col-span-3 p-8 text-center text-muted-foreground">
-                    <FilePlus className="h-10 w-10 mx-auto opacity-20 mb-2" />
+                    <FilePlus className="mx-auto mb-2 size-10 opacity-20" />
                     <p>Nenhum asset encontrado.</p>
                     <p className="text-sm">
-                      {searchAssetQuery || selectedAssetType ? 
-                        'Tente mudar os filtros.' : 
-                        'Adicione arquivos para começar.'}
+                      {searchAssetQuery || selectedAssetType
+                        ? 'Tente mudar os filtros.'
+                        : 'Adicione arquivos para começar.'}
                     </p>
                   </div>
                 )}
               </div>
             </TabsContent>
-            
+
             {/* ABA: EXPORTAR */}
             <TabsContent value="export" className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">Configurações de Exportação</CardTitle>
+                    <CardTitle className="text-base">
+                      Configurações de Exportação
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
@@ -1548,7 +1661,7 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
                         </SelectContent>
                       </Select>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="export-quality">Qualidade</Label>
                       <Select
@@ -1565,18 +1678,18 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
                         </SelectContent>
                       </Select>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="export-range">Intervalo de tempo</Label>
                       <div className="flex items-center space-x-2">
-                        <Input 
+                        <Input
                           id="export-range-start"
                           type="text"
                           placeholder="00:00"
                           defaultValue="00:00"
                         />
                         <span>até</span>
-                        <Input 
+                        <Input
                           id="export-range-end"
                           type="text"
                           placeholder="02:00"
@@ -1584,17 +1697,17 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
                         />
                       </div>
                     </div>
-                    
+
                     <div className="pt-2">
-                      <Button 
-                        className="w-full" 
+                      <Button
+                        className="w-full"
                         onClick={handleExport}
                         disabled={isExporting}
                       >
-                        <Download className="h-4 w-4 mr-2" />
+                        <Download className="mr-2 size-4" />
                         {isExporting ? 'Exportando...' : 'Exportar vídeo'}
                       </Button>
-                      
+
                       {isExporting && (
                         <div className="mt-2 space-y-1">
                           <div className="flex justify-between text-sm">
@@ -1607,10 +1720,12 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
                     </div>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">Versões Anteriores</CardTitle>
+                    <CardTitle className="text-base">
+                      Versões Anteriores
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <Table>
@@ -1623,23 +1738,25 @@ export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {SAMPLE_VERSIONS.map((version) => (
+                        {SAMPLE_VERSIONS.map(version => (
                           <TableRow key={version.id}>
-                            <TableCell className="font-medium">{version.name}</TableCell>
+                            <TableCell className="font-medium">
+                              {version.name}
+                            </TableCell>
                             <TableCell>
                               {version.uploadedAt.toLocaleDateString()}
                             </TableCell>
                             <TableCell>{version.createdBy}</TableCell>
                             <TableCell>
                               <Button variant="ghost" size="icon">
-                                <Download className="h-4 w-4" />
+                                <Download className="size-4" />
                               </Button>
                             </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
                     </Table>
-                    
+
                     {SAMPLE_VERSIONS.length === 0 && (
                       <div className="p-4 text-center text-muted-foreground">
                         <p>Nenhuma versão anterior disponível.</p>

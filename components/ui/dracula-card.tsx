@@ -33,13 +33,13 @@ export function DraculaCard({
       className={`overflow-hidden transition-all hover:shadow-dracula-hover ${className}`}
     >
       <CardHeader
-        className={`bg-dracula-selection ${isMobile ? 'p-3 pb-3' : 'pb-4'}`}
+        className={`bg-dracula-selection ${isMobile ? 'p-3' : 'pb-4'}`}
       >
         <CardTitle
           className={`flex items-center gap-2 font-medium text-dracula-foreground ${isMobile ? 'text-base' : ''}`}
         >
           <Code
-            className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-dracula-purple`}
+            className={`${isMobile ? 'size-4' : 'size-5'} text-dracula-purple`}
           />
           {title}
         </CardTitle>
@@ -55,18 +55,18 @@ export function DraculaCard({
 
         {codeExample && (
           <div
-            className={`mt-3 md:mt-4 dracula-code ${isMobile ? 'text-xs' : 'text-sm'} overflow-auto p-2 md:p-3`}
+            className={`dracula-code mt-3 md:mt-4 ${isMobile ? 'text-xs' : 'text-sm'} overflow-auto p-2 md:p-3`}
           >
             <pre>{codeExample}</pre>
           </div>
         )}
       </CardContent>
 
-      <CardFooter className="border-t border-dracula-comment flex justify-between bg-dracula-background/50 p-3">
+      <CardFooter className="flex justify-between border-t border-dracula-comment bg-dracula-background/50 p-3">
         <span className="text-xs text-dracula-comment">Tema Dracula</span>
         <Button
           size="sm"
-          className={`dracula-gradient text-white ${isMobile ? 'text-xs px-2 py-1 h-7' : 'text-xs'} shadow-sm hover:shadow-dracula-hover hover:opacity-90`}
+          className={`dracula-gradient text-white ${isMobile ? 'h-7 px-2 py-1 text-xs' : 'text-xs'} shadow-sm hover:opacity-90 hover:shadow-dracula-hover`}
         >
           Ação
         </Button>

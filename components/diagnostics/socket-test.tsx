@@ -3,7 +3,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useEffect, useState } from 'react'
 import useSocket from '@/hooks/use-socket'
@@ -80,8 +80,8 @@ export default function SocketConnectionTest() {
 
     if (testResults.proxyTest) {
       return (
-        <Alert className="border-green-500 bg-green-50 dark:bg-green-950 dark:border-green-900 mt-4">
-          <CheckCircle2 className="h-5 w-5 text-green-500" />
+        <Alert className="mt-4 border-green-500 bg-green-50 dark:border-green-900 dark:bg-green-950">
+          <CheckCircle2 className="size-5 text-green-500" />
           <AlertTitle>Conexão bem-sucedida</AlertTitle>
           <AlertDescription>
             A conexão com o servidor Socket.io está funcionando corretamente
@@ -91,8 +91,8 @@ export default function SocketConnectionTest() {
       )
     } else {
       return (
-        <Alert className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950 dark:border-yellow-900 mt-4">
-          <AlertTriangle className="h-5 w-5 text-yellow-500" />
+        <Alert className="mt-4 border-yellow-500 bg-yellow-50 dark:border-yellow-900 dark:bg-yellow-950">
+          <AlertTriangle className="size-5 text-yellow-500" />
           <AlertTitle>Problemas na conexão</AlertTitle>
           <AlertDescription className="space-y-2">
             <p>
@@ -114,7 +114,7 @@ export default function SocketConnectionTest() {
             )}
             <div className="mt-2 text-sm">
               <h4 className="font-bold">Sugestões:</h4>
-              <ul className="list-disc pl-5 space-y-1 mt-1">
+              <ul className="mt-1 list-disc space-y-1 pl-5">
                 <li>
                   Verifique se o servidor Socket.io está em execução na porta
                   3001
@@ -136,8 +136,8 @@ export default function SocketConnectionTest() {
   }
 
   return (
-    <div className="p-4 border rounded-md">
-      <h3 className="text-lg font-medium mb-4">
+    <div className="rounded-md border p-4">
+      <h3 className="mb-4 text-lg font-medium">
         Diagnóstico de Conexão Socket.io
       </h3>
 
@@ -146,11 +146,11 @@ export default function SocketConnectionTest() {
           <span>Status atual da conexão:</span>
           {connected ? (
             <span className="flex items-center text-green-600">
-              <CheckCircle2 className="h-4 w-4 mr-1" /> Conectado
+              <CheckCircle2 className="mr-1 size-4" /> Conectado
             </span>
           ) : (
             <span className="flex items-center text-red-600">
-              <XCircle className="h-4 w-4 mr-1" /> Desconectado
+              <XCircle className="mr-1 size-4" /> Desconectado
             </span>
           )}
         </div>

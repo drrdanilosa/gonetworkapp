@@ -14,35 +14,39 @@ interface BriefingTabProps {
 }
 
 export default function BriefingTab({ eventId }: BriefingTabProps) {
-  const { briefing, loading, error, saveBriefing, refetch } = useBriefing(eventId)
+  const { briefing, loading, error, saveBriefing, refetch } =
+    useBriefing(eventId)
   const { toast } = useToast()
-  
+
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     const data = Object.fromEntries(formData.entries())
-    
-    const success = await saveBriefing(data)
-    
-    if (success) {
+
+    try {
+      await saveBriefing(data)
       toast({
-        title: "Sucesso",
-        description: "Briefing salvo com sucesso",
-        variant: "default",
+        title: 'Sucesso',
+        description: 'Briefing salvo com sucesso',
+        variant: 'default',
       })
-    } else {
+    } catch (error) {
+      console.error('Erro ao salvar briefing:', error)
       toast({
-        title: "Erro",
-        description: "Não foi possível salvar o briefing",
-        variant: "destructive",
+        title: 'Erro',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível salvar o briefing',
+        variant: 'destructive',
       })
     }
   }
-  
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="space-y-4 w-full max-w-2xl">
+        <div className="w-full max-w-2xl space-y-4">
           <Skeleton className="h-8 w-1/2" />
           <Skeleton className="h-72 w-full" />
           <Skeleton className="h-10 w-1/4" />
@@ -50,117 +54,132 @@ export default function BriefingTab({ eventId }: BriefingTabProps) {
       </div>
     )
   }
-  
+
   if (error) {
     return (
       <div className="p-8 text-center">
-        <Card className="p-6 text-center space-y-4 bg-destructive/10 border-destructive">
-          <AlertCircle className="h-10 w-10 text-destructive mx-auto" />
+        <Card className="space-y-4 border-destructive bg-destructive/10 p-6 text-center">
+          <AlertCircle className="mx-auto size-10 text-destructive" />
           <h3 className="text-xl font-bold">Erro ao carregar briefing</h3>
           <p>{error}</p>
           <Button variant="outline" onClick={() => refetch()}>
-            <RefreshCw className="mr-2 h-4 w-4" />
+            <RefreshCw className="mr-2 size-4" />
             Tentar novamente
           </Button>
         </Card>
       </div>
     )
   }
-  
+
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6">Briefing do Evento</h2>
-      
+      <h2 className="mb-6 text-2xl font-bold">Briefing do Evento</h2>
+
       {briefing ? (
         <form onSubmit={handleSave} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Nome do Projeto</label>
-                <Input 
-                  name="projectName" 
-                  defaultValue={briefing.projectName || ''} 
+                <label className="mb-1 block text-sm font-medium">
+                  Nome do Projeto
+                </label>
+                <Input
+                  name="projectName"
+                  defaultValue={briefing.projectName || ''}
                   placeholder="Ex: Lançamento Produto XYZ"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium mb-1">Cliente</label>
-                <Input 
-                  name="client" 
-                  defaultValue={briefing.client || ''} 
+                <label className="mb-1 block text-sm font-medium">
+                  Cliente
+                </label>
+                <Input
+                  name="client"
+                  defaultValue={briefing.client || ''}
                   placeholder="Nome do cliente"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium mb-1">Data do Evento</label>
-                <Input 
-                  type="date" 
-                  name="eventDate" 
-                  defaultValue={briefing.eventDate || ''} 
+                <label className="mb-1 block text-sm font-medium">
+                  Data do Evento
+                </label>
+                <Input
+                  type="date"
+                  name="eventDate"
+                  defaultValue={briefing.eventDate || ''}
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium mb-1">Local</label>
-                <Input 
-                  name="location" 
-                  defaultValue={briefing.location || ''} 
-                  placeholder="Endereço ou local do evento" 
+                <label className="mb-1 block text-sm font-medium">Local</label>
+                <Input
+                  name="location"
+                  defaultValue={briefing.location || ''}
+                  placeholder="Endereço ou local do evento"
                 />
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Descrição</label>
-                <Textarea 
-                  name="description" 
-                  defaultValue={briefing.description || ''} 
+                <label className="mb-1 block text-sm font-medium">
+                  Descrição
+                </label>
+                <Textarea
+                  name="description"
+                  defaultValue={briefing.description || ''}
                   placeholder="Descrição detalhada do evento"
                   rows={4}
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium mb-1">Público Alvo</label>
-                <Input 
-                  name="targetAudience" 
-                  defaultValue={briefing.targetAudience || ''} 
+                <label className="mb-1 block text-sm font-medium">
+                  Público Alvo
+                </label>
+                <Input
+                  name="targetAudience"
+                  defaultValue={briefing.targetAudience || ''}
                   placeholder="Perfil do público esperado"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium mb-1">Requisitos Especiais</label>
-                <Textarea 
-                  name="specialRequirements" 
-                  defaultValue={briefing.specialRequirements || ''} 
+                <label className="mb-1 block text-sm font-medium">
+                  Requisitos Especiais
+                </label>
+                <Textarea
+                  name="specialRequirements"
+                  defaultValue={briefing.specialRequirements || ''}
                   placeholder="Requisitos específicos para o evento"
                   rows={3}
                 />
               </div>
             </div>
           </div>
-          
+
           <div className="flex justify-end gap-3">
             <Button type="button" variant="outline" onClick={() => refetch()}>
-              <RefreshCw className="mr-2 h-4 w-4" />
+              <RefreshCw className="mr-2 size-4" />
               Atualizar
             </Button>
             <Button type="submit">
-              <Check className="mr-2 h-4 w-4" />
+              <Check className="mr-2 size-4" />
               Salvar Briefing
             </Button>
           </div>
         </form>
       ) : (
-        <div className="text-center py-12">
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-6">
-            <h3 className="text-lg font-medium mb-2">Nenhum briefing encontrado</h3>
-            <p className="text-muted-foreground mb-4">
-              Crie um novo briefing para este evento preenchendo as informações abaixo.
+        <div className="py-12 text-center">
+          <div className="rounded-md border border-blue-200 bg-blue-50 p-6">
+            <h3 className="mb-2 text-lg font-medium">
+              Nenhum briefing encontrado
+            </h3>
+            <p className="mb-4 text-muted-foreground">
+              Crie um novo briefing para este evento preenchendo as informações
+              abaixo.
             </p>
             <Button onClick={() => saveBriefing({ eventId })}>
               Criar Novo Briefing

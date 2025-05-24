@@ -20,13 +20,13 @@ export async function GET(
 ) {
   try {
     const { eventId } = params
-    
+
     // Ler dados existentes
     const briefingData = await readBriefingData()
-    
+
     // Buscar o briefing específico
     const briefing = briefingData[eventId]
-    
+
     if (briefing) {
       return NextResponse.json(briefing, { status: 200 })
     } else {
@@ -51,10 +51,10 @@ export async function PUT(
   try {
     const { eventId } = params
     const updates = await request.json()
-    
+
     // Ler dados existentes
     const briefingData = await readBriefingData()
-    
+
     // Verificar se o briefing existe
     if (!briefingData[eventId]) {
       return NextResponse.json(
@@ -62,17 +62,17 @@ export async function PUT(
         { status: 404 }
       )
     }
-    
+
     // Atualizar o briefing
     briefingData[eventId] = {
       ...briefingData[eventId],
       ...updates,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     }
-    
+
     // Salvar dados atualizados
     await fs.writeFile(DATA_FILE, JSON.stringify(briefingData, null, 2))
-    
+
     return NextResponse.json(briefingData[eventId], { status: 200 })
   } catch (error) {
     console.error('Erro ao atualizar briefing:', error)
@@ -89,10 +89,10 @@ export async function DELETE(
 ) {
   try {
     const { eventId } = params
-    
+
     // Ler dados existentes
     const briefingData = await readBriefingData()
-    
+
     // Verificar se o briefing existe
     if (!briefingData[eventId]) {
       return NextResponse.json(
@@ -100,13 +100,13 @@ export async function DELETE(
         { status: 404 }
       )
     }
-    
+
     // Remover o briefing
     delete briefingData[eventId]
-    
+
     // Salvar dados atualizados
     await fs.writeFile(DATA_FILE, JSON.stringify(briefingData, null, 2))
-    
+
     return NextResponse.json(
       { success: true, message: 'Briefing removido com sucesso' },
       { status: 200 }

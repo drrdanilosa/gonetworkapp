@@ -283,7 +283,7 @@ export const useProjectsStore = create<ProjectsStore>()(
             })
 
             // Adicionar tarefa de revisão se não existir
-            let updatedTasks = [...(project.tasks || [])]
+            const updatedTasks = [...(project.tasks || [])]
             const reviewTaskExists = updatedTasks.some(
               task =>
                 task.title.includes('Revisão') && task.status === 'pending'
@@ -354,7 +354,7 @@ export const useProjectsStore = create<ProjectsStore>()(
               if (video.id !== deliverableId) return video
 
               // Adicionar comentário se fornecido
-              let updatedComments = [...(video.comments || [])]
+              const updatedComments = [...(video.comments || [])]
               if (commentText) {
                 updatedComments.push({
                   id: Date.now().toString(),
@@ -375,7 +375,7 @@ export const useProjectsStore = create<ProjectsStore>()(
             })
 
             // Adicionar tarefa de alterações
-            let updatedTasks = [...(project.tasks || [])]
+            const updatedTasks = [...(project.tasks || [])]
             updatedTasks.push({
               id: Date.now().toString(),
               title: 'Implementar alterações solicitadas',

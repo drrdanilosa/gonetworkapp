@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
@@ -69,7 +69,7 @@ export default function ExportPreview({
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
-      <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col">
+      <DialogContent className="flex max-h-[90vh] flex-col sm:max-w-[800px]">
         <DialogHeader>
           <DialogTitle>Prévia da Exportação</DialogTitle>
           <DialogDescription>
@@ -77,16 +77,16 @@ export default function ExportPreview({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 min-h-0 overflow-hidden rounded-md border my-4">
+        <div className="my-4 min-h-0 flex-1 overflow-hidden rounded-md border">
           {isLoading ? (
-            <div className="w-full h-full flex items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <div className="flex size-full items-center justify-center">
+              <Loader2 className="size-8 animate-spin text-muted-foreground" />
             </div>
           ) : format === 'pdf' ? (
-            <iframe src={previewUrl} className="w-full h-full" />
+            <iframe src={previewUrl} className="size-full" />
           ) : (
-            <div className="bg-secondary/20 p-4 h-full overflow-auto">
-              <pre className="text-xs whitespace-pre-wrap">{previewUrl}</pre>
+            <div className="h-full overflow-auto bg-secondary/20 p-4">
+              <pre className="whitespace-pre-wrap text-xs">{previewUrl}</pre>
             </div>
           )}
         </div>
@@ -101,13 +101,13 @@ export default function ExportPreview({
               onClick={() => window.open(previewUrl, '_blank')}
               disabled={isDownloading}
             >
-              <Eye className="mr-2 h-4 w-4" />
+              <Eye className="mr-2 size-4" />
               Abrir em Nova Aba
             </Button>
           )}
           <Button onClick={handleDownload} disabled={isDownloading}>
-            {isDownloading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            <Download className="mr-2 h-4 w-4" />
+            {isDownloading && <Loader2 className="mr-2 size-4 animate-spin" />}
+            <Download className="mr-2 size-4" />
             Download {format.toUpperCase()}
           </Button>
         </DialogFooter>

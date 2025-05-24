@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useState } from 'react'
 import { VideoPlayerWithComments } from '@/components/video/video-player-with-comments'
@@ -63,11 +63,11 @@ export default function TestVideoPlayer() {
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6">
+      <h1 className="mb-6 text-2xl font-bold">
         Teste do VideoPlayerWithComments
       </h1>
 
-      <div className="max-w-4xl mx-auto">
+      <div className="mx-auto max-w-4xl">
         <VideoPlayerWithComments
           src="/exemplo.mp4" // Substitua pelo caminho correto de um vídeo de exemplo
           comments={comments}

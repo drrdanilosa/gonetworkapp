@@ -28,16 +28,36 @@ export default function GenerateTimelineButton({
   const [isOpen, setIsOpen] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
 
+  // Debug logs
+  console.log('🔍 GenerateTimelineButton rendered with:', {
+    projectId,
+    disabled,
+  })
+
+  // Debug logs
+  console.log('🔍 GenerateTimelineButton rendered with:', {
+    projectId,
+    disabled,
+  })
+
   // Função para gerar a timeline a partir dos dados do briefing
   const handleGenerateTimeline = async () => {
-    if (!projectId) return
+    console.log('🚀 handleGenerateTimeline called with projectId:', projectId)
+    if (!projectId) {
+      console.error('❌ No projectId provided!')
+      return
+    }
 
     setIsLoading(true)
     setIsComplete(false)
 
+    console.log('🔄 Starting timeline generation...')
+
     try {
       // Primeiro, verificar se existe um briefing salvo
+      console.log('📋 Checking briefing for projectId:', projectId)
       const briefingResponse = await fetch(`/api/briefings/${projectId}`)
+      console.log('📋 Briefing response status:', briefingResponse.status)
       if (!briefingResponse.ok) {
         throw new Error(
           'Não foi possível carregar os dados do briefing. Certifique-se de salvar o briefing primeiro.'
@@ -45,9 +65,10 @@ export default function GenerateTimelineButton({
       }
 
       const briefingData = await briefingResponse.json()
-      console.log('Dados do briefing carregados:', briefingData)
+      console.log('📋 Briefing data loaded:', briefingData)
 
       // Gerar a timeline usando a API
+      console.log('⚡ Calling timeline API...')
       const timelineResponse = await fetch(`/api/timeline/${projectId}`, {
         method: 'POST',
         headers: {
@@ -59,13 +80,16 @@ export default function GenerateTimelineButton({
         }),
       })
 
+      console.log('⚡ Timeline API response status:', timelineResponse.status)
+
       if (!timelineResponse.ok) {
         const errorData = await timelineResponse.json()
+        console.error('❌ Timeline API error:', errorData)
         throw new Error(errorData.error || 'Erro ao gerar timeline')
       }
 
       const generatedTimeline = await timelineResponse.json()
-      console.log('Timeline gerada com sucesso:', generatedTimeline)
+      console.log('✅ Timeline gerada com sucesso:', generatedTimeline)
 
       setIsComplete(true)
 
@@ -74,9 +98,21 @@ export default function GenerateTimelineButton({
       }
 
       // Fechar o modal após um momento
-      setTimeout(() => setIsOpen(false), 2000)
+      setTimeout(() => {
+        setIsOpen(false)
+        setIsComplete(false) // Reset para próxima geração
+      }, 3000)
     } catch (error) {
-      console.error('Erro ao gerar timeline:', error)
+      console.error('❌ Erro ao gerar timeline:', error)
+
+      // Melhor feedback de erro
+      let errorMessage = 'Erro desconhecido ao gerar timeline'
+      if (error instanceof Error) {
+        errorMessage = error.message
+      }
+
+      console.error('Detalhes do erro:', errorMessage)
+
       if (onGenerated) {
         onGenerated(false)
       }
@@ -93,7 +129,7 @@ export default function GenerateTimelineButton({
           onClick={() => setIsOpen(true)}
           disabled={disabled || !projectId}
         >
-          <Clock className="h-4 w-4 mr-2" />
+          <Clock className="mr-2 size-4" />
           Gerar Timeline
         </Button>
       </DialogTrigger>
@@ -108,7 +144,7 @@ export default function GenerateTimelineButton({
         {isLoading ? (
           <div className="flex items-center justify-center py-10">
             <div className="flex flex-col items-center gap-2">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <Loader2 className="size-8 animate-spin text-primary" />
               <p className="text-sm text-muted-foreground">
                 Processando dados do briefing...
               </p>
@@ -119,7 +155,7 @@ export default function GenerateTimelineButton({
             <div className="flex flex-col items-center gap-2 text-success">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8"
+                className="size-8"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
@@ -141,7 +177,7 @@ export default function GenerateTimelineButton({
               Esta ação irá gerar uma timeline com base nos dados atuais do
               briefing:
             </p>
-            <ul className="list-disc list-inside space-y-1 mt-2 text-sm">
+            <ul className="mt-2 list-inside list-disc space-y-1 text-sm">
               <li>Datas e horários do evento</li>
               <li>Patrocinadores e suas ativações</li>
               <li>Programação de palcos e atrações</li>

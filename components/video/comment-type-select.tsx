@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import * as React from 'react'
 import { Check, ChevronsUpDown } from 'lucide-react'
@@ -54,12 +54,12 @@ export function CommentTypeSelect({
         >
           <div className="flex items-center">
             <div
-              className="w-3 h-3 rounded-full mr-2"
+              className="mr-2 size-3 rounded-full"
               style={{ backgroundColor: selectedOption?.color || '#BD93F9' }}
             />
             {selectedOption?.name || 'Selecione o tipo'}
           </div>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0">
@@ -78,14 +78,14 @@ export function CommentTypeSelect({
               >
                 <div className="flex items-center">
                   <div
-                    className="w-3 h-3 rounded-full mr-2"
+                    className="mr-2 size-3 rounded-full"
                     style={{ backgroundColor: option.color }}
                   />
                   {option.name}
                 </div>
                 <Check
                   className={cn(
-                    'ml-auto h-4 w-4',
+                    'ml-auto size-4',
                     value === option.id ? 'opacity-100' : 'opacity-0'
                   )}
                 />

@@ -7,10 +7,12 @@ Este relatório descreve as implementações realizadas para corrigir o problema
 ## Problemas Identificados e Resolvidos
 
 1. **Erro "Invalid time value" no Timeline Widget**
+
    - Implementamos a função `formatProjectDate()` para tratamento seguro de datas
    - Substituímos formatações inseguras por métodos robustos que validam as datas
 
 2. **Inconsistência de Dados Entre Abas**
+
    - Implementamos um sistema de persistência em arquivos JSON
    - Criamos APIs REST para buscar e salvar dados de briefing
 
@@ -51,12 +53,15 @@ Este relatório descreve as implementações realizadas para corrigir o problema
 ## Próximos Passos
 
 1. **Migração para Banco de Dados Relacional**
+
    - Substituir a persistência em arquivo por uma solução mais robusta como MySQL/PostgreSQL
 
 2. **Validação de Dados**
+
    - Implementar validação com Zod para garantir integridade dos dados
 
 3. **Cache e Otimização**
+
    - Adicionar SWR ou React Query para otimizar a experiência do usuário
 
 4. **Atualizações em Tempo Real**

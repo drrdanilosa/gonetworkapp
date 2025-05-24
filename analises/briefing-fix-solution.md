@@ -3,6 +3,7 @@
 ## 🔍 Confirmação do Diagnóstico
 
 O diagnóstico está **100% correto**. O problema é uma **incompatibilidade arquitetural** entre:
+
 - **Cliente**: Usa Zustand para gerenciar estado (onde eventos são criados)
 - **Servidor**: Tenta acessar Zustand via `getState()` nas API routes (impossível)
 - **Resultado**: Aba BRIEFING só vê dados mockados/hardcoded, não os eventos reais
@@ -105,32 +106,32 @@ export async function GET(req: NextRequest) {
     const status = searchParams.get('status')
     const client = searchParams.get('client')
     const sort = searchParams.get('sort') || 'desc'
-    
+
     console.log('🔍 [GET /api/events] Buscando eventos...')
-    
+
     let events = await readEventsData()
     console.log(`📊 [GET /api/events] Encontrados ${events.length} eventos`)
-    
+
     // Aplicar filtros
     if (status) {
       events = events.filter(p => p.status === status)
       console.log(`🔍 Filtro status "${status}": ${events.length} eventos`)
     }
-    
+
     if (client) {
-      events = events.filter(p => 
+      events = events.filter(p =>
         p.client?.toLowerCase().includes(client.toLowerCase())
       )
       console.log(`🔍 Filtro cliente "${client}": ${events.length} eventos`)
     }
-    
+
     // Ordenação
     events.sort((a, b) => {
       const dateA = new Date(a.createdAt || a.date || 0).getTime()
       const dateB = new Date(b.createdAt || b.date || 0).getTime()
       return sort === 'desc' ? dateB - dateA : dateA - dateB
     })
-    
+
     const responseData = {
       success: true,
       count: events.length,
@@ -148,13 +149,12 @@ export async function GET(req: NextRequest) {
         description: p.description,
         tags: p.tags,
         team: p.team,
-        briefing: p.briefing
+        briefing: p.briefing,
       })),
     }
-    
+
     console.log('✅ [GET /api/events] Resposta enviada com sucesso')
     return NextResponse.json(responseData)
-    
   } catch (error) {
     console.error('❌ [GET /api/events] Erro:', error)
     return NextResponse.json(
@@ -162,7 +162,7 @@ export async function GET(req: NextRequest) {
         success: false,
         error: 'Erro interno ao processar eventos',
         details: error instanceof Error ? error.message : String(error),
-      }, 
+      },
       { status: 500 }
     )
   }
@@ -172,19 +172,22 @@ export async function POST(req: Request) {
   try {
     const data = await req.json()
     console.log('📝 [POST /api/events] Dados recebidos:', data)
-    
+
     const { title, client, date, team, briefing, description, tags } = data
-    
+
     if (!title) {
-      return NextResponse.json({
-        success: false,
-        error: 'O título do evento é obrigatório'
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'O título do evento é obrigatório',
+        },
+        { status: 400 }
+      )
     }
-    
+
     const newId = data.id || uuidv4()
     const now = new Date().toISOString()
-    
+
     const newEvent = {
       id: newId,
       title,
@@ -209,40 +212,54 @@ export async function POST(req: Request) {
         notifyOnUpload: true,
       },
     }
-    
-    console.log('🆕 [POST /api/events] Criando evento:', newEvent.id, '-', newEvent.title)
-    
+
+    console.log(
+      '🆕 [POST /api/events] Criando evento:',
+      newEvent.id,
+      '-',
+      newEvent.title
+    )
+
     // Ler eventos existentes
     const events = await readEventsData()
-    
+
     // Verificar se já existe
     const existingIndex = events.findIndex(e => e.id === newId)
     if (existingIndex >= 0) {
       // Atualizar existente
-      events[existingIndex] = { ...events[existingIndex], ...newEvent, updatedAt: now }
+      events[existingIndex] = {
+        ...events[existingIndex],
+        ...newEvent,
+        updatedAt: now,
+      }
       console.log('🔄 [POST /api/events] Evento atualizado:', newId)
     } else {
       // Adicionar novo
       events.push(newEvent)
       console.log('✅ [POST /api/events] Novo evento adicionado:', newId)
     }
-    
+
     // Salvar
     await saveEventsData(events)
-    
-    return NextResponse.json({
-      success: true,
-      message: 'Evento criado com sucesso',
-      event: newEvent
-    }, { status: 201 })
-    
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Evento criado com sucesso',
+        event: newEvent,
+      },
+      { status: 201 }
+    )
   } catch (error) {
     console.error('❌ [POST /api/events] Erro ao criar evento:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Erro interno ao criar evento',
-      details: error instanceof Error ? error.message : String(error),
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Erro interno ao criar evento',
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 }
+    )
   }
 }
 ```
@@ -253,7 +270,11 @@ export async function POST(req: Request) {
 
 ```typescript
 import { NextRequest, NextResponse } from 'next/server'
-import { findEventById, readEventsData, saveEventsData } from '@/lib/dataManager'
+import {
+  findEventById,
+  readEventsData,
+  saveEventsData,
+} from '@/lib/dataManager'
 
 export async function GET(
   req: Request,
@@ -262,7 +283,7 @@ export async function GET(
   try {
     const eventId = context.params?.eventId
     console.log(`🔍 [GET /api/events/${eventId}] Buscando evento...`)
-    
+
     if (!eventId) {
       return NextResponse.json(
         { error: 'ID de evento inválido' },
@@ -280,11 +301,16 @@ export async function GET(
       )
     }
 
-    console.log(`✅ [GET /api/events/${eventId}] Evento encontrado:`, event.title)
+    console.log(
+      `✅ [GET /api/events/${eventId}] Evento encontrado:`,
+      event.title
+    )
     return NextResponse.json(event, { status: 200 })
-    
   } catch (error) {
-    console.error(`❌ [GET /api/events/${context.params?.eventId}] Erro:`, error)
+    console.error(
+      `❌ [GET /api/events/${context.params?.eventId}] Erro:`,
+      error
+    )
     return NextResponse.json(
       { error: 'Erro ao buscar evento' },
       { status: 500 }
@@ -299,9 +325,9 @@ export async function PUT(
   try {
     const eventId = context.params?.eventId
     const updateData = await req.json()
-    
+
     console.log(`🔄 [PUT /api/events/${eventId}] Atualizando evento...`)
-    
+
     if (!eventId) {
       return NextResponse.json(
         { error: 'ID de evento inválido' },
@@ -323,14 +349,13 @@ export async function PUT(
     events[eventIndex] = {
       ...events[eventIndex],
       ...updateData,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     }
 
     await saveEventsData(events)
-    
+
     console.log(`✅ [PUT /api/events/${eventId}] Evento atualizado com sucesso`)
     return NextResponse.json(events[eventIndex], { status: 200 })
-    
   } catch (error) {
     console.error(`❌ [PUT /api/events/${eventId}] Erro:`, error)
     return NextResponse.json(
@@ -347,7 +372,7 @@ export async function DELETE(
   try {
     const eventId = context.params?.eventId
     console.log(`🗑️ [DELETE /api/events/${eventId}] Deletando evento...`)
-    
+
     if (!eventId) {
       return NextResponse.json(
         { error: 'ID de evento inválido' },
@@ -368,13 +393,14 @@ export async function DELETE(
     // Remover evento
     events.splice(eventIndex, 1)
     await saveEventsData(events)
-    
-    console.log(`✅ [DELETE /api/events/${eventId}] Evento deletado com sucesso`)
+
+    console.log(
+      `✅ [DELETE /api/events/${eventId}] Evento deletado com sucesso`
+    )
     return NextResponse.json(
       { message: 'Evento deletado com sucesso' },
       { status: 200 }
     )
-    
   } catch (error) {
     console.error(`❌ [DELETE /api/events/${eventId}] Erro:`, error)
     return NextResponse.json(
@@ -391,7 +417,11 @@ export async function DELETE(
 
 ```typescript
 import { NextRequest, NextResponse } from 'next/server'
-import { findEventById, readBriefingsData, saveBriefingsData } from '@/lib/dataManager'
+import {
+  findEventById,
+  readBriefingsData,
+  saveBriefingsData,
+} from '@/lib/dataManager'
 
 export async function GET(
   req: Request,
@@ -400,7 +430,7 @@ export async function GET(
   try {
     const eventId = context.params?.eventId
     console.log(`🔍 [GET /api/briefings/${eventId}] Buscando briefing...`)
-    
+
     if (!eventId) {
       return NextResponse.json(
         { error: 'ID de evento inválido' },
@@ -423,7 +453,9 @@ export async function GET(
     const briefing = briefings[eventId]
 
     if (!briefing) {
-      console.log(`⚠️ [GET /api/briefings/${eventId}] Briefing não encontrado, retornando template`)
+      console.log(
+        `⚠️ [GET /api/briefings/${eventId}] Briefing não encontrado, retornando template`
+      )
       // Retornar template vazio se não existe
       const templateBriefing = {
         eventId,
@@ -436,16 +468,23 @@ export async function GET(
           target: { title: 'Público-Alvo', content: '', completed: false },
           timeline: { title: 'Cronograma', content: '', completed: false },
           deliverables: { title: 'Entregáveis', content: '', completed: false },
-          requirements: { title: 'Requisitos Técnicos', content: '', completed: false },
-          notes: { title: 'Observações Adicionais', content: '', completed: false }
-        }
+          requirements: {
+            title: 'Requisitos Técnicos',
+            content: '',
+            completed: false,
+          },
+          notes: {
+            title: 'Observações Adicionais',
+            content: '',
+            completed: false,
+          },
+        },
       }
       return NextResponse.json(templateBriefing, { status: 200 })
     }
 
     console.log(`✅ [GET /api/briefings/${eventId}] Briefing encontrado`)
     return NextResponse.json(briefing, { status: 200 })
-    
   } catch (error) {
     console.error(`❌ [GET /api/briefings/${eventId}] Erro:`, error)
     return NextResponse.json(
@@ -462,9 +501,9 @@ export async function PUT(
   try {
     const eventId = context.params?.eventId
     const briefingData = await req.json()
-    
+
     console.log(`💾 [PUT /api/briefings/${eventId}] Salvando briefing...`)
-    
+
     if (!eventId) {
       return NextResponse.json(
         { error: 'ID de evento inválido' },
@@ -488,17 +527,16 @@ export async function PUT(
       eventTitle: event.title,
       client: event.client,
       updatedAt: new Date().toISOString(),
-      createdAt: briefingData.createdAt || new Date().toISOString()
+      createdAt: briefingData.createdAt || new Date().toISOString(),
     }
 
     // Salvar briefing
     const briefings = await readBriefingsData()
     briefings[eventId] = updatedBriefing
     await saveBriefingsData(briefings)
-    
+
     console.log(`✅ [PUT /api/briefings/${eventId}] Briefing salvo com sucesso`)
     return NextResponse.json(updatedBriefing, { status: 200 })
-    
   } catch (error) {
     console.error(`❌ [PUT /api/briefings/${eventId}] Erro:`, error)
     return NextResponse.json(
@@ -536,11 +574,11 @@ export function useEventSync() {
         try {
           // Verificar se o evento já existe no servidor
           const response = await fetch(`/api/events/${project.id}`)
-          
+
           if (response.status === 404) {
             // Evento não existe no servidor, criar
             console.log(`🔄 Sincronizando evento: ${project.title}`)
-            
+
             await fetch('/api/events', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -560,14 +598,17 @@ export function useEventSync() {
                 tasks: project.tasks,
                 deadline: project.deadline,
                 thumbnail: project.thumbnail,
-                deliverySettings: project.deliverySettings
-              })
+                deliverySettings: project.deliverySettings,
+              }),
             })
-            
+
             console.log(`✅ Evento sincronizado: ${project.title}`)
           }
         } catch (error) {
-          console.error(`❌ Erro ao sincronizar evento ${project.title}:`, error)
+          console.error(
+            `❌ Erro ao sincronizar evento ${project.title}:`,
+            error
+          )
         }
       }
     }
@@ -594,7 +635,7 @@ export default function RootLayout({
 }) {
   // Adicionar o hook de sincronização
   useEventSync()
-  
+
   return (
     <html lang="en">
       <body>

@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import type React from 'react'
 import { useState, useEffect } from 'react'
@@ -47,17 +47,17 @@ export default function EditingPage({
     selectProject(params.eventId)
   }, [params.eventId, selectProject])
 
-  // Garantir que o projeto atual esteja carregado
-  if (!currentProject) {
-    return <div className="p-8 text-center">Carregando projeto...</div>
-  }
-
-  // Selecionar o primeiro deliverable por padrão
+  // Colocando o useEffect antes de qualquer retorno condicional
   useEffect(() => {
     if (!selectedDeliverableId && currentProject?.videos?.length > 0) {
       setSelectedDeliverableId(currentProject.videos[0].id)
     }
-  }, [currentProject, selectedDeliverableId])
+  }, [currentProject, selectedDeliverableId, setSelectedDeliverableId])
+
+  // Garantir que o projeto atual esteja carregado
+  if (!currentProject) {
+    return <div className="p-8 text-center">Carregando projeto...</div>
+  }
 
   const selectedDeliverable = currentProject.videos.find(
     v => v.id === selectedDeliverableId
@@ -175,10 +175,10 @@ export default function EditingPage({
 
         {currentProject.videos.map(video => (
           <TabsContent key={video.id} value={video.id} className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-semibold">{video.title}</h2>
-                <div className="flex items-center gap-2 mt-1">
+                <div className="mt-1 flex items-center gap-2">
                   <Badge
                     variant={
                       video.versions?.some(v => v.approved)
@@ -267,7 +267,7 @@ export default function EditingPage({
             {hasVersions && activeVersion ? (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-medium mb-2">
+                  <h3 className="mb-2 text-lg font-medium">
                     Versão {activeVersion.name}
                   </h3>
                   <VideoPlayerWithComments
@@ -282,11 +282,11 @@ export default function EditingPage({
                 )}
               </div>
             ) : (
-              <div className="text-center py-12 border rounded-lg">
-                <h3 className="text-lg font-medium mb-2">
+              <div className="rounded-lg border py-12 text-center">
+                <h3 className="mb-2 text-lg font-medium">
                   Nenhum vídeo enviado ainda
                 </h3>
-                <p className="text-muted-foreground mb-4">
+                <p className="mb-4 text-muted-foreground">
                   {isEditor
                     ? 'Envie um vídeo para iniciar o processo de revisão.'
                     : 'O editor ainda não enviou nenhum vídeo.'}

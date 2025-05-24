@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
@@ -27,7 +27,7 @@ export default function SplashScreen() {
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-background">
-      <div className="flex flex-col items-center justify-center space-y-6 p-8 rounded-xl">
+      <div className="flex flex-col items-center justify-center space-y-6 rounded-xl p-8">
         <Image
           src="/logo_gonetwork.png"
           alt="GoNetwork AI Logo"
@@ -36,7 +36,7 @@ export default function SplashScreen() {
           className="mb-4"
         />
         <h1 className="text-3xl font-bold text-primary">GoNetwork AI</h1>
-        <div className="w-64 h-2 bg-secondary rounded-full overflow-hidden">
+        <div className="h-2 w-64 overflow-hidden rounded-full bg-secondary">
           <div
             className={cn(
               'h-full bg-primary transition-all duration-300 ease-out'

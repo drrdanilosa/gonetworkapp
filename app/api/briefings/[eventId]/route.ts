@@ -1,14 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { findEventById, readBriefingsData, saveBriefingsData } from '@/lib/dataManager'
+import { NextResponse } from 'next/server'
+import {
+  findEventById,
+  readBriefingsData,
+  saveBriefingsData,
+} from '@/lib/dataManager'
 
 export async function GET(
-  req: Request,
+  _req: Request,
   context: { params: { eventId: string } }
 ) {
   try {
-    const eventId = context.params?.eventId
+    const { eventId } = context.params
     console.log(`🔍 [GET /api/briefings/${eventId}] Buscando briefing...`)
-    
+
     if (!eventId) {
       return NextResponse.json(
         { error: 'ID de evento inválido' },
@@ -31,7 +35,9 @@ export async function GET(
     const briefing = briefings[eventId]
 
     if (!briefing) {
-      console.log(`⚠️ [GET /api/briefings/${eventId}] Briefing não encontrado, retornando template`)
+      console.log(
+        `⚠️ [GET /api/briefings/${eventId}] Briefing não encontrado, retornando template`
+      )
       // Retornar template vazio se não existe
       const templateBriefing = {
         eventId,
@@ -44,18 +50,28 @@ export async function GET(
           target: { title: 'Público-Alvo', content: '', completed: false },
           timeline: { title: 'Cronograma', content: '', completed: false },
           deliverables: { title: 'Entregáveis', content: '', completed: false },
-          requirements: { title: 'Requisitos Técnicos', content: '', completed: false },
-          notes: { title: 'Observações Adicionais', content: '', completed: false }
-        }
+          requirements: {
+            title: 'Requisitos Técnicos',
+            content: '',
+            completed: false,
+          },
+          notes: {
+            title: 'Observações Adicionais',
+            content: '',
+            completed: false,
+          },
+        },
       }
       return NextResponse.json(templateBriefing, { status: 200 })
     }
 
     console.log(`✅ [GET /api/briefings/${eventId}] Briefing encontrado`)
     return NextResponse.json(briefing, { status: 200 })
-    
   } catch (error) {
-    console.error(`❌ [GET /api/briefings/${eventId}] Erro:`, error)
+    console.error(
+      `❌ [GET /api/briefings/${context.params.eventId}] Erro:`,
+      error
+    )
     return NextResponse.json(
       { error: 'Erro ao buscar briefing' },
       { status: 500 }
@@ -68,11 +84,11 @@ export async function PUT(
   context: { params: { eventId: string } }
 ) {
   try {
-    const eventId = context.params?.eventId
+    const { eventId } = context.params
     const briefingData = await req.json()
-    
+
     console.log(`💾 [PUT /api/briefings/${eventId}] Salvando briefing...`)
-    
+
     if (!eventId) {
       return NextResponse.json(
         { error: 'ID de evento inválido' },
@@ -96,19 +112,21 @@ export async function PUT(
       eventTitle: event.title,
       client: event.client,
       updatedAt: new Date().toISOString(),
-      createdAt: briefingData.createdAt || new Date().toISOString()
+      createdAt: briefingData.createdAt || new Date().toISOString(),
     }
 
     // Salvar briefing
     const briefings = await readBriefingsData()
     briefings[eventId] = updatedBriefing
     await saveBriefingsData(briefings)
-    
+
     console.log(`✅ [PUT /api/briefings/${eventId}] Briefing salvo com sucesso`)
     return NextResponse.json(updatedBriefing, { status: 200 })
-    
   } catch (error) {
-    console.error(`❌ [PUT /api/briefings/${eventId}] Erro:`, error)
+    console.error(
+      `❌ [PUT /api/briefings/${context.params.eventId}] Erro:`,
+      error
+    )
     return NextResponse.json(
       { error: 'Erro ao salvar briefing' },
       { status: 500 }

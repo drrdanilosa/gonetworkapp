@@ -490,8 +490,8 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
   }, [projects, updateProject])
 
   return (
-    <div className="animate-in fade-in-50 duration-300">
-      <div className="flex justify-between items-center mb-4">
+    <div className="duration-300 animate-in fade-in-50">
+      <div className="mb-4 flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Briefing</h2>
           <p className="text-muted-foreground">
@@ -525,14 +525,14 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
             disabled={isSaving}
             className="transition-all"
           >
-            <Save className={cn('h-4 w-4 mr-2', isSaving && 'animate-spin')} />
+            <Save className={cn('mr-2 size-4', isSaving && 'animate-spin')} />
             {isSaving ? 'Salvando...' : 'Salvar Briefing'}
           </Button>
         </div>
       </div>
 
       {/* Estatísticas do briefing */}
-      <div className="grid grid-cols-5 gap-2 mb-6">
+      <div className="mb-6 grid grid-cols-5 gap-2">
         <Card className="p-2">
           <CardContent className="p-2 text-center">
             <p className="text-2xl font-bold">{briefingStats.totalSponsors}</p>
@@ -658,22 +658,22 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
 
         {/* Aba: Patrocinadores */}
         <TabsContent value="sponsors" className="mt-6 space-y-6">
-          <p className="text-muted-foreground mb-4">
+          <p className="mb-4 text-muted-foreground">
             Adicione os patrocinadores e defina as ativações que precisarão ser
             registradas durante o evento.
           </p>
 
           <Button onClick={handleAddSponsor} className="mb-4">
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="mr-2 size-4" />
             Novo Patrocinador
           </Button>
 
           {sponsors.length === 0 ? (
-            <div className="text-center p-12 border rounded-lg">
-              <p className="text-lg font-medium mb-2">
+            <div className="rounded-lg border p-12 text-center">
+              <p className="mb-2 text-lg font-medium">
                 Nenhum patrocinador cadastrado
               </p>
-              <p className="text-muted-foreground mb-4">
+              <p className="mb-4 text-muted-foreground">
                 Adicione patrocinadores para definir suas ativações
               </p>
             </div>
@@ -681,10 +681,10 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
             sponsors.map(sponsor => (
               <Card
                 key={sponsor.id}
-                className="border-border mb-4 overflow-hidden"
+                className="mb-4 overflow-hidden border-border"
               >
-                <CardContent className="p-4 space-y-4">
-                  <div className="flex justify-between items-center">
+                <CardContent className="space-y-4 p-4">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Label>Patrocinador:</Label>
                       <Input
@@ -708,7 +708,7 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                       onClick={() => handleRemoveSponsor(sponsor.id)}
                       title="Remover patrocinador"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="size-4" />
                     </Button>
                   </div>
 
@@ -717,8 +717,8 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                   <div className="space-y-4">
                     {sponsor.actions.map(action => (
                       <Card key={action.id} className="bg-secondary/20">
-                        <CardContent className="p-4 space-y-4">
-                          <div className="flex justify-between items-center">
+                        <CardContent className="space-y-4 p-4">
+                          <div className="flex items-center justify-between">
                             <h3 className="font-medium text-primary">
                               Ação / Ativação
                             </h3>
@@ -730,11 +730,11 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                               }
                               title="Remover ação"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="size-4" />
                             </Button>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div className="space-y-2">
                               <Label htmlFor={`action-name-${action.id}`}>
                                 Ação / Ativação:
@@ -866,7 +866,7 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                             </div>
 
                             <div className="space-y-2">
-                              <div className="flex items-center gap-2 h-10">
+                              <div className="flex h-10 items-center gap-2">
                                 <Checkbox
                                   id={`realtime-${action.id}`}
                                   checked={action.isRealTime}
@@ -969,7 +969,7 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                               </>
                             )}
 
-                            <div className="col-span-1 md:col-span-2 space-y-2">
+                            <div className="col-span-1 space-y-2 md:col-span-2">
                               <Label htmlFor={`instructions-${action.id}`}>
                                 Orientações:
                               </Label>
@@ -1011,7 +1011,7 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                     onClick={() => handleAddSponsorAction(sponsor.id)}
                     className="w-full"
                   >
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="mr-2 size-4" />
                     Nova Ação
                   </Button>
                 </CardContent>
@@ -1022,21 +1022,21 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
 
         {/* Aba: Programação */}
         <TabsContent value="schedule" className="mt-6 space-y-6">
-          <p className="text-muted-foreground mb-4">
+          <p className="mb-4 text-muted-foreground">
             Adicione a programação completa do evento, organizada por palco.
           </p>
 
           <Button onClick={handleAddStage} className="mb-4">
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="mr-2 size-4" />
             Novo Palco
           </Button>
 
           {stages.length === 0 ? (
-            <div className="text-center p-12 border rounded-lg">
-              <p className="text-lg font-medium mb-2">
+            <div className="rounded-lg border p-12 text-center">
+              <p className="mb-2 text-lg font-medium">
                 Nenhum palco cadastrado
               </p>
-              <p className="text-muted-foreground mb-4">
+              <p className="mb-4 text-muted-foreground">
                 Adicione palcos para definir a programação
               </p>
             </div>
@@ -1044,10 +1044,10 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
             stages.map(stage => (
               <Card
                 key={stage.id}
-                className="border-border mb-4 overflow-hidden"
+                className="mb-4 overflow-hidden border-border"
               >
-                <CardContent className="p-4 space-y-4">
-                  <div className="flex justify-between items-center">
+                <CardContent className="space-y-4 p-4">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Label>Palco:</Label>
                       <Input
@@ -1071,7 +1071,7 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                       onClick={() => handleRemoveStage(stage.id)}
                       title="Remover palco"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="size-4" />
                     </Button>
                   </div>
 
@@ -1080,8 +1080,8 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                   <div className="space-y-4">
                     {stage.attractions.map(attraction => (
                       <Card key={attraction.id} className="bg-secondary/20">
-                        <CardContent className="p-4 space-y-4">
-                          <div className="flex justify-between items-center">
+                        <CardContent className="space-y-4 p-4">
+                          <div className="flex items-center justify-between">
                             <h3 className="font-medium">Atração</h3>
                             <Button
                               variant="outline"
@@ -1091,11 +1091,11 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                               }
                               title="Remover atração"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="size-4" />
                             </Button>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div className="space-y-2">
                               <Label htmlFor={`artist-${attraction.id}`}>
                                 Artista:
@@ -1150,7 +1150,7 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                               />
                             </div>
 
-                            <div className="col-span-1 md:col-span-2 space-y-2">
+                            <div className="col-span-1 space-y-2 md:col-span-2">
                               <Label htmlFor={`notes-${attraction.id}`}>
                                 Observações:
                               </Label>
@@ -1186,7 +1186,7 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                     ))}
 
                     {stage.attractions.length === 0 && (
-                      <div className="text-center p-8 border-dashed border-2 rounded-md">
+                      <div className="rounded-md border-2 border-dashed p-8 text-center">
                         <p className="text-muted-foreground">
                           Nenhuma atração adicionada neste palco
                         </p>
@@ -1199,7 +1199,7 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                     onClick={() => handleAddAttraction(stage.id)}
                     className="w-full"
                   >
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="mr-2 size-4" />
                     Nova Atração
                   </Button>
                 </CardContent>
@@ -1212,7 +1212,7 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
         <TabsContent value="deliveries" className="mt-6 space-y-6">
           <div className="space-y-6">
             {/* Seção: Entregas Real Time */}
-            <div className="bg-background border rounded-lg p-4 space-y-4">
+            <div className="space-y-4 rounded-lg border bg-background p-4">
               <h3 className="text-lg font-medium text-primary">
                 Entregas Real Time
               </h3>
@@ -1220,8 +1220,8 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
               <div className="space-y-4">
                 {realTimeDeliveries.map(delivery => (
                   <Card key={delivery.id} className="bg-secondary/20">
-                    <CardContent className="p-4 space-y-4">
-                      <div className="flex justify-between items-center">
+                    <CardContent className="space-y-4 p-4">
+                      <div className="flex items-center justify-between">
                         <h3 className="font-medium">Entrega Real Time</h3>
                         <Button
                           variant="outline"
@@ -1231,11 +1231,11 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                           }
                           title="Remover entrega"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="size-4" />
                         </Button>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div className="space-y-2">
                           <Label htmlFor={`delivery-title-${delivery.id}`}>
                             Título/Descrição:
@@ -1291,7 +1291,7 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                                 )
                               }}
                             >
-                              <Clock className="h-4 w-4" />
+                              <Clock className="size-4" />
                             </Button>
                           </div>
                         </div>
@@ -1329,7 +1329,7 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
 
                         <div className="space-y-2">
                           <Label>Plataforma de destino:</Label>
-                          <div className="flex items-center gap-4 h-10">
+                          <div className="flex h-10 items-center gap-4">
                             <div className="flex items-center gap-2">
                               <Checkbox
                                 id={`reels-${delivery.id}`}
@@ -1405,7 +1405,7 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                           </div>
                         </div>
 
-                        <div className="col-span-1 md:col-span-2 space-y-2">
+                        <div className="col-span-1 space-y-2 md:col-span-2">
                           <Label
                             htmlFor={`delivery-instructions-${delivery.id}`}
                           >
@@ -1433,7 +1433,7 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                 ))}
 
                 {realTimeDeliveries.length === 0 && (
-                  <div className="text-center p-8 border-dashed border-2 rounded-md">
+                  <div className="rounded-md border-2 border-dashed p-8 text-center">
                     <p className="text-muted-foreground">
                       Nenhuma entrega real-time configurada
                     </p>
@@ -1442,11 +1442,11 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
               </div>
 
               <Button onClick={handleAddRealTimeDelivery} className="w-full">
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="mr-2 size-4" />
                 Nova Entrega Real Time
               </Button>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="teaser-time">Horário do teaser final:</Label>
                   <Input
@@ -1460,12 +1460,12 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
             </div>
 
             {/* Seção: Entregas Pós-Evento */}
-            <div className="bg-background border rounded-lg p-4 space-y-4">
+            <div className="space-y-4 rounded-lg border bg-background p-4">
               <h3 className="text-lg font-medium text-cyan-500">
                 Entregas Pós-Evento
               </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="deadline">Prazo de entrega:</Label>
                   <div className="flex items-center gap-2">
@@ -1494,7 +1494,7 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                 </div>
               </div>
 
-              <div className="border border-border rounded-md p-4 space-y-2">
+              <div className="space-y-2 rounded-md border border-border p-4">
                 <Label>Opções de pacote:</Label>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">

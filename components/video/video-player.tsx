@@ -2,7 +2,7 @@
 
 'use client'
 
-"use client"
+'use client'
 
 import { useRef, useState, useEffect, forwardRef } from 'react'
 import { Button } from '@/components/ui/button'
@@ -330,7 +330,7 @@ const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
           }
         }}
         className={cn(
-          'relative overflow-hidden bg-black rounded-md',
+          'relative overflow-hidden rounded-md bg-black',
           isFullscreen ? 'fixed inset-0 z-50' : '',
           className
         )}
@@ -338,7 +338,7 @@ const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
         <video
           ref={videoRef}
           src={src}
-          className="w-full h-full object-contain"
+          className="size-full object-contain"
           onClick={togglePlay}
           autoPlay={autoPlay}
         />
@@ -371,7 +371,7 @@ const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
         {isJoined && <RemoteCursors containerRef={containerRef} />}
 
         {/* Annotation Toolbar */}
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">
+        <div className="absolute left-1/2 top-4 z-20 -translate-x-1/2">
           <AnnotationToolbar
             isAnnotationMode={isAnnotationMode}
             setIsAnnotationMode={setIsAnnotationMode}
@@ -385,7 +385,7 @@ const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
         </div>
 
         {/* Video Controls */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 transition-opacity">
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 transition-opacity">
           <div className="flex flex-col gap-2">
             <Slider
               value={[currentTime]}
@@ -403,19 +403,19 @@ const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
                   onClick={skipBackward}
                   className="text-white hover:bg-white/20"
                 >
-                  <SkipBack className="h-4 w-4" />
+                  <SkipBack className="size-4" />
                 </Button>
 
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-10 w-10 rounded-full text-white hover:bg-white/20"
+                  className="size-10 rounded-full text-white hover:bg-white/20"
                   onClick={togglePlay}
                 >
                   {isPlaying ? (
-                    <Pause className="h-5 w-5" />
+                    <Pause className="size-5" />
                   ) : (
-                    <Play className="h-5 w-5" />
+                    <Play className="size-5" />
                   )}
                 </Button>
 
@@ -425,10 +425,10 @@ const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
                   onClick={skipForward}
                   className="text-white hover:bg-white/20"
                 >
-                  <SkipForward className="h-4 w-4" />
+                  <SkipForward className="size-4" />
                 </Button>
 
-                <span className="text-xs text-white ml-2">
+                <span className="ml-2 text-xs text-white">
                   {formatTime(currentTime)} / {formatTime(duration)}
                 </span>
               </div>
@@ -441,9 +441,9 @@ const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
                   className="text-white hover:bg-white/20"
                 >
                   {isMuted ? (
-                    <VolumeX className="h-4 w-4" />
+                    <VolumeX className="size-4" />
                   ) : (
-                    <Volume2 className="h-4 w-4" />
+                    <Volume2 className="size-4" />
                   )}
                 </Button>
 
@@ -462,9 +462,9 @@ const VideoPlayer = forwardRef<HTMLDivElement, VideoPlayerProps>(
                   className="text-white hover:bg-white/20"
                 >
                   {isFullscreen ? (
-                    <Minimize2 className="h-4 w-4" />
+                    <Minimize2 className="size-4" />
                   ) : (
-                    <Maximize2 className="h-4 w-4" />
+                    <Maximize2 className="size-4" />
                   )}
                 </Button>
               </div>

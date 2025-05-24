@@ -1,9 +1,22 @@
-"use client"
+'use client'
 
 import { useState, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Upload, PlayCircle, X, FileVideo, Clock, HardDrive } from 'lucide-react'
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  Upload,
+  PlayCircle,
+  X,
+  FileVideo,
+  Clock,
+  HardDrive,
+} from 'lucide-react'
 import { toast } from '@/components/ui/use-toast'
 import { Progress } from '@/components/ui/progress'
 
@@ -29,12 +42,18 @@ interface VideoUploaderProps {
   acceptedFormats?: string[]
 }
 
-export default function VideoUploader({ 
-  onVideoUpload, 
+export default function VideoUploader({
+  onVideoUpload,
   isDisabled = false,
   eventId,
   maxFileSize = 500, // 500MB por padrão
-  acceptedFormats = ['video/mp4', 'video/mov', 'video/avi', 'video/mkv', 'video/webm']
+  acceptedFormats = [
+    'video/mp4',
+    'video/mov',
+    'video/avi',
+    'video/mkv',
+    'video/webm',
+  ],
 }: VideoUploaderProps) {
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string>('')
@@ -44,7 +63,7 @@ export default function VideoUploader({
   const [dragActive, setDragActive] = useState<boolean>(false)
   const [videoDuration, setVideoDuration] = useState<string>('00:00')
   const fileInputRef = useRef<HTMLInputElement>(null)
-  
+
   // Função para formatar tamanho do arquivo
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes'
@@ -59,7 +78,7 @@ export default function VideoUploader({
     const hours = Math.floor(seconds / 3600)
     const minutes = Math.floor((seconds % 3600) / 60)
     const remainingSeconds = Math.floor(seconds % 60)
-    
+
     if (hours > 0) {
       return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
     }
@@ -68,19 +87,19 @@ export default function VideoUploader({
 
   // Função para obter duração do vídeo
   const getVideoDuration = (file: File): Promise<number> => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const video = document.createElement('video')
       video.preload = 'metadata'
-      
+
       video.onloadedmetadata = () => {
         window.URL.revokeObjectURL(video.src)
         resolve(video.duration)
       }
-      
+
       video.onerror = () => {
         resolve(0)
       }
-      
+
       video.src = URL.createObjectURL(file)
     })
   }
@@ -91,52 +110,52 @@ export default function VideoUploader({
     if (!acceptedFormats.includes(file.type)) {
       return `Formato não suportado. Formatos aceitos: ${acceptedFormats.map(f => f.split('/')[1].toUpperCase()).join(', ')}`
     }
-    
+
     // Verificar tamanho
     const fileSizeMB = file.size / (1024 * 1024)
     if (fileSizeMB > maxFileSize) {
       return `Arquivo muito grande. Tamanho máximo: ${maxFileSize}MB`
     }
-    
+
     return null
   }
-  
+
   const handleFileSelect = async (selectedFile: File) => {
     const validationError = validateFile(selectedFile)
     if (validationError) {
       toast({
-        title: "Arquivo inválido",
+        title: 'Arquivo inválido',
         description: validationError,
-        variant: "destructive"
+        variant: 'destructive',
       })
       return
     }
-    
+
     try {
       setFile(selectedFile)
-      
+
       // Criar preview
       const url = URL.createObjectURL(selectedFile)
       setPreview(url)
-      
+
       // Definir título baseado no nome do arquivo
       const fileName = selectedFile.name.split('.').slice(0, -1).join('.')
       setTitle(fileName)
-      
+
       // Obter duração do vídeo
       const duration = await getVideoDuration(selectedFile)
       setVideoDuration(formatDuration(duration))
-      
+
       toast({
-        title: "Arquivo selecionado",
+        title: 'Arquivo selecionado',
         description: `${selectedFile.name} (${formatFileSize(selectedFile.size)})`,
       })
     } catch (error) {
       console.error('Erro ao processar arquivo:', error)
       toast({
-        title: "Erro",
-        description: "Não foi possível processar o arquivo selecionado.",
-        variant: "destructive"
+        title: 'Erro',
+        description: 'Não foi possível processar o arquivo selecionado.',
+        variant: 'destructive',
       })
     }
   }
@@ -151,9 +170,9 @@ export default function VideoUploader({
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    if (e.type === "dragenter" || e.type === "dragover") {
+    if (e.type === 'dragenter' || e.type === 'dragover') {
       setDragActive(true)
-    } else if (e.type === "dragleave") {
+    } else if (e.type === 'dragleave') {
       setDragActive(false)
     }
   }, [])
@@ -162,12 +181,12 @@ export default function VideoUploader({
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileSelect(e.dataTransfer.files[0])
     }
   }, [])
-  
+
   const handleRemoveFile = () => {
     if (preview) {
       URL.revokeObjectURL(preview)
@@ -180,23 +199,23 @@ export default function VideoUploader({
       fileInputRef.current.value = ''
     }
   }
-  
+
   const handleUpload = async () => {
     if (!file || uploading) return
-    
+
     if (!title.trim()) {
       toast({
-        title: "Título obrigatório",
-        description: "Por favor, defina um título para o vídeo.",
-        variant: "destructive"
+        title: 'Título obrigatório',
+        description: 'Por favor, defina um título para o vídeo.',
+        variant: 'destructive',
       })
       return
     }
-    
+
     try {
       setUploading(true)
       setProgress(0)
-      
+
       // Simular progresso de upload mais realista
       const progressInterval = setInterval(() => {
         setProgress(prev => {
@@ -207,13 +226,13 @@ export default function VideoUploader({
           return prev + Math.random() * 10
         })
       }, 200)
-      
+
       // Simular upload (em produção, aqui seria feita a requisição real)
       await new Promise(resolve => setTimeout(resolve, 3000))
-      
+
       clearInterval(progressInterval)
       setProgress(95)
-      
+
       // Criar metadados do vídeo
       const videoData: VideoData = {
         id: Date.now().toString(),
@@ -226,56 +245,56 @@ export default function VideoUploader({
         uploadDate: new Date().toISOString(),
         localUrl: preview,
         status: 'ready',
-        eventId: eventId
+        eventId: eventId,
       }
-      
+
       // Simular processamento final
       await new Promise(resolve => setTimeout(resolve, 500))
       setProgress(100)
-      
+
       // Enviar dados para o componente pai
       onVideoUpload(videoData)
-      
+
       toast({
-        title: "Upload concluído",
+        title: 'Upload concluído',
         description: `"${title}" foi enviado com sucesso e está pronto para aprovação.`,
       })
-      
+
       // Limpar formulário após sucesso
       setTimeout(() => {
         handleRemoveFile()
         setUploading(false)
         setProgress(0)
       }, 1500)
-      
     } catch (error) {
-      console.error("Erro no upload:", error)
+      console.error('Erro no upload:', error)
       toast({
-        title: "Erro no upload",
-        description: "Não foi possível concluir o upload do vídeo. Tente novamente.",
-        variant: "destructive"
+        title: 'Erro no upload',
+        description:
+          'Não foi possível concluir o upload do vídeo. Tente novamente.',
+        variant: 'destructive',
       })
       setUploading(false)
       setProgress(0)
     }
   }
-  
+
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          <FileVideo className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <FileVideo className="size-5" />
           Upload de Vídeo para Aprovação
         </CardTitle>
       </CardHeader>
       <CardContent>
         {!file ? (
-          <div 
-            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-              isDisabled 
-                ? 'bg-muted cursor-not-allowed border-muted' 
-                : dragActive 
-                  ? 'border-primary bg-primary/5' 
+          <div
+            className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
+              isDisabled
+                ? 'cursor-not-allowed border-muted bg-muted'
+                : dragActive
+                  ? 'border-primary bg-primary/5'
                   : 'cursor-pointer hover:border-primary hover:bg-muted/50'
             }`}
             onClick={() => !isDisabled && fileInputRef.current?.click()}
@@ -292,72 +311,83 @@ export default function VideoUploader({
               onChange={handleInputChange}
               disabled={isDisabled}
             />
-            <Upload className={`mx-auto h-12 w-12 mb-4 ${dragActive ? 'text-primary' : 'text-muted-foreground'}`} />
-            <p className="font-medium text-lg mb-2">
-              {dragActive ? 'Solte o arquivo aqui' : 'Arraste um vídeo ou clique para selecionar'}
+            <Upload
+              className={`mx-auto mb-4 size-12 ${dragActive ? 'text-primary' : 'text-muted-foreground'}`}
+            />
+            <p className="mb-2 text-lg font-medium">
+              {dragActive
+                ? 'Solte o arquivo aqui'
+                : 'Arraste um vídeo ou clique para selecionar'}
             </p>
             <p className="text-sm text-muted-foreground">
-              Formatos suportados: {acceptedFormats.map(f => f.split('/')[1].toUpperCase()).join(', ')}
+              Formatos suportados:{' '}
+              {acceptedFormats
+                .map(f => f.split('/')[1].toUpperCase())
+                .join(', ')}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="mt-1 text-xs text-muted-foreground">
               Tamanho máximo: {maxFileSize}MB
             </p>
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+            <div className="relative aspect-video overflow-hidden rounded-lg bg-black">
               {preview && (
-                <video 
-                  src={preview} 
-                  controls 
-                  className="w-full h-full object-contain"
+                <video
+                  src={preview}
+                  controls
+                  className="size-full object-contain"
                   preload="metadata"
                 />
               )}
-              
+
               {!uploading && (
-                <button 
+                <button
                   onClick={handleRemoveFile}
-                  className="absolute top-2 right-2 bg-red-600/80 hover:bg-red-600 rounded-full p-2 transition-colors"
+                  className="absolute right-2 top-2 rounded-full bg-red-600/80 p-2 transition-colors hover:bg-red-600"
                   title="Remover arquivo"
                 >
-                  <X className="h-4 w-4 text-white" />
+                  <X className="size-4 text-white" />
                 </button>
               )}
             </div>
-            
+
             {/* Informações do arquivo */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
+            <div className="grid grid-cols-1 gap-4 rounded-lg bg-muted/50 p-4 md:grid-cols-3">
               <div className="flex items-center gap-2">
-                <HardDrive className="h-4 w-4 text-muted-foreground" />
+                <HardDrive className="size-4 text-muted-foreground" />
                 <div>
                   <p className="text-xs text-muted-foreground">Tamanho</p>
-                  <p className="text-sm font-medium">{formatFileSize(file.size)}</p>
+                  <p className="text-sm font-medium">
+                    {formatFileSize(file.size)}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-muted-foreground" />
+                <Clock className="size-4 text-muted-foreground" />
                 <div>
                   <p className="text-xs text-muted-foreground">Duração</p>
                   <p className="text-sm font-medium">{videoDuration}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <FileVideo className="h-4 w-4 text-muted-foreground" />
+                <FileVideo className="size-4 text-muted-foreground" />
                 <div>
                   <p className="text-xs text-muted-foreground">Formato</p>
-                  <p className="text-sm font-medium">{file.type.split('/')[1].toUpperCase()}</p>
+                  <p className="text-sm font-medium">
+                    {file.type.split('/')[1].toUpperCase()}
+                  </p>
                 </div>
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Título do vídeo *</label>
               <input
                 type="text"
                 value={title}
                 onChange={e => setTitle(e.target.value)}
-                className="w-full p-3 border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full rounded-md border p-3 focus:border-transparent focus:ring-2 focus:ring-primary"
                 placeholder="Digite um título descritivo para o vídeo"
                 disabled={uploading}
                 maxLength={100}
@@ -366,19 +396,23 @@ export default function VideoUploader({
                 {title.length}/100 caracteres
               </p>
             </div>
-            
+
             {uploading && (
-              <div className="space-y-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-blue-900">Enviando vídeo...</span>
-                  <span className="text-sm font-medium text-blue-700">{Math.round(progress)}%</span>
+              <div className="space-y-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-blue-900">
+                    Enviando vídeo...
+                  </span>
+                  <span className="text-sm font-medium text-blue-700">
+                    {Math.round(progress)}%
+                  </span>
                 </div>
                 <Progress value={progress} className="h-2" />
                 <p className="text-xs text-blue-700">
-                  {progress < 30 && "Preparando arquivo..."}
-                  {progress >= 30 && progress < 70 && "Enviando dados..."}
-                  {progress >= 70 && progress < 95 && "Processando vídeo..."}
-                  {progress >= 95 && "Finalizando..."}
+                  {progress < 30 && 'Preparando arquivo...'}
+                  {progress >= 30 && progress < 70 && 'Enviando dados...'}
+                  {progress >= 70 && progress < 95 && 'Processando vídeo...'}
+                  {progress >= 95 && 'Finalizando...'}
                 </p>
               </div>
             )}
@@ -388,28 +422,28 @@ export default function VideoUploader({
       <CardFooter className="flex justify-between">
         {file && !uploading && (
           <>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={handleRemoveFile}
               className="flex items-center gap-2"
             >
-              <X className="h-4 w-4" />
+              <X className="size-4" />
               Cancelar
             </Button>
-            <Button 
+            <Button
               onClick={handleUpload}
               disabled={!title.trim()}
               className="flex items-center gap-2"
             >
-              <Upload className="h-4 w-4" />
+              <Upload className="size-4" />
               Enviar para Aprovação
             </Button>
           </>
         )}
         {uploading && (
-          <div className="w-full flex justify-center">
+          <div className="flex w-full justify-center">
             <Button disabled className="flex items-center gap-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              <div className="size-4 animate-spin rounded-full border-b-2 border-white"></div>
               Enviando...
             </Button>
           </div>

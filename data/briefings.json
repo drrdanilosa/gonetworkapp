@@ -43,5 +43,374 @@
       }
     ],
     "postEventNotes": "Observações pós-evento de teste"
+  },
+  "980d3d3f-67d7-4e6d-980a-eba09dba2059": {
+    "sections": {
+      "overview": {
+        "title": "Visão Geral",
+        "content": "Data: 2025-06-15\nHorário: 09:00 às 18:00\nLocal: Centro de Convenções\nEvento de teste para validação",
+        "completed": true
+      },
+      "logistics": {
+        "title": "Logística",
+        "content": "Credenciamento: sim\nSala de Imprensa: sim\nInternet: sim",
+        "completed": true
+      }
+    },
+    "formData": {
+      "eventDate": "2025-06-15",
+      "startTime": "09:00",
+      "endTime": "18:00",
+      "eventLocation": "Centro de Convenções",
+      "generalInfo": "Evento de teste para validação do fluxo"
+    },
+    "eventName": "Evento de Teste - Fluxo Completo",
+    "eventLocation": "Centro de Convenções",
+    "sponsors": [
+      {
+        "id": "sponsor-test-1",
+        "name": "Sponsor Principal",
+        "actions": [
+          {
+            "id": "action-test-1",
+            "name": "Apresentação da marca",
+            "captureTime": "10:00",
+            "isRealTime": true
+          }
+        ]
+      }
+    ],
+    "stages": [
+      {
+        "id": "stage-test-1",
+        "name": "Palco Principal",
+        "attractions": [
+          {
+            "id": "attraction-test-1",
+            "name": "Palestra de Abertura",
+            "type": "apresentacao",
+            "duration": 60,
+            "startTime": "09:30"
+          }
+        ]
+      }
+    ],
+    "realTimeDeliveries": [
+      {
+        "id": "rt-test-1",
+        "title": "Post Abertura",
+        "deliveryTime": "10:00",
+        "type": "social"
+      }
+    ],
+    "eventId": "980d3d3f-67d7-4e6d-980a-eba09dba2059",
+    "updatedAt": "2025-05-24T09:57:12.451Z",
+    "createdAt": "2025-05-24T09:57:12.451Z"
+  },
+  "c5d5061f-a619-45ee-ba0b-c245e13a5908": {
+    "sections": {
+      "overview": {
+        "title": "Visão Geral",
+        "content": "Data: 2025-06-15\nHorário: 09:00 às 18:00\nLocal: Centro de Convenções\nEvento de teste para validação",
+        "completed": true
+      },
+      "logistics": {
+        "title": "Logística",
+        "content": "Credenciamento: sim\nSala de Imprensa: sim\nInternet: sim",
+        "completed": true
+      }
+    },
+    "formData": {
+      "eventDate": "2025-06-15",
+      "startTime": "09:00",
+      "endTime": "18:00",
+      "eventLocation": "Centro de Convenções",
+      "generalInfo": "Evento de teste para validação do fluxo"
+    },
+    "eventName": "Evento de Teste - Fluxo Completo",
+    "eventLocation": "Centro de Convenções",
+    "sponsors": [
+      {
+        "id": "sponsor-test-1",
+        "name": "Sponsor Principal",
+        "actions": [
+          {
+            "id": "action-test-1",
+            "name": "Apresentação da marca",
+            "captureTime": "10:00",
+            "isRealTime": true
+          }
+        ]
+      }
+    ],
+    "stages": [
+      {
+        "id": "stage-test-1",
+        "name": "Palco Principal",
+        "attractions": [
+          {
+            "id": "attraction-test-1",
+            "name": "Palestra de Abertura",
+            "type": "apresentacao",
+            "duration": 60,
+            "startTime": "09:30"
+          }
+        ]
+      }
+    ],
+    "realTimeDeliveries": [
+      {
+        "id": "rt-test-1",
+        "title": "Post Abertura",
+        "deliveryTime": "10:00",
+        "type": "social"
+      }
+    ],
+    "eventId": "c5d5061f-a619-45ee-ba0b-c245e13a5908",
+    "updatedAt": "2025-05-24T09:57:45.206Z",
+    "createdAt": "2025-05-24T09:57:45.206Z"
+  },
+  "c22fa920-433d-4152-8ea5-df5ceaa2125e": {
+    "sections": {
+      "overview": {
+        "title": "Visão Geral",
+        "content": "Data: 2025-06-15\nHorário: 09:00 às 18:00\nLocal: Centro de Convenções\nEvento de teste para validação",
+        "completed": true
+      },
+      "logistics": {
+        "title": "Logística",
+        "content": "Credenciamento: sim\nSala de Imprensa: sim\nInternet: sim",
+        "completed": true
+      }
+    },
+    "formData": {
+      "eventDate": "2025-06-15",
+      "startTime": "09:00",
+      "endTime": "18:00",
+      "eventLocation": "Centro de Convenções",
+      "generalInfo": "Evento de teste para validação do fluxo"
+    },
+    "eventName": "Evento de Teste - Fluxo Completo",
+    "eventLocation": "Centro de Convenções",
+    "sponsors": [
+      {
+        "id": "sponsor-test-1",
+        "name": "Sponsor Principal",
+        "actions": [
+          {
+            "id": "action-test-1",
+            "name": "Apresentação da marca",
+            "captureTime": "10:00",
+            "isRealTime": true
+          }
+        ]
+      }
+    ],
+    "stages": [
+      {
+        "id": "stage-test-1",
+        "name": "Palco Principal",
+        "attractions": [
+          {
+            "id": "attraction-test-1",
+            "name": "Palestra de Abertura",
+            "type": "apresentacao",
+            "duration": 60,
+            "startTime": "09:30"
+          }
+        ]
+      }
+    ],
+    "realTimeDeliveries": [
+      {
+        "id": "rt-test-1",
+        "title": "Post Abertura",
+        "deliveryTime": "10:00",
+        "type": "social"
+      }
+    ],
+    "eventId": "c22fa920-433d-4152-8ea5-df5ceaa2125e",
+    "updatedAt": "2025-05-24T09:57:55.927Z",
+    "createdAt": "2025-05-24T09:57:55.927Z"
+  },
+  "test-event-1748081440763": {
+    "eventName": "Teste de Evento",
+    "eventDate": "2024-12-31",
+    "eventLocation": "Local de Teste",
+    "eventDescription": "Descrição do evento de teste",
+    "sponsors": [
+      {
+        "name": "Sponsor 1",
+        "logo": "",
+        "website": ""
+      }
+    ],
+    "stages": [
+      {
+        "name": "Palco Principal",
+        "description": "Palco principal do evento"
+      }
+    ],
+    "realTimeDeliveries": [
+      {
+        "type": "Live Streaming",
+        "description": "Transmissão ao vivo"
+      }
+    ],
+    "createdAt": "2025-05-24T10:10:40.766Z",
+    "updatedAt": "2025-05-24T10:10:40.766Z"
+  },
+  "test-event-1748081458939": {
+    "eventName": "Teste de Evento",
+    "eventDate": "2024-12-31",
+    "eventLocation": "Local de Teste",
+    "eventDescription": "Descrição do evento de teste",
+    "sponsors": [
+      {
+        "name": "Sponsor 1",
+        "logo": "",
+        "website": ""
+      }
+    ],
+    "stages": [
+      {
+        "name": "Palco Principal",
+        "description": "Palco principal do evento"
+      }
+    ],
+    "realTimeDeliveries": [
+      {
+        "type": "Live Streaming",
+        "description": "Transmissão ao vivo"
+      }
+    ],
+    "createdAt": "2025-05-24T10:10:58.940Z",
+    "updatedAt": "2025-05-24T10:10:58.940Z"
+  },
+  "test-evento-12345": {
+    "eventName": "Evento Teste",
+    "eventDate": "2025-06-01",
+    "eventLocation": "Local Teste",
+    "sponsors": [
+      {
+        "name": "Sponsor 1"
+      }
+    ],
+    "stages": [
+      {
+        "name": "Palco Principal"
+      }
+    ],
+    "eventId": "test-evento-12345",
+    "eventTitle": "Evento Teste",
+    "client": "Cliente não especificado",
+    "updatedAt": "2025-05-24T10:43:14.168Z",
+    "createdAt": "2025-05-24T10:43:14.168Z"
+  },
+  "1748084431684": {
+    "eventId": "1748084431684",
+    "eventName": "Evento sem nome",
+    "eventDate": "",
+    "eventLocation": "",
+    "eventDescription": "",
+    "visualStyle": "",
+    "references": "",
+    "sponsors": [
+      {
+        "id": "patrocinadorA",
+        "name": "Patrocinador A",
+        "actions": [
+          {
+            "id": "a3c1ccec-bc88-4b1f-ac7b-1ac84831f82d",
+            "name": "Stand promocional",
+            "captureTime": "14:30",
+            "isFreeTime": false,
+            "responsibleId": "joao",
+            "isRealTime": true,
+            "rtDeliveryTime": "15:00",
+            "editorId": "maria",
+            "instructions": "Capturar interação com visitantes",
+            "deliveryTime": "14:30",
+            "editorResponsible": "maria",
+            "responsible": "joao"
+          }
+        ]
+      },
+      {
+        "id": "patrocinadorB",
+        "name": "Patrocinador B",
+        "actions": []
+      },
+      {
+        "id": "patrocinadorC",
+        "name": "Patrocinador C",
+        "actions": []
+      }
+    ],
+    "stages": [
+      {
+        "id": "b36ea7e0-a46a-479d-abf7-a06a7f7ba7a3",
+        "name": "Palco Principal",
+        "attractions": [
+          {
+            "id": "e7835594-9578-4f2b-9f79-3fc136c42821",
+            "name": "Banda XYZ",
+            "time": "20:30",
+            "notes": "",
+            "showTime": "20:30",
+            "observations": ""
+          },
+          {
+            "id": "6f600831-a78c-4ef6-b00c-441e77aff44e",
+            "name": "DJ ABC",
+            "time": "22:00",
+            "notes": "Preparar iluminação especial",
+            "showTime": "22:00",
+            "observations": "Preparar iluminação especial"
+          }
+        ]
+      }
+    ],
+    "realTimeDeliveries": [
+      {
+        "id": "cf7da4ee-f222-4035-92ab-2242ccfc5849",
+        "title": "Stories - Abertura",
+        "time": "12:30",
+        "editorId": "maria",
+        "platforms": {
+          "reels": false,
+          "stories": true,
+          "feed": false
+        },
+        "instructions": "",
+        "deliveryTime": "12:30",
+        "editorResponsible": "maria"
+      },
+      {
+        "id": "6ad74bb8-90b6-45ab-bcf9-8a880a35c381",
+        "title": "Reels - Patrocinador",
+        "time": "15:00",
+        "editorId": "pedro",
+        "platforms": {
+          "reels": true,
+          "stories": false,
+          "feed": false
+        },
+        "instructions": "",
+        "deliveryTime": "15:00",
+        "editorResponsible": "pedro"
+      }
+    ],
+    "postEventOptions": {
+      "aftermovie": true,
+      "highlights": true,
+      "sponsorVersions": false
+    },
+    "postEventDeadline": "7",
+    "postEventInstructions": "",
+    "updatedAt": "2025-05-24T11:01:29.259Z",
+    "eventTitle": "Projeto Demonstração",
+    "client": "Cliente não especificado",
+    "createdAt": "2025-05-24T11:01:29.259Z"
   }
 }
