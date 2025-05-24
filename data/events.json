@@ -910,5 +910,29 @@
       "autoApprove": false,
       "notifyOnUpload": true
     }
+  },
+  {
+    "id": "1748093063034",
+    "title": "Projeto Demonstração",
+    "client": "Cliente não especificado",
+    "date": "2025-05-24T13:24:31.933Z",
+    "createdAt": "2025-05-24T13:24:31.933Z",
+    "updatedAt": "2025-05-24T13:24:31.933Z",
+    "status": "active",
+    "team": [],
+    "briefing": null,
+    "videos": [],
+    "assets": [],
+    "tasks": [],
+    "deadline": null,
+    "thumbnail": "/placeholder-event.jpg",
+    "description": "",
+    "tags": [],
+    "deliverySettings": {
+      "allowRevisions": true,
+      "maxRevisions": 3,
+      "autoApprove": false,
+      "notifyOnUpload": true
+    }
   }
 ]

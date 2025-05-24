@@ -7,7 +7,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import initTestProjects from '@/scripts/init-test-projects'
-import { useProjectsStoreUnified } from '@/store/useProjectsStoreUnified'
+import { useProjectsStore } from '@/store/useProjectsStoreUnified'
 
 export default function TestProjectsInitPage() {
   const [initialized, setInitialized] = useState(false)
@@ -18,7 +18,7 @@ export default function TestProjectsInitPage() {
     [key: string]: boolean
   }>({})
   const router = useRouter()
-  const projectsStore = useProjectsStoreUnified()
+  const projectsStore = useProjectsStore()
   useEffect(() => {
     // Executa apenas uma vez ao montar o componente
     const initialize = async () => {

@@ -31,7 +31,7 @@ type GenerationStep =
   | 'success'
   | 'error'
 
-export default function GenerateTimelineButton({
+export default function GenerateTimelineButtonImproved({
   projectId,
   eventId,
   onGenerated,
@@ -44,7 +44,6 @@ export default function GenerateTimelineButton({
   const [errorMessage, setErrorMessage] = useState('')
   const [progress, setProgress] = useState(0)
   const [logs, setLogs] = useState<string[]>([])
-  const [retryCount, setRetryCount] = useState(0)
 
   // Use eventId as fallback if projectId is not provided
   const id = projectId || eventId
@@ -101,25 +100,18 @@ export default function GenerateTimelineButton({
       return true
     } catch (error) {
       addLog(
-        `Erro na verificação da timeline: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
+        `Erro na verificação da timeline: ${
+          error instanceof Error ? error.message : 'Erro desconhecido'
+        }`,
         true
       )
       return false
     }
   }
 
-  // Função para resetar estado
-  const resetState = () => {
-    setCurrentStep('idle')
-    setProgress(0)
-    setErrorMessage('')
-    setLogs([])
-    setRetryCount(0)
-  }
-
-  // Função principal para gerar a timeline com verificação robusta
+  // Função principal para gerar a timeline
   const handleGenerateTimeline = async () => {
-    if (!id) {
+    if (!eventId) {
       setErrorMessage('ID do evento não fornecido')
       setCurrentStep('error')
       return
@@ -128,19 +120,17 @@ export default function GenerateTimelineButton({
     setIsLoading(true)
     setCurrentStep('checking-briefing')
     setProgress(0)
+    setLogs([])
     setErrorMessage('')
-    if (retryCount === 0) {
-      setLogs([])
-    }
 
-    addLog('Iniciando processo de geração da timeline...')
+    addLog('Iniciando geração da timeline...')
 
     try {
-      // Passo 1: Verificar briefing (0-20%)
+      // Passo 1: Verificar briefing
       setProgress(20)
       addLog('Verificando dados do briefing...')
 
-      const briefingResponse = await fetch(`/api/briefings/${id}`)
+      const briefingResponse = await fetch(`/api/briefings/${eventId}`)
       if (!briefingResponse.ok) {
         throw new Error(
           'Não foi possível carregar os dados do briefing. Certifique-se de salvar o briefing primeiro.'
@@ -150,15 +140,16 @@ export default function GenerateTimelineButton({
       const briefingData = await briefingResponse.json()
       addLog('Dados do briefing carregados com sucesso')
 
-      // Passo 2: Gerar timeline (20-40%)
+      // Passo 2: Gerar timeline
       setCurrentStep('generating-timeline')
       setProgress(40)
-      addLog('Gerando timeline a partir dos dados do briefing...')
+      addLog('Gerando timeline com base no briefing...')
 
-      const timelineResponse = await fetch(`/api/timeline/${id}`, {
+      const timelineResponse = await fetch(`/api/timeline/${eventId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
         },
         body: JSON.stringify({
           generateFromBriefing: true,
@@ -168,56 +159,59 @@ export default function GenerateTimelineButton({
 
       if (!timelineResponse.ok) {
         const errorData = await timelineResponse.json()
-        addLog(`Erro na API: ${errorData.error || 'Erro desconhecido'}`, true)
         throw new Error(errorData.error || 'Erro ao gerar timeline')
       }
 
-      const _generatedTimeline = await timelineResponse.json()
-      console.log('✅ Timeline gerada:', _generatedTimeline)
+      const generatedTimeline = await timelineResponse.json()
       addLog('Timeline gerada pela API')
 
-      // Passo 3: Verificar se foi realmente criada (40-70%)
+      // Passo 3: Verificar se a timeline foi realmente criada
       setCurrentStep('verifying-timeline')
       setProgress(70)
+      addLog('Iniciando verificação da timeline...')
 
-      const isVerified = await verifyTimelineGeneration(id)
+      // Aguardar um pouco para garantir que os dados foram salvos
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      const isVerified = await verifyTimelineGeneration(eventId)
+
       if (!isVerified) {
         throw new Error(
-          'Timeline foi gerada mas não pôde ser verificada. Tente novamente.'
+          'Falha na verificação: Timeline não foi gerada corretamente'
         )
       }
 
-      // Passo 4: Sucesso (70-100%)
-      setProgress(100)
+      // Passo 4: Sucesso
       setCurrentStep('success')
+      setProgress(100)
       addLog('Timeline gerada e verificada com sucesso!')
 
+      // Callbacks
       if (onGenerated) {
         onGenerated(true)
       }
 
-      // Chamar callback de redirecionamento se fornecido
       if (onTimelineGenerated) {
-        setTimeout(() => {
-          onTimelineGenerated()
-        }, 1000)
+        onTimelineGenerated()
       }
 
-      // Fechar o modal após um momento
+      // Fechar modal após sucesso
       setTimeout(() => {
         setIsOpen(false)
-        resetState()
-      }, 3000)
+        // Reset para próxima geração
+        setTimeout(() => {
+          setCurrentStep('idle')
+          setProgress(0)
+          setLogs([])
+        }, 500)
+      }, 2000)
     } catch (error) {
-      console.error('❌ Erro ao gerar timeline:', error)
+      const errorMsg =
+        error instanceof Error ? error.message : 'Erro desconhecido'
 
       setCurrentStep('error')
-      const errorMsg =
-        error instanceof Error
-          ? error.message
-          : 'Erro desconhecido ao gerar timeline'
       setErrorMessage(errorMsg)
-      addLog(errorMsg, true)
+      addLog(`Erro: ${errorMsg}`, true)
 
       if (onGenerated) {
         onGenerated(false)
@@ -227,45 +221,61 @@ export default function GenerateTimelineButton({
     }
   }
 
-  // Função para tentar novamente
+  // Função para resetar e tentar novamente
   const handleRetry = () => {
-    setRetryCount(prev => prev + 1)
-    handleGenerateTimeline()
+    setCurrentStep('idle')
+    setErrorMessage('')
+    setProgress(0)
+    setLogs([])
   }
 
-  // Função para obter o texto do passo atual
-  const getStepText = () => {
+  // Obter informações do passo atual
+  const getStepInfo = () => {
     switch (currentStep) {
       case 'checking-briefing':
-        return 'Verificando dados do briefing...'
+        return {
+          title: 'Verificando Briefing',
+          description: 'Carregando dados do briefing do evento...',
+          icon: <Loader2 className="size-6 animate-spin text-blue-500" />,
+        }
       case 'generating-timeline':
-        return 'Gerando timeline...'
+        return {
+          title: 'Gerando Timeline',
+          description: 'Processando dados e criando cronograma...',
+          icon: <Loader2 className="size-6 animate-spin text-orange-500" />,
+        }
       case 'verifying-timeline':
-        return 'Verificando resultado...'
+        return {
+          title: 'Verificando Resultado',
+          description: 'Confirmando que a timeline foi criada corretamente...',
+          icon: <Loader2 className="size-6 animate-spin text-purple-500" />,
+        }
       case 'success':
-        return 'Timeline gerada com sucesso!'
+        return {
+          title: 'Timeline Gerada!',
+          description: 'Timeline criada e verificada com sucesso.',
+          icon: <Check className="size-6 text-green-500" />,
+        }
       case 'error':
-        return 'Erro na geração'
+        return {
+          title: 'Erro na Geração',
+          description: errorMessage,
+          icon: <AlertTriangle className="size-6 text-red-500" />,
+        }
       default:
-        return 'Preparando...'
+        return null
     }
   }
 
+  const stepInfo = getStepInfo()
+
   return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={open => {
-        setIsOpen(open)
-        if (!open) {
-          resetState()
-        }
-      }}
-    >
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button
           variant="outline"
           onClick={() => setIsOpen(true)}
-          disabled={disabled || !id}
+          disabled={disabled || !eventId}
         >
           <Clock className="mr-2 size-4" />
           Gerar Timeline
@@ -273,83 +283,98 @@ export default function GenerateTimelineButton({
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Gerar Timeline</DialogTitle>
+          <DialogTitle>Gerar Timeline do Evento</DialogTitle>
           <DialogDescription>
-            Uma nova timeline será gerada com base nos dados do briefing.
+            {currentStep === 'idle'
+              ? 'Uma nova timeline será gerada com base nos dados do briefing.'
+              : 'Processando geração da timeline...'}
           </DialogDescription>
         </DialogHeader>
 
-        {isLoading || currentStep !== 'idle' ? (
-          <div className="space-y-4">
-            {/* Barra de Progresso */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium">{getStepText()}</span>
-                <span>{progress}%</span>
-              </div>
-              <Progress value={progress} className="w-full" />
-            </div>
-
-            {/* Estado Visual */}
-            <div className="flex items-center justify-center py-4">
-              <div className="flex flex-col items-center gap-2">
-                {currentStep === 'success' ? (
-                  <Check className="size-8 text-green-500" />
-                ) : currentStep === 'error' ? (
-                  <AlertTriangle className="size-8 text-red-500" />
-                ) : (
-                  <Loader2 className="size-8 animate-spin text-primary" />
-                )}
-                <p className="text-sm text-muted-foreground">{getStepText()}</p>
-              </div>
-            </div>
-
-            {/* Logs */}
-            {logs.length > 0 && (
-              <div className="max-h-40 overflow-y-auto rounded-md border bg-muted p-3">
-                <div className="space-y-1 font-mono text-xs">
-                  {logs.map((log, index) => (
-                    <div
-                      key={index}
-                      className={
-                        log.includes('❌') ? 'text-red-600' : 'text-green-600'
-                      }
-                    >
-                      {log}
-                    </div>
-                  ))}
+        <div className="space-y-4">
+          {currentStep !== 'idle' && (
+            <>
+              {/* Barra de progresso */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span>Progresso da geração</span>
+                  <span>{progress}%</span>
                 </div>
+                <Progress value={progress} className="h-2" />
               </div>
-            )}
 
-            {/* Mensagem de Erro */}
-            {currentStep === 'error' && errorMessage && (
-              <Alert variant="destructive">
-                <AlertTriangle className="size-4" />
-                <AlertDescription>{errorMessage}</AlertDescription>
-              </Alert>
-            )}
-          </div>
-        ) : (
-          <div className="py-4">
-            <p>
-              Esta ação irá gerar uma timeline com base nos dados atuais do
-              briefing:
-            </p>
-            <ul className="mt-2 list-inside list-disc space-y-1 text-sm">
-              <li>Datas e horários do evento</li>
-              <li>Patrocinadores e suas ativações</li>
-              <li>Programação de palcos e atrações</li>
-              <li>Entregas em tempo real e pós-evento</li>
-            </ul>
-            <p className="mt-4 text-sm text-muted-foreground">
-              Nota: Você poderá editar a timeline manualmente após a geração.
-            </p>
-          </div>
-        )}
+              {/* Status atual */}
+              {stepInfo && (
+                <div className="flex items-center gap-3 rounded-lg border p-4">
+                  {stepInfo.icon}
+                  <div>
+                    <h4 className="font-medium">{stepInfo.title}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {stepInfo.description}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Erro específico */}
+          {currentStep === 'error' && (
+            <Alert variant="destructive">
+              <AlertTriangle className="size-4" />
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
+          )}
+
+          {/* Logs detalhados */}
+          {logs.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium">Log detalhado:</h4>
+              <div className="max-h-32 space-y-1 overflow-y-auto rounded-md bg-muted/50 p-3 font-mono text-xs">
+                {logs.map((log, index) => (
+                  <div key={index} className="text-muted-foreground">
+                    {log}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Descrição inicial */}
+          {currentStep === 'idle' && (
+            <div className="space-y-4">
+              <p>
+                Esta ação irá gerar uma timeline automatizada com base nos dados
+                atuais do briefing:
+              </p>
+              <ul className="list-inside list-disc space-y-1 text-sm">
+                <li>Datas e horários do evento</li>
+                <li>Patrocinadores e suas ativações</li>
+                <li>Programação de palcos e atrações</li>
+                <li>Entregas em tempo real e pós-evento</li>
+              </ul>
+              <div className="rounded-lg bg-blue-50 p-3 text-sm text-blue-700">
+                <strong>Importante:</strong> Certifique-se de que o briefing
+                esteja completo e salvo antes de gerar a timeline.
+              </div>
+            </div>
+          )}
+        </div>
 
         <DialogFooter>
-          {currentStep === 'error' ? (
+          {currentStep === 'idle' && (
+            <>
+              <Button variant="outline" onClick={() => setIsOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleGenerateTimeline} disabled={!eventId}>
+                <Clock className="mr-2 size-4" />
+                Confirmar Geração
+              </Button>
+            </>
+          )}
+
+          {currentStep === 'error' && (
             <>
               <Button variant="outline" onClick={() => setIsOpen(false)}>
                 Fechar
@@ -359,18 +384,14 @@ export default function GenerateTimelineButton({
                 Tentar Novamente
               </Button>
             </>
-          ) : currentStep === 'success' ? (
-            <Button onClick={() => setIsOpen(false)}>Fechar</Button>
-          ) : !isLoading ? (
-            <>
-              <Button variant="outline" onClick={() => setIsOpen(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={handleGenerateTimeline}>
-                Confirmar Geração
-              </Button>
-            </>
-          ) : null}
+          )}
+
+          {currentStep === 'success' && (
+            <Button onClick={() => setIsOpen(false)}>
+              <Check className="mr-2 size-4" />
+              Concluído
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

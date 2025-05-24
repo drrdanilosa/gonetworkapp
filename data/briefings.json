@@ -1,28 +1,13 @@
 {
   "e556271a-dda7-4559-b9c6-73ea3431f640": {
-    "formData": {
-      "eventDate": "2025-06-15",
-      "startTime": "09:00",
-      "endTime": "18:00",
-      "eventLocation": "Centro de Convenções SP",
-      "hasCredentialing": "yes",
-      "accessLocation": "Portaria Principal",
-      "eventAccessLocation": "Hall de Entrada",
-      "hasMediaRoom": "yes",
-      "mediaRoomLocation": "Sala 201",
-      "hasInternet": "yes",
-      "internetLogin": "evento2025",
-      "internetPassword": "senha123",
-      "generalInfo": "Evento de lançamento de produto com 200 participantes",
-      "credentialingResponsible": "Maria Silva",
-      "credentialingStart": "07:30",
-      "credentialingEnd": "09:00"
-    },
     "eventId": "e556271a-dda7-4559-b9c6-73ea3431f640",
-    "eventTitle": "Teste Debug",
-    "client": "Cliente Teste",
-    "updatedAt": "2025-05-24T11:41:58.329Z",
-    "createdAt": "2025-05-24T11:41:58.329Z"
+    "generalInfo": {
+      "title": "Teste Timeline",
+      "description": "Descrição de teste para verificar a geração de timeline",
+      "duration": 120,
+      "style": "corporativo"
+    },
+    "updatedAt": "2025-05-24T13:28:49.338Z"
   },
   "980d3d3f-67d7-4e6d-980a-eba09dba2059": {
     "sections": {
@@ -498,5 +483,111 @@
     "eventTitle": "Projeto Demonstração",
     "client": "Cliente não especificado",
     "createdAt": "2025-05-24T12:01:54.776Z"
+  },
+  "1748093063034": {
+    "eventId": "1748093063034",
+    "eventName": "Evento sem nome",
+    "eventDate": "",
+    "eventLocation": "",
+    "eventDescription": "",
+    "visualStyle": "",
+    "references": "",
+    "sponsors": [
+      {
+        "id": "patrocinadorA",
+        "name": "Patrocinador A",
+        "actions": [
+          {
+            "id": "b503a008-c714-4625-86d9-457cf6c144b6",
+            "name": "Stand promocional",
+            "captureTime": "14:30",
+            "isFreeTime": false,
+            "responsibleId": "joao",
+            "isRealTime": true,
+            "rtDeliveryTime": "15:00",
+            "editorId": "maria",
+            "instructions": "Capturar interação com visitantes",
+            "deliveryTime": "14:30",
+            "editorResponsible": "maria",
+            "responsible": "joao"
+          }
+        ]
+      },
+      {
+        "id": "patrocinadorB",
+        "name": "Patrocinador B",
+        "actions": []
+      },
+      {
+        "id": "patrocinadorC",
+        "name": "Patrocinador C",
+        "actions": []
+      }
+    ],
+    "stages": [
+      {
+        "id": "3cd1f69a-f1a7-4008-b0b3-cac9380908b1",
+        "name": "Palco Principal",
+        "attractions": [
+          {
+            "id": "445bcfd4-e423-47cb-ab52-28bf7af075cf",
+            "name": "Banda XYZ",
+            "time": "20:30",
+            "notes": "",
+            "showTime": "20:30",
+            "observations": ""
+          },
+          {
+            "id": "6aa08b71-8e36-45d7-a88d-702a75dcb7ad",
+            "name": "DJ ABC",
+            "time": "22:00",
+            "notes": "Preparar iluminação especial",
+            "showTime": "22:00",
+            "observations": "Preparar iluminação especial"
+          }
+        ]
+      }
+    ],
+    "realTimeDeliveries": [
+      {
+        "id": "bb3c87e7-61f7-4e11-bd56-540e5d5b5c54",
+        "title": "Stories - Abertura",
+        "time": "12:30",
+        "editorId": "maria",
+        "platforms": {
+          "reels": false,
+          "stories": true,
+          "feed": false
+        },
+        "instructions": "",
+        "deliveryTime": "12:30",
+        "editorResponsible": "maria"
+      },
+      {
+        "id": "509b66c5-e400-4619-b5e0-925d04ca459d",
+        "title": "Reels - Patrocinador",
+        "time": "15:00",
+        "editorId": "pedro",
+        "platforms": {
+          "reels": true,
+          "stories": false,
+          "feed": false
+        },
+        "instructions": "",
+        "deliveryTime": "15:00",
+        "editorResponsible": "pedro"
+      }
+    ],
+    "postEventOptions": {
+      "aftermovie": true,
+      "highlights": true,
+      "sponsorVersions": false
+    },
+    "postEventDeadline": "7",
+    "postEventInstructions": "",
+    "updatedAt": "2025-05-24T13:27:28.435Z",
+    "eventTitle": "Projeto Demonstração",
+    "client": "Cliente não especificado",
+    "createdAt": "2025-05-24T13:27:28.435Z"
   }
 }
