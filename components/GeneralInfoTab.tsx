@@ -130,11 +130,20 @@ export default function GeneralInfoTab() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="festival">Festival</SelectItem>
-                          <SelectItem value="conferencia">Conferência</SelectItem>
-                          <SelectItem value="feira">Feira</SelectItem>
-                          <SelectItem value="corporativo">Evento Corporativo</SelectItem>
-                          <SelectItem value="outro">Outro</SelectItem>
+                          {/* Utilizando tipos de eventos dinâmicos da store unificada */}
+                          {useProjectsStore.getState().eventTypes?.map(type => (
+                            <SelectItem key={type.value} value={type.value}>
+                              {type.label}
+                            </SelectItem>
+                          )) || (
+                            <>
+                              <SelectItem value="festival">Festival</SelectItem>
+                              <SelectItem value="conferencia">Conferência</SelectItem>
+                              <SelectItem value="feira">Feira</SelectItem>
+                              <SelectItem value="corporativo">Evento Corporativo</SelectItem>
+                              <SelectItem value="outro">Outro</SelectItem>
+                            </>
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />

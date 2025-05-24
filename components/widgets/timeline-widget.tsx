@@ -12,7 +12,7 @@ import {
   Calendar, 
   Users 
 } from 'lucide-react'
-import { useProjectsStore } from '@/store/projects-store'
+import { useProjectsStore } from '@/store/useProjectsStoreUnified'
 import { useUIStore } from '@/store/useUIStore'
 import { toast } from '@/components/ui/use-toast'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -160,7 +160,10 @@ export default function TimelineWidget() {
             <Label>Evento:</Label>
             <Select 
               value={selectedEventId || ""} 
-              onValueChange={handleEventChange}
+              onValueChange={value => {
+                if (value === "no-events-available") return;
+                setSelectedEventId(value);
+              }}
             >
               <SelectTrigger className="w-[250px]">
                 <SelectValue placeholder="Selecione um evento" />
@@ -173,7 +176,7 @@ export default function TimelineWidget() {
                     </SelectItem>
                   ))
                 ) : (
-                  <SelectItem value="" disabled>
+                  <SelectItem value="no-events-available" disabled>
                     Nenhum evento disponível
                   </SelectItem>
                 )}

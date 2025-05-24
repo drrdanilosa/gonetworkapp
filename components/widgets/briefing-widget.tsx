@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useState, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
@@ -15,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Clock, Save, Trash2, Plus, FileText } from 'lucide-react'
+import { Clock, Save, Trash2, Plus } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import GeneralInfoTab from '@/features/briefing/components/GeneralInfoTab'
 import { useUIStore } from '@/store/useUIStore'
@@ -26,12 +26,6 @@ import { cn } from '@/lib/utils'
 import GenerateTimelineButton from './GenerateTimelineButton'
 
 // Definições de tipos
-type Event = {
-  id: string
-  name: string
-  date: string
-}
-
 type Sponsor = {
   id: string
   name: string
@@ -82,7 +76,7 @@ type BriefingWidgetProps = {
 
 /**
  * BriefingWidget - Componente para gerenciar briefings de eventos com múltiplas seções
- * 
+ *
  * Inclui gerenciamento de:
  * - Informações gerais do evento
  * - Estilo visual e referências
@@ -93,7 +87,7 @@ type BriefingWidgetProps = {
 export function BriefingWidget({ projectId }: BriefingWidgetProps) {
   // Usar store unificado
   const { projects, updateProject } = useProjectsStore()
-  
+
   // Obter o projeto atual a partir do ID recebido
   const currentProject = projects.find(p => p.id === projectId)
 
@@ -116,12 +110,12 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
           isRealTime: true,
           rtDeliveryTime: '15:00',
           editorId: 'maria',
-          instructions: 'Capturar interação com visitantes'
-        }
-      ]
+          instructions: 'Capturar interação com visitantes',
+        },
+      ],
     },
     { id: 'patrocinadorB', name: 'Patrocinador B', actions: [] },
-    { id: 'patrocinadorC', name: 'Patrocinador C', actions: [] }
+    { id: 'patrocinadorC', name: 'Patrocinador C', actions: [] },
   ])
 
   // Estado de palcos
@@ -134,27 +128,29 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
           id: uuidv4(),
           name: 'Banda XYZ',
           time: '20:30',
-          notes: ''
+          notes: '',
         },
         {
           id: uuidv4(),
           name: 'DJ ABC',
           time: '22:00',
-          notes: 'Preparar iluminação especial'
-        }
-      ]
-    }
+          notes: 'Preparar iluminação especial',
+        },
+      ],
+    },
   ])
 
   // Estado de entregas em tempo real
-  const [realTimeDeliveries, setRealTimeDeliveries] = useState<RealTimeDelivery[]>([
+  const [realTimeDeliveries, setRealTimeDeliveries] = useState<
+    RealTimeDelivery[]
+  >([
     {
       id: uuidv4(),
       title: 'Stories - Abertura',
       time: '12:30',
       editorId: 'maria',
       platforms: { reels: false, stories: true, feed: false },
-      instructions: ''
+      instructions: '',
     },
     {
       id: uuidv4(),
@@ -162,10 +158,10 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
       time: '15:00',
       editorId: 'pedro',
       platforms: { reels: true, stories: false, feed: false },
-      instructions: ''
-    }
+      instructions: '',
+    },
   ])
-  
+
   // Estado de entregas pós-evento
   const [teaserTime, setTeaserTime] = useState<string>('21:00')
   const [postEventDeadline, setPostEventDeadline] = useState<string>('7')
@@ -173,12 +169,12 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
   const [postEventOptions, setPostEventOptions] = useState({
     aftermovie: true,
     highlights: true,
-    sponsorVersions: false
+    sponsorVersions: false,
   })
   const [postEventNotes, setPostEventNotes] = useState<string>('')
-  
+
   // Estado de UI ativa
-  const [activeTab, setActiveTab] = useState<string>("general")
+  const [activeTab, setActiveTab] = useState<string>('general')
   const [isSaving, setIsSaving] = useState<boolean>(false)
 
   // Integração com o store global
@@ -196,7 +192,7 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
     const newSponsor: Sponsor = {
       id: uuidv4(),
       name: `Novo Patrocinador`,
-      actions: []
+      actions: [],
     }
     setSponsors([...sponsors, newSponsor])
   }
@@ -215,12 +211,12 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
       isRealTime: false,
       rtDeliveryTime: '',
       editorId: '',
-      instructions: ''
+      instructions: '',
     }
-    
+
     setSponsors(
-      sponsors.map(sponsor => 
-        sponsor.id === sponsorId 
+      sponsors.map(sponsor =>
+        sponsor.id === sponsorId
           ? { ...sponsor, actions: [...sponsor.actions, newAction] }
           : sponsor
       )
@@ -229,11 +225,11 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
 
   const handleRemoveSponsorAction = (sponsorId: string, actionId: string) => {
     setSponsors(
-      sponsors.map(sponsor => 
-        sponsor.id === sponsorId 
-          ? { 
-              ...sponsor, 
-              actions: sponsor.actions.filter(action => action.id !== actionId) 
+      sponsors.map(sponsor =>
+        sponsor.id === sponsorId
+          ? {
+              ...sponsor,
+              actions: sponsor.actions.filter(action => action.id !== actionId),
             }
           : sponsor
       )
@@ -245,7 +241,7 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
     const newStage: Stage = {
       id: uuidv4(),
       name: 'Novo Palco',
-      attractions: []
+      attractions: [],
     }
     setStages([...stages, newStage])
   }
@@ -259,12 +255,12 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
       id: uuidv4(),
       name: '',
       time: '',
-      notes: ''
+      notes: '',
     }
-    
+
     setStages(
-      stages.map(stage => 
-        stage.id === stageId 
+      stages.map(stage =>
+        stage.id === stageId
           ? { ...stage, attractions: [...stage.attractions, newAttraction] }
           : stage
       )
@@ -273,11 +269,13 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
 
   const handleRemoveAttraction = (stageId: string, attractionId: string) => {
     setStages(
-      stages.map(stage => 
-        stage.id === stageId 
-          ? { 
-              ...stage, 
-              attractions: stage.attractions.filter(attraction => attraction.id !== attractionId) 
+      stages.map(stage =>
+        stage.id === stageId
+          ? {
+              ...stage,
+              attractions: stage.attractions.filter(
+                attraction => attraction.id !== attractionId
+              ),
             }
           : stage
       )
@@ -292,36 +290,112 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
       time: '',
       editorId: '',
       platforms: { reels: false, stories: false, feed: false },
-      instructions: ''
+      instructions: '',
     }
     setRealTimeDeliveries([...realTimeDeliveries, newDelivery])
   }
 
   const handleRemoveRealTimeDelivery = (deliveryId: string) => {
-    setRealTimeDeliveries(realTimeDeliveries.filter(delivery => delivery.id !== deliveryId))
+    setRealTimeDeliveries(
+      realTimeDeliveries.filter(delivery => delivery.id !== deliveryId)
+    )
   }
 
   // Salvar dados do briefing
   const handleSaveBriefing = async () => {
     try {
       setIsSaving(true)
-      
-      // Simular uma chamada de API
-      await new Promise(resolve => setTimeout(resolve, 800))
-      
-      // Aqui seria implementada a chamada para salvar no backend
-      // Example: await api.saveBriefing(projectId, { sponsors, stages, ... })
-      
+
+      // Determinar o ID do evento/projeto correto
+      const eventId = selectedEventId || projectId
+
+      if (!eventId) {
+        toast({
+          title: 'Erro',
+          description: 'Nenhum evento selecionado para salvar o briefing.',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      // Preparar dados completos do briefing para salvamento
+      const briefingData = {
+        eventId,
+        // Informações gerais
+        eventName: currentProject?.name || 'Evento sem nome',
+        eventDate: currentProject?.startDate || '',
+        eventLocation: '',
+        eventDescription: currentProject?.description || '',
+        visualStyle,
+        references,
+
+        // Patrocinadores e ações
+        sponsors: sponsors.map(sponsor => ({
+          ...sponsor,
+          actions: sponsor.actions.map(action => ({
+            ...action,
+            deliveryTime: action.captureTime || '',
+            editorResponsible: action.editorId || '',
+            responsible: action.responsibleId || '',
+          })),
+        })),
+
+        // Palcos e atrações
+        stages: stages.map(stage => ({
+          ...stage,
+          attractions: stage.attractions.map(attraction => ({
+            ...attraction,
+            showTime: attraction.time || '',
+            observations: attraction.notes || '',
+          })),
+        })),
+
+        // Entregas em tempo real
+        realTimeDeliveries: realTimeDeliveries.map(delivery => ({
+          ...delivery,
+          deliveryTime: delivery.time || '',
+          editorResponsible: delivery.editorId || '',
+          platforms: delivery.platforms || {},
+        })),
+
+        // Configurações pós-evento
+        postEventOptions,
+        postEventDeadline,
+        postEventInstructions: postEventNotes,
+
+        updatedAt: new Date().toISOString(),
+      }
+
+      // Fazer chamada real à API
+      const response = await fetch(`/api/briefings/${eventId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(briefingData),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Erro ao salvar briefing')
+      }
+
+      const savedBriefing = await response.json()
+      console.log('Briefing salvo com sucesso:', savedBriefing)
+
       toast({
-        title: "Briefing salvo",
-        description: "As informações do briefing foram salvas com sucesso.",
+        title: 'Briefing salvo',
+        description: 'As informações do briefing foram salvas com sucesso.',
       })
     } catch (error) {
       console.error('Erro ao salvar briefing:', error)
       toast({
-        title: "Erro ao salvar",
-        description: "Ocorreu um erro ao salvar as informações do briefing.",
-        variant: "destructive"
+        title: 'Erro ao salvar',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Ocorreu um erro ao salvar as informações do briefing.',
+        variant: 'destructive',
       })
     } finally {
       setIsSaving(false)
@@ -332,12 +406,12 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
   useEffect(() => {
     const loadBriefingData = async () => {
       if (!projectId) return
-      
+
       try {
         // Simular carregamento de dados
         console.log(`Carregando dados do briefing para o projeto ${projectId}`)
-        
-        // Implementação futura: 
+
+        // Implementação futura:
         // const data = await api.getBriefingData(projectId)
         // setSponsors(data.sponsors)
         // setStages(data.stages)
@@ -345,13 +419,13 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
       } catch (error) {
         console.error('Erro ao carregar briefing:', error)
         toast({
-          title: "Erro ao carregar dados",
-          description: "Não foi possível carregar as informações do briefing.",
-          variant: "destructive"
+          title: 'Erro ao carregar dados',
+          description: 'Não foi possível carregar as informações do briefing.',
+          variant: 'destructive',
         })
       }
     }
-    
+
     loadBriefingData()
   }, [projectId])
 
@@ -359,54 +433,61 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
   const briefingStats = useMemo(() => {
     const totalSponsors = sponsors.length
     const totalActions = sponsors.reduce(
-      (total, sponsor) => total + sponsor.actions.length, 0
+      (total, sponsor) => total + sponsor.actions.length,
+      0
     )
     const totalRealTimeDeliveries = realTimeDeliveries.length
     const totalStages = stages.length
     const totalAttractions = stages.reduce(
-      (total, stage) => total + stage.attractions.length, 0
+      (total, stage) => total + stage.attractions.length,
+      0
     )
-    
+
     return {
       totalSponsors,
       totalActions,
       totalRealTimeDeliveries,
       totalStages,
-      totalAttractions
+      totalAttractions,
     }
   }, [sponsors, realTimeDeliveries, stages])
 
   // Obter eventos do store global
-  const events = projects.flatMap(project => 
-    project.events?.map(event => ({
-      id: event.id,
-      name: event.name,
-      date: event.date
-    })) || []
+  const events = projects.flatMap(
+    project =>
+      project.events?.map(event => ({
+        id: event.id,
+        name: event.name,
+        date: event.date,
+      })) || []
   )
 
   // Adicionar eventos automaticamente para projetos que não possuem a propriedade events
   useEffect(() => {
     // Encontrar projetos sem a propriedade events ou com array events vazio
-    const projectsWithoutEvents = projects.filter(p => !p.events || p.events.length === 0);
-    
+    const projectsWithoutEvents = projects.filter(
+      p => !p.events || p.events.length === 0
+    )
+
     if (projectsWithoutEvents.length > 0) {
       // Para cada projeto, criar um evento a partir dos dados do projeto
       projectsWithoutEvents.forEach(project => {
-        const { id, name, startDate } = project;
+        const { id, name, startDate } = project
         if (id && name) {
           // Atualizar o projeto adicionando um evento baseado no próprio projeto
           updateProject(id, {
-            events: [{
-              id,
-              name,
-              date: startDate || new Date().toISOString()
-            }]
-          });
+            events: [
+              {
+                id,
+                name,
+                date: startDate || new Date().toISOString(),
+              },
+            ],
+          })
         }
-      });
+      })
     }
-  }, [projects, updateProject]);
+  }, [projects, updateProject])
 
   return (
     <div className="animate-in fade-in-50 duration-300">
@@ -419,35 +500,37 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
         </div>
 
         <div className="flex gap-2">
-          <GenerateTimelineButton 
-            projectId={projectId} 
+          <GenerateTimelineButton
+            projectId={projectId || ''}
             disabled={isSaving}
-            onGenerated={(success) => {
+            onGenerated={success => {
               if (success) {
                 toast({
-                  title: "Timeline gerada",
-                  description: "A timeline foi gerada com sucesso com base no briefing.",
-                });
+                  title: 'Timeline gerada',
+                  description:
+                    'A timeline foi gerada com sucesso com base no briefing.',
+                })
               } else {
                 toast({
-                  title: "Erro ao gerar timeline",
-                  description: "Não foi possível gerar a timeline. Tente novamente.",
-                  variant: "destructive"
-                });
+                  title: 'Erro ao gerar timeline',
+                  description:
+                    'Não foi possível gerar a timeline. Tente novamente.',
+                  variant: 'destructive',
+                })
               }
             }}
           />
-          <Button 
-            onClick={handleSaveBriefing} 
+          <Button
+            onClick={handleSaveBriefing}
             disabled={isSaving}
             className="transition-all"
           >
-            <Save className={cn("h-4 w-4 mr-2", isSaving && "animate-spin")} />
-            {isSaving ? "Salvando..." : "Salvar Briefing"}
+            <Save className={cn('h-4 w-4 mr-2', isSaving && 'animate-spin')} />
+            {isSaving ? 'Salvando...' : 'Salvar Briefing'}
           </Button>
         </div>
       </div>
-      
+
       {/* Estatísticas do briefing */}
       <div className="grid grid-cols-5 gap-2 mb-6">
         <Card className="p-2">
@@ -470,36 +553,46 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
         </Card>
         <Card className="p-2">
           <CardContent className="p-2 text-center">
-            <p className="text-2xl font-bold">{briefingStats.totalAttractions}</p>
+            <p className="text-2xl font-bold">
+              {briefingStats.totalAttractions}
+            </p>
             <p className="text-xs text-muted-foreground">Atrações</p>
           </CardContent>
         </Card>
         <Card className="p-2">
           <CardContent className="p-2 text-center">
-            <p className="text-2xl font-bold">{briefingStats.totalRealTimeDeliveries}</p>
+            <p className="text-2xl font-bold">
+              {briefingStats.totalRealTimeDeliveries}
+            </p>
             <p className="text-xs text-muted-foreground">Entregas RT</p>
           </CardContent>
         </Card>
       </div>
-      
+
       {/* Seleção de evento */}
       <div className="mb-6">
         <Label htmlFor="event-select" className="mb-2 block">
           Selecionar Evento:
         </Label>
-        <Select 
-          value={effectiveEventId} 
+        <Select
+          value={effectiveEventId}
           onValueChange={val => {
             setSelectedEvent(val)
             setSelectedEventId(val)
           }}
         >
           <SelectTrigger id="event-select" className="w-[350px]">
-            <SelectValue placeholder={events.length > 0 ? "Selecione um evento" : "Nenhum evento disponível"} />
+            <SelectValue
+              placeholder={
+                events.length > 0
+                  ? 'Selecione um evento'
+                  : 'Nenhum evento disponível'
+              }
+            />
           </SelectTrigger>
           <SelectContent>
             {events.length > 0 ? (
-              events.map((event) => (
+              events.map(event => (
                 <SelectItem key={event.id} value={event.id}>
                   {event.name} ({event.date})
                 </SelectItem>
@@ -540,7 +633,7 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                 id="visual-style"
                 placeholder="Descreva aqui o estilo visual, identidade e linguagem desejados para as entregas..."
                 value={visualStyle}
-                onChange={(e) => setVisualStyle(e.target.value)}
+                onChange={e => setVisualStyle(e.target.value)}
                 className="min-h-[150px]"
               />
             </div>
@@ -566,7 +659,8 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
         {/* Aba: Patrocinadores */}
         <TabsContent value="sponsors" className="mt-6 space-y-6">
           <p className="text-muted-foreground mb-4">
-            Adicione os patrocinadores e defina as ativações que precisarão ser registradas durante o evento.
+            Adicione os patrocinadores e defina as ativações que precisarão ser
+            registradas durante o evento.
           </p>
 
           <Button onClick={handleAddSponsor} className="mb-4">
@@ -576,23 +670,30 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
 
           {sponsors.length === 0 ? (
             <div className="text-center p-12 border rounded-lg">
-              <p className="text-lg font-medium mb-2">Nenhum patrocinador cadastrado</p>
-              <p className="text-muted-foreground mb-4">Adicione patrocinadores para definir suas ativações</p>
+              <p className="text-lg font-medium mb-2">
+                Nenhum patrocinador cadastrado
+              </p>
+              <p className="text-muted-foreground mb-4">
+                Adicione patrocinadores para definir suas ativações
+              </p>
             </div>
           ) : (
-            sponsors.map((sponsor) => (
-              <Card key={sponsor.id} className="border-border mb-4 overflow-hidden">
+            sponsors.map(sponsor => (
+              <Card
+                key={sponsor.id}
+                className="border-border mb-4 overflow-hidden"
+              >
                 <CardContent className="p-4 space-y-4">
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
                       <Label>Patrocinador:</Label>
-                      <Input 
+                      <Input
                         className="w-[250px]"
                         value={sponsor.name}
                         onChange={e => {
                           setSponsors(
-                            sponsors.map(s => 
-                              s.id === sponsor.id 
+                            sponsors.map(s =>
+                              s.id === sponsor.id
                                 ? { ...s, name: e.target.value }
                                 : s
                             )
@@ -614,17 +715,19 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                   <Separator />
 
                   <div className="space-y-4">
-                    {sponsor.actions.map((action) => (
+                    {sponsor.actions.map(action => (
                       <Card key={action.id} className="bg-secondary/20">
                         <CardContent className="p-4 space-y-4">
                           <div className="flex justify-between items-center">
                             <h3 className="font-medium text-primary">
                               Ação / Ativação
                             </h3>
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="icon"
-                              onClick={() => handleRemoveSponsorAction(sponsor.id, action.id)}
+                              onClick={() =>
+                                handleRemoveSponsorAction(sponsor.id, action.id)
+                              }
                               title="Remover ação"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -633,22 +736,24 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <Label htmlFor={`action-name-${action.id}`}>Ação / Ativação:</Label>
+                              <Label htmlFor={`action-name-${action.id}`}>
+                                Ação / Ativação:
+                              </Label>
                               <Input
                                 id={`action-name-${action.id}`}
                                 placeholder="Nome da ação/ativação"
                                 value={action.name}
                                 onChange={e => {
                                   setSponsors(
-                                    sponsors.map(s => 
-                                      s.id === sponsor.id 
-                                        ? { 
-                                            ...s, 
-                                            actions: s.actions.map(a => 
-                                              a.id === action.id 
+                                    sponsors.map(s =>
+                                      s.id === sponsor.id
+                                        ? {
+                                            ...s,
+                                            actions: s.actions.map(a =>
+                                              a.id === action.id
                                                 ? { ...a, name: e.target.value }
                                                 : a
-                                            ) 
+                                            ),
                                           }
                                         : s
                                     )
@@ -662,22 +767,26 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                                 Horário de captação:
                               </Label>
                               <div className="flex items-center gap-2">
-                                <Input 
-                                  id={`action-time-${action.id}`} 
+                                <Input
+                                  id={`action-time-${action.id}`}
                                   type="time"
                                   value={action.captureTime}
                                   disabled={action.isFreeTime}
                                   onChange={e => {
                                     setSponsors(
-                                      sponsors.map(s => 
-                                        s.id === sponsor.id 
-                                          ? { 
-                                              ...s, 
-                                              actions: s.actions.map(a => 
-                                                a.id === action.id 
-                                                  ? { ...a, captureTime: e.target.value }
+                                      sponsors.map(s =>
+                                        s.id === sponsor.id
+                                          ? {
+                                              ...s,
+                                              actions: s.actions.map(a =>
+                                                a.id === action.id
+                                                  ? {
+                                                      ...a,
+                                                      captureTime:
+                                                        e.target.value,
+                                                    }
                                                   : a
-                                              ) 
+                                              ),
                                             }
                                           : s
                                       )
@@ -685,27 +794,33 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                                   }}
                                 />
                                 <div className="flex items-center gap-2">
-                                  <Checkbox 
+                                  <Checkbox
                                     id={`free-time-${action.id}`}
                                     checked={action.isFreeTime}
                                     onCheckedChange={checked => {
                                       setSponsors(
-                                        sponsors.map(s => 
-                                          s.id === sponsor.id 
-                                            ? { 
-                                                ...s, 
-                                                actions: s.actions.map(a => 
-                                                  a.id === action.id 
-                                                    ? { ...a, isFreeTime: Boolean(checked) }
+                                        sponsors.map(s =>
+                                          s.id === sponsor.id
+                                            ? {
+                                                ...s,
+                                                actions: s.actions.map(a =>
+                                                  a.id === action.id
+                                                    ? {
+                                                        ...a,
+                                                        isFreeTime:
+                                                          Boolean(checked),
+                                                      }
                                                     : a
-                                                ) 
+                                                ),
                                               }
                                             : s
                                         )
                                       )
                                     }}
                                   />
-                                  <Label htmlFor={`free-time-${action.id}`}>Horário Livre</Label>
+                                  <Label htmlFor={`free-time-${action.id}`}>
+                                    Horário Livre
+                                  </Label>
                                 </div>
                               </div>
                             </div>
@@ -714,19 +829,19 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                               <Label htmlFor={`responsible-${action.id}`}>
                                 Responsável pela captação:
                               </Label>
-                              <Select 
+                              <Select
                                 value={action.responsibleId}
                                 onValueChange={value => {
                                   setSponsors(
-                                    sponsors.map(s => 
-                                      s.id === sponsor.id 
-                                        ? { 
-                                            ...s, 
-                                            actions: s.actions.map(a => 
-                                              a.id === action.id 
+                                    sponsors.map(s =>
+                                      s.id === sponsor.id
+                                        ? {
+                                            ...s,
+                                            actions: s.actions.map(a =>
+                                              a.id === action.id
                                                 ? { ...a, responsibleId: value }
                                                 : a
-                                            ) 
+                                            ),
                                           }
                                         : s
                                     )
@@ -737,58 +852,76 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                                   <SelectValue placeholder="Selecionar responsável" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="joao">João Silva</SelectItem>
-                                  <SelectItem value="maria">Maria Souza</SelectItem>
-                                  <SelectItem value="carlos">Carlos Lima</SelectItem>
+                                  <SelectItem value="joao">
+                                    João Silva
+                                  </SelectItem>
+                                  <SelectItem value="maria">
+                                    Maria Souza
+                                  </SelectItem>
+                                  <SelectItem value="carlos">
+                                    Carlos Lima
+                                  </SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
 
                             <div className="space-y-2">
                               <div className="flex items-center gap-2 h-10">
-                                <Checkbox 
+                                <Checkbox
                                   id={`realtime-${action.id}`}
                                   checked={action.isRealTime}
                                   onCheckedChange={checked => {
                                     setSponsors(
-                                      sponsors.map(s => 
-                                        s.id === sponsor.id 
-                                          ? { 
-                                              ...s, 
-                                              actions: s.actions.map(a => 
-                                                a.id === action.id 
-                                                  ? { ...a, isRealTime: Boolean(checked) }
+                                      sponsors.map(s =>
+                                        s.id === sponsor.id
+                                          ? {
+                                              ...s,
+                                              actions: s.actions.map(a =>
+                                                a.id === action.id
+                                                  ? {
+                                                      ...a,
+                                                      isRealTime:
+                                                        Boolean(checked),
+                                                    }
                                                   : a
-                                              ) 
+                                              ),
                                             }
                                           : s
                                       )
                                     )
                                   }}
                                 />
-                                <Label htmlFor={`realtime-${action.id}`}>Entrega Real Time?</Label>
+                                <Label htmlFor={`realtime-${action.id}`}>
+                                  Entrega Real Time?
+                                </Label>
                               </div>
                             </div>
 
                             {action.isRealTime && (
                               <>
                                 <div className="space-y-2">
-                                  <Label htmlFor={`rt-time-${action.id}`}>Horário da entrega RT:</Label>
-                                  <Input 
-                                    id={`rt-time-${action.id}`} 
+                                  <Label htmlFor={`rt-time-${action.id}`}>
+                                    Horário da entrega RT:
+                                  </Label>
+                                  <Input
+                                    id={`rt-time-${action.id}`}
                                     type="time"
                                     value={action.rtDeliveryTime}
                                     onChange={e => {
                                       setSponsors(
-                                        sponsors.map(s => 
-                                          s.id === sponsor.id 
-                                            ? { 
-                                                ...s, 
-                                                actions: s.actions.map(a => 
-                                                  a.id === action.id 
-                                                    ? { ...a, rtDeliveryTime: e.target.value }
+                                        sponsors.map(s =>
+                                          s.id === sponsor.id
+                                            ? {
+                                                ...s,
+                                                actions: s.actions.map(a =>
+                                                  a.id === action.id
+                                                    ? {
+                                                        ...a,
+                                                        rtDeliveryTime:
+                                                          e.target.value,
+                                                      }
                                                     : a
-                                                ) 
+                                                ),
                                               }
                                             : s
                                         )
@@ -798,20 +931,22 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                                 </div>
 
                                 <div className="space-y-2">
-                                  <Label htmlFor={`editor-${action.id}`}>Editor responsável:</Label>
+                                  <Label htmlFor={`editor-${action.id}`}>
+                                    Editor responsável:
+                                  </Label>
                                   <Select
                                     value={action.editorId}
                                     onValueChange={value => {
                                       setSponsors(
-                                        sponsors.map(s => 
-                                          s.id === sponsor.id 
-                                            ? { 
-                                                ...s, 
-                                                actions: s.actions.map(a => 
-                                                  a.id === action.id 
+                                        sponsors.map(s =>
+                                          s.id === sponsor.id
+                                            ? {
+                                                ...s,
+                                                actions: s.actions.map(a =>
+                                                  a.id === action.id
                                                     ? { ...a, editorId: value }
                                                     : a
-                                                ) 
+                                                ),
                                               }
                                             : s
                                         )
@@ -822,8 +957,12 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                                       <SelectValue placeholder="Selecionar editor" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="maria">Maria Souza</SelectItem>
-                                      <SelectItem value="pedro">Pedro Alves</SelectItem>
+                                      <SelectItem value="maria">
+                                        Maria Souza
+                                      </SelectItem>
+                                      <SelectItem value="pedro">
+                                        Pedro Alves
+                                      </SelectItem>
                                     </SelectContent>
                                   </Select>
                                 </div>
@@ -831,7 +970,9 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                             )}
 
                             <div className="col-span-1 md:col-span-2 space-y-2">
-                              <Label htmlFor={`instructions-${action.id}`}>Orientações:</Label>
+                              <Label htmlFor={`instructions-${action.id}`}>
+                                Orientações:
+                              </Label>
                               <Textarea
                                 id={`instructions-${action.id}`}
                                 placeholder="Orientações específicas..."
@@ -839,15 +980,19 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                                 value={action.instructions}
                                 onChange={e => {
                                   setSponsors(
-                                    sponsors.map(s => 
-                                      s.id === sponsor.id 
-                                        ? { 
-                                            ...s, 
-                                            actions: s.actions.map(a => 
-                                              a.id === action.id 
-                                                ? { ...a, instructions: e.target.value }
+                                    sponsors.map(s =>
+                                      s.id === sponsor.id
+                                        ? {
+                                            ...s,
+                                            actions: s.actions.map(a =>
+                                              a.id === action.id
+                                                ? {
+                                                    ...a,
+                                                    instructions:
+                                                      e.target.value,
+                                                  }
                                                 : a
-                                            ) 
+                                            ),
                                           }
                                         : s
                                     )
@@ -861,7 +1006,7 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                     ))}
                   </div>
 
-                  <Button 
+                  <Button
                     variant="outline"
                     onClick={() => handleAddSponsorAction(sponsor.id)}
                     className="w-full"
@@ -888,31 +1033,40 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
 
           {stages.length === 0 ? (
             <div className="text-center p-12 border rounded-lg">
-              <p className="text-lg font-medium mb-2">Nenhum palco cadastrado</p>
-              <p className="text-muted-foreground mb-4">Adicione palcos para definir a programação</p>
+              <p className="text-lg font-medium mb-2">
+                Nenhum palco cadastrado
+              </p>
+              <p className="text-muted-foreground mb-4">
+                Adicione palcos para definir a programação
+              </p>
             </div>
           ) : (
-            stages.map((stage) => (
-              <Card key={stage.id} className="border-border mb-4 overflow-hidden">
+            stages.map(stage => (
+              <Card
+                key={stage.id}
+                className="border-border mb-4 overflow-hidden"
+              >
                 <CardContent className="p-4 space-y-4">
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
                       <Label>Palco:</Label>
-                      <Input 
+                      <Input
                         className="w-[250px]"
                         value={stage.name}
-                        onChange={(e) => {
+                        onChange={e => {
                           setStages(
-                            stages.map((s) =>
-                              s.id === stage.id ? { ...s, name: e.target.value } : s
+                            stages.map(s =>
+                              s.id === stage.id
+                                ? { ...s, name: e.target.value }
+                                : s
                             )
-                          );
+                          )
                         }}
                       />
                     </div>
 
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="icon"
                       onClick={() => handleRemoveStage(stage.id)}
                       title="Remover palco"
@@ -924,15 +1078,17 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                   <Separator />
 
                   <div className="space-y-4">
-                    {stage.attractions.map((attraction) => (
+                    {stage.attractions.map(attraction => (
                       <Card key={attraction.id} className="bg-secondary/20">
                         <CardContent className="p-4 space-y-4">
                           <div className="flex justify-between items-center">
                             <h3 className="font-medium">Atração</h3>
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="icon"
-                              onClick={() => handleRemoveAttraction(stage.id, attraction.id)}
+                              onClick={() =>
+                                handleRemoveAttraction(stage.id, attraction.id)
+                              }
                               title="Remover atração"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -941,18 +1097,20 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <Label htmlFor={`artist-${attraction.id}`}>Artista:</Label>
+                              <Label htmlFor={`artist-${attraction.id}`}>
+                                Artista:
+                              </Label>
                               <Input
                                 id={`artist-${attraction.id}`}
                                 placeholder="Nome do artista/atração"
                                 value={attraction.name}
-                                onChange={(e) => {
+                                onChange={e => {
                                   setStages(
-                                    stages.map((s) =>
+                                    stages.map(s =>
                                       s.id === stage.id
                                         ? {
                                             ...s,
-                                            attractions: s.attractions.map((a) =>
+                                            attractions: s.attractions.map(a =>
                                               a.id === attraction.id
                                                 ? { ...a, name: e.target.value }
                                                 : a
@@ -960,28 +1118,30 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                                           }
                                         : s
                                     )
-                                  );
+                                  )
                                 }}
                               />
                             </div>
 
                             <div className="space-y-2">
-                              <Label htmlFor={`showtime-${attraction.id}`}>Horário:</Label>
-                              <Input 
-                                id={`showtime-${attraction.id}`} 
+                              <Label htmlFor={`showtime-${attraction.id}`}>
+                                Horário:
+                              </Label>
+                              <Input
+                                id={`showtime-${attraction.id}`}
                                 type="time"
                                 value={attraction.time}
                                 onChange={e => {
                                   setStages(
-                                    stages.map(s => 
-                                      s.id === stage.id 
-                                        ? { 
-                                            ...s, 
-                                            attractions: s.attractions.map(a => 
-                                              a.id === attraction.id 
+                                    stages.map(s =>
+                                      s.id === stage.id
+                                        ? {
+                                            ...s,
+                                            attractions: s.attractions.map(a =>
+                                              a.id === attraction.id
                                                 ? { ...a, time: e.target.value }
                                                 : a
-                                            ) 
+                                            ),
                                           }
                                         : s
                                     )
@@ -991,7 +1151,9 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                             </div>
 
                             <div className="col-span-1 md:col-span-2 space-y-2">
-                              <Label htmlFor={`notes-${attraction.id}`}>Observações:</Label>
+                              <Label htmlFor={`notes-${attraction.id}`}>
+                                Observações:
+                              </Label>
                               <Textarea
                                 id={`notes-${attraction.id}`}
                                 placeholder="Observações (opcional)..."
@@ -999,15 +1161,18 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                                 value={attraction.notes}
                                 onChange={e => {
                                   setStages(
-                                    stages.map(s => 
-                                      s.id === stage.id 
-                                        ? { 
-                                            ...s, 
-                                            attractions: s.attractions.map(a => 
-                                              a.id === attraction.id 
-                                                ? { ...a, notes: e.target.value }
+                                    stages.map(s =>
+                                      s.id === stage.id
+                                        ? {
+                                            ...s,
+                                            attractions: s.attractions.map(a =>
+                                              a.id === attraction.id
+                                                ? {
+                                                    ...a,
+                                                    notes: e.target.value,
+                                                  }
                                                 : a
-                                            ) 
+                                            ),
                                           }
                                         : s
                                     )
@@ -1019,15 +1184,17 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                         </CardContent>
                       </Card>
                     ))}
-                    
+
                     {stage.attractions.length === 0 && (
                       <div className="text-center p-8 border-dashed border-2 rounded-md">
-                        <p className="text-muted-foreground">Nenhuma atração adicionada neste palco</p>
+                        <p className="text-muted-foreground">
+                          Nenhuma atração adicionada neste palco
+                        </p>
                       </div>
                     )}
                   </div>
 
-                  <Button 
+                  <Button
                     variant="outline"
                     onClick={() => handleAddAttraction(stage.id)}
                     className="w-full"
@@ -1051,15 +1218,17 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
               </h3>
 
               <div className="space-y-4">
-                {realTimeDeliveries.map((delivery) => (
+                {realTimeDeliveries.map(delivery => (
                   <Card key={delivery.id} className="bg-secondary/20">
                     <CardContent className="p-4 space-y-4">
                       <div className="flex justify-between items-center">
                         <h3 className="font-medium">Entrega Real Time</h3>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="icon"
-                          onClick={() => handleRemoveRealTimeDelivery(delivery.id)}
+                          onClick={() =>
+                            handleRemoveRealTimeDelivery(delivery.id)
+                          }
                           title="Remover entrega"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -1077,8 +1246,8 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                             value={delivery.title}
                             onChange={e => {
                               setRealTimeDeliveries(
-                                realTimeDeliveries.map(d => 
-                                  d.id === delivery.id 
+                                realTimeDeliveries.map(d =>
+                                  d.id === delivery.id
                                     ? { ...d, title: e.target.value }
                                     : d
                                 )
@@ -1098,24 +1267,24 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                               value={delivery.time}
                               onChange={e => {
                                 setRealTimeDeliveries(
-                                  realTimeDeliveries.map(d => 
-                                    d.id === delivery.id 
+                                  realTimeDeliveries.map(d =>
+                                    d.id === delivery.id
                                       ? { ...d, time: e.target.value }
                                       : d
                                   )
                                 )
                               }}
                             />
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="icon"
                               title="Definir para agora"
                               onClick={() => {
-                                const now = new Date();
-                                const timeString = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                                const now = new Date()
+                                const timeString = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
                                 setRealTimeDeliveries(
-                                  realTimeDeliveries.map(d => 
-                                    d.id === delivery.id 
+                                  realTimeDeliveries.map(d =>
+                                    d.id === delivery.id
                                       ? { ...d, time: timeString }
                                       : d
                                   )
@@ -1135,21 +1304,25 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                             value={delivery.editorId}
                             onValueChange={value => {
                               setRealTimeDeliveries(
-                                realTimeDeliveries.map(d => 
-                                  d.id === delivery.id 
+                                realTimeDeliveries.map(d =>
+                                  d.id === delivery.id
                                     ? { ...d, editorId: value }
                                     : d
                                 )
                               )
                             }}
                           >
-                            <SelectTrigger id={`delivery-editor-${delivery.id}`}>
+                            <SelectTrigger
+                              id={`delivery-editor-${delivery.id}`}
+                            >
                               <SelectValue placeholder="Selecionar editor" />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="maria">Maria Souza</SelectItem>
                               <SelectItem value="pedro">Pedro Alves</SelectItem>
-                              <SelectItem value="carlos">Carlos Lima</SelectItem>
+                              <SelectItem value="carlos">
+                                Carlos Lima
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -1158,76 +1331,84 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                           <Label>Plataforma de destino:</Label>
                           <div className="flex items-center gap-4 h-10">
                             <div className="flex items-center gap-2">
-                              <Checkbox 
+                              <Checkbox
                                 id={`reels-${delivery.id}`}
                                 checked={delivery.platforms.reels}
                                 onCheckedChange={checked => {
                                   setRealTimeDeliveries(
-                                    realTimeDeliveries.map(d => 
-                                      d.id === delivery.id 
-                                        ? { 
-                                            ...d, 
-                                            platforms: { 
+                                    realTimeDeliveries.map(d =>
+                                      d.id === delivery.id
+                                        ? {
+                                            ...d,
+                                            platforms: {
                                               ...d.platforms,
-                                              reels: Boolean(checked)
-                                            } 
+                                              reels: Boolean(checked),
+                                            },
                                           }
                                         : d
                                     )
                                   )
                                 }}
                               />
-                              <Label htmlFor={`reels-${delivery.id}`}>Reels</Label>
+                              <Label htmlFor={`reels-${delivery.id}`}>
+                                Reels
+                              </Label>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Checkbox 
+                              <Checkbox
                                 id={`stories-${delivery.id}`}
                                 checked={delivery.platforms.stories}
                                 onCheckedChange={checked => {
                                   setRealTimeDeliveries(
-                                    realTimeDeliveries.map(d => 
-                                      d.id === delivery.id 
-                                        ? { 
-                                            ...d, 
-                                            platforms: { 
+                                    realTimeDeliveries.map(d =>
+                                      d.id === delivery.id
+                                        ? {
+                                            ...d,
+                                            platforms: {
                                               ...d.platforms,
-                                              stories: Boolean(checked)
-                                            } 
+                                              stories: Boolean(checked),
+                                            },
                                           }
                                         : d
                                     )
                                   )
                                 }}
                               />
-                              <Label htmlFor={`stories-${delivery.id}`}>Stories</Label>
+                              <Label htmlFor={`stories-${delivery.id}`}>
+                                Stories
+                              </Label>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Checkbox 
+                              <Checkbox
                                 id={`feed-${delivery.id}`}
                                 checked={delivery.platforms.feed}
                                 onCheckedChange={checked => {
                                   setRealTimeDeliveries(
-                                    realTimeDeliveries.map(d => 
-                                      d.id === delivery.id 
-                                        ? { 
-                                            ...d, 
-                                            platforms: { 
+                                    realTimeDeliveries.map(d =>
+                                      d.id === delivery.id
+                                        ? {
+                                            ...d,
+                                            platforms: {
                                               ...d.platforms,
-                                              feed: Boolean(checked)
-                                            } 
+                                              feed: Boolean(checked),
+                                            },
                                           }
                                         : d
                                     )
                                   )
                                 }}
                               />
-                              <Label htmlFor={`feed-${delivery.id}`}>Feed</Label>
+                              <Label htmlFor={`feed-${delivery.id}`}>
+                                Feed
+                              </Label>
                             </div>
                           </div>
                         </div>
 
                         <div className="col-span-1 md:col-span-2 space-y-2">
-                          <Label htmlFor={`delivery-instructions-${delivery.id}`}>
+                          <Label
+                            htmlFor={`delivery-instructions-${delivery.id}`}
+                          >
                             Orientações:
                           </Label>
                           <Textarea
@@ -1237,8 +1418,8 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                             value={delivery.instructions}
                             onChange={e => {
                               setRealTimeDeliveries(
-                                realTimeDeliveries.map(d => 
-                                  d.id === delivery.id 
+                                realTimeDeliveries.map(d =>
+                                  d.id === delivery.id
                                     ? { ...d, instructions: e.target.value }
                                     : d
                                 )
@@ -1250,18 +1431,17 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                     </CardContent>
                   </Card>
                 ))}
-                
+
                 {realTimeDeliveries.length === 0 && (
                   <div className="text-center p-8 border-dashed border-2 rounded-md">
-                    <p className="text-muted-foreground">Nenhuma entrega real-time configurada</p>
+                    <p className="text-muted-foreground">
+                      Nenhuma entrega real-time configurada
+                    </p>
                   </div>
                 )}
               </div>
 
-              <Button 
-                onClick={handleAddRealTimeDelivery} 
-                className="w-full"
-              >
+              <Button onClick={handleAddRealTimeDelivery} className="w-full">
                 <Plus className="h-4 w-4 mr-2" />
                 Nova Entrega Real Time
               </Button>
@@ -1269,9 +1449,9 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div className="space-y-2">
                   <Label htmlFor="teaser-time">Horário do teaser final:</Label>
-                  <Input 
-                    id="teaser-time" 
-                    type="time" 
+                  <Input
+                    id="teaser-time"
+                    type="time"
                     value={teaserTime}
                     onChange={e => setTeaserTime(e.target.value)}
                   />
@@ -1298,7 +1478,7 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                       onChange={e => setPostEventDeadline(e.target.value)}
                       className="w-20"
                     />
-                    <Select 
+                    <Select
                       value={deadlineUnit}
                       onValueChange={setDeadlineUnit}
                     >
@@ -1318,26 +1498,26 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                 <Label>Opções de pacote:</Label>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Checkbox 
-                      id="aftermovie" 
+                    <Checkbox
+                      id="aftermovie"
                       checked={postEventOptions.aftermovie}
-                      onCheckedChange={(checked) => {
+                      onCheckedChange={checked => {
                         setPostEventOptions({
                           ...postEventOptions,
-                          aftermovie: Boolean(checked)
+                          aftermovie: Boolean(checked),
                         })
                       }}
                     />
                     <Label htmlFor="aftermovie">Aftermovie</Label>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Checkbox 
-                      id="highlights" 
+                    <Checkbox
+                      id="highlights"
                       checked={postEventOptions.highlights}
-                      onCheckedChange={(checked) => {
+                      onCheckedChange={checked => {
                         setPostEventOptions({
                           ...postEventOptions,
-                          highlights: Boolean(checked)
+                          highlights: Boolean(checked),
                         })
                       }}
                     />
@@ -1346,13 +1526,13 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                     </Label>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Checkbox 
-                      id="sponsor-versions" 
+                    <Checkbox
+                      id="sponsor-versions"
                       checked={postEventOptions.sponsorVersions}
-                      onCheckedChange={(checked) => {
+                      onCheckedChange={checked => {
                         setPostEventOptions({
                           ...postEventOptions,
-                          sponsorVersions: Boolean(checked)
+                          sponsorVersions: Boolean(checked),
                         })
                       }}
                     />

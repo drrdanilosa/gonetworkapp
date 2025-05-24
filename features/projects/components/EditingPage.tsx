@@ -2,24 +2,10 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardH                               <div className="flex items-start gap-2">
-                          <CardTitle className="text-lg">{video.title}</CardTitle>
-                          {getStatusBadge(video.status)}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {video.uploadDate ? `Upload em ${format(new Date(video.uploadDate), 'dd/MM/yyyy HH:mm')}` : 'Sem data de upload'}
-                        </p>
-                      </CardHeader>         <div className="flex items-start gap-2">
-                          <CardTitle className="text-lg">{video.title}</CardTitle>
-                          {getStatusBadge(video.status)}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {video.uploadDate ? `Upload em ${format(new Date(video.uploadDate), 'dd/MM/yyyy HH:mm')}` : 'Sem data de upload'}
-                        </p>
-                      </CardHeader>ardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AlertCircle, Video, MessageSquare, Check, X } from 'lucide-react'
-import { useProjectsStore } from '@/store/projects-store'
+import { useProjectsStore } from '@/store/useProjectsStoreUnified'
 import { useUIStore } from '@/store/useUIStore'
 import VideoUploader from '@/components/video/VideoUploader'
 import EventSelector from '@/components/project/EventSelector'

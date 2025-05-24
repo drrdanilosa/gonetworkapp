@@ -12,58 +12,48 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Clock, Download, FileText, Plus, Upload, Video } from 'lucide-react'
 
-export default function DeliveryWidget() {
-  const pendingDeliveries = [
-    {
-      id: 1,
-      title: 'Teaser - Festival de Música',
-      event: 'Festival de Música',
-      deadline: 'Hoje, 18:00',
-      status: 'Pendente',
-      editor: 'Maria Souza',
-      type: 'Teaser',
-      urgent: true,
-    },
-    {
-      id: 2,
-      title: 'Stories - Patrocinador A',
-      event: 'Festival de Música',
-      deadline: 'Amanhã, 10:00',
-      status: 'Em edição',
-      editor: 'Pedro Alves',
-      type: 'Stories',
-      urgent: false,
-    },
-    {
-      id: 3,
-      title: 'Reels - Abertura',
-      event: 'Festival de Música',
-      deadline: '20/05/2025, 14:00',
-      status: 'Em edição',
-      editor: 'Maria Souza',
-      type: 'Reels',
-      urgent: false,
-    },
-  ]
+import { useProjectsStore } from '@/store/useProjectsStoreUnified'
+import { useUIStore } from '@/store/useUIStore'
 
-  const completedDeliveries = [
-    {
-      id: 4,
-      title: 'Stories - Abertura',
-      event: 'Festival de Música',
-      completedDate: '19/05/2025, 12:30',
-      editor: 'Maria Souza',
-      type: 'Stories',
-    },
-    {
-      id: 5,
-      title: 'Reels - Patrocinador B',
-      event: 'Festival de Música',
-      completedDate: '19/05/2025, 15:00',
-      editor: 'Pedro Alves',
-      type: 'Reels',
-    },
-  ]
+export default function DeliveryWidget() {
+  const { projects } = useProjectsStore()
+  const { selectedEventId } = useUIStore()
+  
+  // Buscar projeto selecionado
+  const selectedProject = projects.find(p => p.id === selectedEventId)
+  
+  // Buscar entregas do projeto selecionado
+  const projectDeliverables = selectedProject?.videos || []
+  
+  const pendingDeliveries = projectDeliverables
+    .filter(deliverable => deliverable.status !== 'approved')
+    .map(deliverable => ({
+      id: deliverable.id,
+      title: deliverable.title,
+      event: selectedProject?.name || 'Projeto não selecionado',
+      deadline: deliverable.dueDate ? new Date(deliverable.dueDate).toLocaleString('pt-BR') : 'Sem prazo definido',
+      status: deliverable.status === 'editing' ? 'Em edição' : 
+             deliverable.status === 'ready_for_review' ? 'Aguardando revisão' :
+             deliverable.status === 'changes_requested' ? 'Revisão solicitada' : 'Pendente',
+      editor: selectedProject?.editorId || 'Editor não definido',
+      type: deliverable.title.includes('Teaser') ? 'Teaser' :
+            deliverable.title.includes('Stories') ? 'Stories' :
+            deliverable.title.includes('Reels') ? 'Reels' : 'Vídeo',
+      urgent: deliverable.dueDate ? new Date(deliverable.dueDate) < new Date(Date.now() + 24 * 60 * 60 * 1000) : false,
+    }))
+
+  const completedDeliveries = projectDeliverables
+    .filter(deliverable => deliverable.status === 'approved')
+    .map(deliverable => ({
+      id: deliverable.id,
+      title: deliverable.title,
+      event: selectedProject?.name || 'Projeto não selecionado',
+      completedDate: deliverable.lastUpdated ? new Date(deliverable.lastUpdated).toLocaleString('pt-BR') : 'Data não disponível',
+      editor: selectedProject?.editorId || 'Editor não definido',
+      type: deliverable.title.includes('Teaser') ? 'Teaser' :
+            deliverable.title.includes('Stories') ? 'Stories' :
+            deliverable.title.includes('Reels') ? 'Reels' : 'Vídeo',
+    }))
 
   return (
     <div className="space-y-6">
@@ -73,20 +63,16 @@ export default function DeliveryWidget() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Label>Evento:</Label>
-            <Select defaultValue="festival">
+            <Select value={selectedEventId || ''} onValueChange={(value) => useUIStore.getState().setSelectedEventId(value)}>
               <SelectTrigger className="w-[250px]">
                 <SelectValue placeholder="Selecione um evento" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="festival">
-                  Festival de Música - 18-20 Mai 2025
-                </SelectItem>
-                <SelectItem value="lancamento">
-                  Lançamento de Produto - 25 Mai 2025
-                </SelectItem>
-                <SelectItem value="conferencia">
-                  Conferência Tech - 01 Jun 2025
-                </SelectItem>
+                {projects.map(project => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name} - {project.startDate ? new Date(project.startDate).toLocaleDateString('pt-BR') : 'Data não definida'}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

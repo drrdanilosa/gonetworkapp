@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -19,10 +19,10 @@ interface GenerateTimelineButtonProps {
   disabled?: boolean
 }
 
-export default function GenerateTimelineButton({ 
-  projectId, 
+export default function GenerateTimelineButton({
+  projectId,
   onGenerated,
-  disabled = false
+  disabled = false,
 }: GenerateTimelineButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
@@ -31,30 +31,52 @@ export default function GenerateTimelineButton({
   // Função para gerar a timeline a partir dos dados do briefing
   const handleGenerateTimeline = async () => {
     if (!projectId) return
-    
+
     setIsLoading(true)
     setIsComplete(false)
-    
+
     try {
-      // Em uma aplicação real, enviar requisição para gerar timeline
-      // const response = await fetch(`/api/events/${projectId}/generate-timeline`, {
-      //   method: 'POST',
-      // })
-      
-      // Simulação de requisição
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
+      // Primeiro, verificar se existe um briefing salvo
+      const briefingResponse = await fetch(`/api/briefings/${projectId}`)
+      if (!briefingResponse.ok) {
+        throw new Error(
+          'Não foi possível carregar os dados do briefing. Certifique-se de salvar o briefing primeiro.'
+        )
+      }
+
+      const briefingData = await briefingResponse.json()
+      console.log('Dados do briefing carregados:', briefingData)
+
+      // Gerar a timeline usando a API
+      const timelineResponse = await fetch(`/api/timeline/${projectId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          generateFromBriefing: true,
+          briefingData,
+        }),
+      })
+
+      if (!timelineResponse.ok) {
+        const errorData = await timelineResponse.json()
+        throw new Error(errorData.error || 'Erro ao gerar timeline')
+      }
+
+      const generatedTimeline = await timelineResponse.json()
+      console.log('Timeline gerada com sucesso:', generatedTimeline)
+
       setIsComplete(true)
-      
+
       if (onGenerated) {
         onGenerated(true)
       }
-      
+
       // Fechar o modal após um momento
       setTimeout(() => setIsOpen(false), 2000)
-      
     } catch (error) {
-      console.error("Erro ao gerar timeline:", error)
+      console.error('Erro ao gerar timeline:', error)
       if (onGenerated) {
         onGenerated(false)
       }
@@ -66,8 +88,8 @@ export default function GenerateTimelineButton({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={() => setIsOpen(true)}
           disabled={disabled || !projectId}
         >
@@ -116,7 +138,8 @@ export default function GenerateTimelineButton({
         ) : (
           <div className="py-4">
             <p>
-              Esta ação irá gerar uma timeline com base nos dados atuais do briefing:
+              Esta ação irá gerar uma timeline com base nos dados atuais do
+              briefing:
             </p>
             <ul className="list-disc list-inside space-y-1 mt-2 text-sm">
               <li>Datas e horários do evento</li>
@@ -133,15 +156,10 @@ export default function GenerateTimelineButton({
         <DialogFooter>
           {!isLoading && !isComplete && (
             <>
-              <Button 
-                variant="outline" 
-                onClick={() => setIsOpen(false)}
-              >
+              <Button variant="outline" onClick={() => setIsOpen(false)}>
                 Cancelar
               </Button>
-              <Button 
-                onClick={handleGenerateTimeline}
-              >
+              <Button onClick={handleGenerateTimeline}>
                 Confirmar Geração
               </Button>
             </>

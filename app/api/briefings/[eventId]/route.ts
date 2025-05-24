@@ -1,510 +1,125 @@
-// app/api/briefings/[eventId]/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import fs from 'fs/promises'
-import path from 'path'
-import { v4 as uuidv4 } from 'uuid'
-import { sanitizeInput, sanitizeObject } from '@/utils/sanitize'
-import { acquireLock, releaseLock } from '@/utils/file-lock'
+import { findEventById, readBriefingsData, saveBriefingsData } from '@/lib/dataManager'
 
-const DATA_FILE = path.join(process.cwd(), 'data', 'briefings.json')
-const EVENTS_FILE = path.join(process.cwd(), 'data', 'events.json')
-
-// Função auxiliar para ler dados de briefing
-async function readBriefingData() {
-  try {
-    const dir = path.dirname(DATA_FILE)
-    await fs.mkdir(dir, { recursive: true })
-    
-    try {
-      const data = await fs.readFile(DATA_FILE, 'utf-8')
-      return JSON.parse(data)
-    } catch (error) {
-      // Se o arquivo não existir, retorna objeto vazio
-      return {}
-    }
-  } catch (error) {
-    console.error('Erro ao ler dados de briefing:', error)
-    return {}
-  }
-}
-
-// Função auxiliar para ler dados de eventos
-async function readEventsData() {
-  try {
-    const dir = path.dirname(EVENTS_FILE)
-    await fs.mkdir(dir, { recursive: true })
-    
-    try {
-      const data = await fs.readFile(EVENTS_FILE, 'utf-8')
-      const events = JSON.parse(data)
-      return Array.isArray(events) ? events : []
-    } catch (error) {
-      // Se o arquivo não existir, retorna array vazio
-      return []
-    }
-  } catch (error) {
-    console.error('Erro ao ler dados de eventos:', error)
-    return []
-  }
-}
-
-// Função auxiliar para salvar dados de briefing
-async function saveBriefingData(data: Record<string, any>) {
-  const dir = path.dirname(DATA_FILE)
-  await fs.mkdir(dir, { recursive: true })
-  // Usar lock para concorrência
-  const locked = await acquireLock(DATA_FILE)
-  if (!locked) throw new Error('Timeout ao adquirir lock do arquivo de briefing')
-  try {
-    await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2))
-  } finally {
-    await releaseLock(DATA_FILE)
-  }
-}
-
-// Função para validar se o evento existe
-async function validateEventExists(eventId: string): Promise<boolean> {
-  try {
-    const events = await readEventsData()
-    return events.some((event: any) => event.id === eventId)
-  } catch (error) {
-    console.error('Erro ao validar evento:', error)
-    return false
-  }
-}
-
-// Interface para o Briefing
-interface BriefingData {
-  id: string
-  eventId: string
-  projectName?: string
-  client?: string
-  briefingDate?: string
-  eventDate?: string
-  location?: string
-  description?: string
-  objectives?: string[]
-  targetAudience?: string
-  budget?: number
-  specialRequirements?: string
-  team?: any[]
-  editorialInfo?: any
-  deliveries?: any[]
-  timeline?: any[]
-  createdAt: string
-  updatedAt: string
-  [key: string]: any
-}
-
-// Função para validar dados do briefing
-function validateBriefingData(data: Partial<BriefingData>): string[] {
-  const errors: string[] = []
-  
-  if (data.projectName && typeof data.projectName !== 'string') {
-    errors.push('Nome do projeto deve ser texto')
-  }
-  
-  if (data.budget && (isNaN(Number(data.budget)) || Number(data.budget) < 0)) {
-    errors.push('Orçamento deve ser um número positivo')
-  }
-  
-  if (data.eventDate && isNaN(Date.parse(data.eventDate as string))) {
-    errors.push('Data do evento inválida')
-  }
-  
-  if (data.objectives && !Array.isArray(data.objectives)) {
-    errors.push('Objetivos devem ser uma lista')
-  }
-  
-  return errors
-}
-
-/**
- * GET - Buscar briefing de um evento específico
- */
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { eventId: string } }
+  req: Request,
+  context: { params: { eventId: string } }
 ) {
   try {
-    const { eventId } = params
+    const eventId = context.params?.eventId
+    console.log(`🔍 [GET /api/briefings/${eventId}] Buscando briefing...`)
     
     if (!eventId) {
       return NextResponse.json(
-        { 
-          success: false,
-          error: 'ID do evento é obrigatório' 
-        },
+        { error: 'ID de evento inválido' },
         { status: 400 }
       )
     }
 
-    // Validar se o evento existe
-    const eventExists = await validateEventExists(eventId)
-    if (!eventExists) {
+    // Verificar se o evento existe
+    const event = await findEventById(eventId)
+    if (!event) {
+      console.log(`❌ [GET /api/briefings/${eventId}] Evento não encontrado`)
       return NextResponse.json(
-        { 
-          success: false,
-          error: 'Evento não encontrado',
-          eventId 
-        },
+        { error: 'Evento não encontrado' },
         { status: 404 }
       )
     }
-    
-    const briefingData = await readBriefingData()
-    const briefing = briefingData[eventId]
-    
+
+    // Buscar briefing
+    const briefings = await readBriefingsData()
+    const briefing = briefings[eventId]
+
     if (!briefing) {
-      // Retornar estrutura vazia se briefing não existe, mas evento existe
-      const emptyBriefing: Partial<BriefingData> = {
+      console.log(`⚠️ [GET /api/briefings/${eventId}] Briefing não encontrado, retornando template`)
+      // Retornar template vazio se não existe
+      const templateBriefing = {
         eventId,
-        id: '',
-        createdAt: '',
-        updatedAt: ''
-      }
-      
-      return NextResponse.json(
-        { 
-          success: true,
-          message: 'Briefing não encontrado para este evento',
-          eventId,
-          briefing: emptyBriefing
-        },
-        { status: 200 }
-      )
-    }
-    
-    console.log(`[GET /api/briefings/${eventId}] Briefing encontrado`)
-    return NextResponse.json(
-      { 
-        success: true, 
-        briefing 
-      }, 
-      { status: 200 }
-    )
-  } catch (error) {
-    console.error('Erro ao buscar briefing:', error)
-    return NextResponse.json(
-      { 
-        success: false,
-        error: 'Erro ao processar requisição',
-        details: error instanceof Error ? error.message : String(error)
-      },
-      { status: 500 }
-    )
-  }
-}
-
-/**
- * POST - Criar ou atualizar briefing de um evento
- */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { eventId: string } }
-) {
-  try {
-    const { eventId } = params
-    const data = await request.json()
-
-    if (!eventId) {
-      return NextResponse.json(
-        { 
-          success: false,
-          error: 'ID do evento é obrigatório' 
-        },
-        { status: 400 }
-      )
-    }
-
-    // Validar se o evento existe
-    const eventExists = await validateEventExists(eventId)
-    if (!eventExists) {
-      return NextResponse.json(
-        { 
-          success: false,
-          error: 'Evento não encontrado. Certifique-se de que o evento foi criado primeiro.',
-          eventId 
-        },
-        { status: 404 }
-      )
-    }
-
-    // Validar dados mínimos
-    if (!data || Object.keys(data).length === 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Dados do briefing não fornecidos',
-        },
-        { status: 400 }
-      )
-    }
-
-    // Validar dados do briefing
-    const validationErrors = validateBriefingData(data)
-    if (validationErrors.length > 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Dados inválidos',
-          details: validationErrors,
-        },
-        { status: 400 }
-      )
-    }
-
-    // Sanitizar dados de entrada
-    const sanitizedData = Object.entries(data).reduce((acc, [key, value]) => {
-      if (typeof value === 'string') {
-        acc[key] = sanitizeInput(value)
-      } else {
-        acc[key] = value
-      }
-      return acc
-    }, {} as Record<string, any>)
-
-    // Ler dados existentes
-    const briefingData = await readBriefingData()
-    const existingBriefing = briefingData[eventId]
-    
-    // Preparar objeto do briefing
-    const now = new Date().toISOString()
-    const briefingRecord: BriefingData = {
-      id: existingBriefing?.id || sanitizedData.id || uuidv4(),
-      eventId,
-      ...sanitizedData,
-      createdAt: existingBriefing?.createdAt || now,
-      updatedAt: now,
-    }
-
-    // Salvar briefing atualizado
-    briefingData[eventId] = briefingRecord
-    await saveBriefingData(briefingData)
-
-    console.log(`[POST /api/briefings/${eventId}] Briefing ${existingBriefing ? 'atualizado' : 'criado'}`)
-
-    return NextResponse.json(
-      {
-        success: true,
-        message: `Briefing ${existingBriefing ? 'atualizado' : 'criado'} com sucesso`,
-        eventId,
-        briefing: briefingRecord,
-      },
-      { status: existingBriefing ? 200 : 201 }
-    )
-  } catch (error) {
-    console.error('Erro ao salvar briefing:', error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Erro interno ao salvar briefing',
-        details: error instanceof Error ? error.message : String(error),
-      },
-      { status: 500 }
-    )
-  }
-}
-
-/**
- * PUT - Atualizar briefing completo (substitui dados existentes)
- */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { eventId: string } }
-) {
-  try {
-    const { eventId } = params
-    const data = await request.json()
-
-    if (!eventId) {
-      return NextResponse.json(
-        { error: 'ID do evento é obrigatório' },
-        { status: 400 }
-      )
-    }
-
-    // Ler dados existentes
-    const briefingData = await readBriefingData()
-    const existingBriefing = briefingData[eventId]
-    
-    if (!existingBriefing) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Briefing não encontrado para atualização',
-        },
-        { status: 404 }
-      )
-    }
-
-    // Substituir dados completamente (manter apenas id, eventId, createdAt)
-    const now = new Date().toISOString()
-    const briefingRecord: BriefingData = {
-      id: existingBriefing.id,
-      eventId,
-      ...data,
-      createdAt: existingBriefing.createdAt,
-      updatedAt: now,
-    }
-
-    briefingData[eventId] = briefingRecord
-    await saveBriefingData(briefingData)
-
-    console.log(`[PUT /api/briefings/${eventId}] Briefing substituído completamente`)
-
-    return NextResponse.json(
-      {
-        success: true,
-        message: 'Briefing atualizado completamente com sucesso',
-        eventId,
-        briefing: briefingRecord,
-      },
-      { status: 200 }
-    )
-  } catch (error) {
-    console.error('Erro ao atualizar briefing:', error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Erro interno ao atualizar briefing',
-        details: error instanceof Error ? error.message : String(error),
-      },
-      { status: 500 }
-    )
-  }
-}
-
-/**
- * PATCH - Atualizar parcialmente o briefing (merge com dados existentes)
- */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { eventId: string } }
-) {
-  try {
-    const { eventId } = params
-    const updates = await request.json()
-
-    if (!eventId) {
-      return NextResponse.json(
-        { error: 'ID do evento é obrigatório' },
-        { status: 400 }
-      )
-    }
-
-    // Ler dados existentes
-    const briefingData = await readBriefingData()
-    const existingBriefing = briefingData[eventId]
-    
-    if (!existingBriefing) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Briefing não encontrado para atualização',
-        },
-        { status: 404 }
-      )
-    }
-
-    // Fazer merge dos dados (preservar dados existentes)
-    const now = new Date().toISOString()
-    const briefingRecord: BriefingData = {
-      ...existingBriefing,
-      ...updates,
-      id: existingBriefing.id, // Não permitir alterar ID
-      eventId, // Garantir consistência
-      createdAt: existingBriefing.createdAt, // Preservar data de criação
-      updatedAt: now,
-    }
-
-    briefingData[eventId] = briefingRecord
-    await saveBriefingData(briefingData)
-
-    console.log(`[PATCH /api/briefings/${eventId}] Briefing atualizado parcialmente`)
-
-    return NextResponse.json(
-      {
-        success: true,
-        message: 'Briefing atualizado parcialmente com sucesso',
-        eventId,
-        briefing: briefingRecord,
-        updatedFields: Object.keys(updates),
-      },
-      { status: 200 }
-    )
-  } catch (error) {
-    console.error('Erro ao atualizar briefing parcialmente:', error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Erro interno ao atualizar briefing',
-        details: error instanceof Error ? error.message : String(error),
-      },
-      { status: 500 }
-    )
-  }
-}
-
-/**
- * DELETE - Remover briefing de um evento
- */
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { eventId: string } }
-) {
-  try {
-    const { eventId } = params
-
-    if (!eventId) {
-      return NextResponse.json(
-        { error: 'ID do evento é obrigatório' },
-        { status: 400 }
-      )
-    }
-
-    // Ler dados existentes
-    const briefingData = await readBriefingData()
-    const existingBriefing = briefingData[eventId]
-    
-    if (!existingBriefing) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Briefing não encontrado para remoção',
-        },
-        { status: 404 }
-      )
-    }
-
-    // Remover o briefing
-    delete briefingData[eventId]
-    await saveBriefingData(briefingData)
-
-    console.log(`[DELETE /api/briefings/${eventId}] Briefing removido`)
-
-    return NextResponse.json(
-      {
-        success: true,
-        message: 'Briefing removido com sucesso',
-        eventId,
-        deletedBriefing: {
-          id: existingBriefing.id,
-          createdAt: existingBriefing.createdAt,
-          updatedAt: existingBriefing.updatedAt
+        eventTitle: event.title,
+        client: event.client,
+        createdAt: new Date().toISOString(),
+        sections: {
+          overview: { title: 'Visão Geral', content: '', completed: false },
+          objectives: { title: 'Objetivos', content: '', completed: false },
+          target: { title: 'Público-Alvo', content: '', completed: false },
+          timeline: { title: 'Cronograma', content: '', completed: false },
+          deliverables: { title: 'Entregáveis', content: '', completed: false },
+          requirements: { title: 'Requisitos Técnicos', content: '', completed: false },
+          notes: { title: 'Observações Adicionais', content: '', completed: false }
         }
-      },
-      { status: 200 }
-    )
+      }
+      return NextResponse.json(templateBriefing, { status: 200 })
+    }
+
+    console.log(`✅ [GET /api/briefings/${eventId}] Briefing encontrado`)
+    return NextResponse.json(briefing, { status: 200 })
+    
   } catch (error) {
-    console.error('Erro ao remover briefing:', error)
+    console.error(`❌ [GET /api/briefings/${eventId}] Erro:`, error)
     return NextResponse.json(
-      {
-        success: false,
-        error: 'Erro interno ao remover briefing',
-        details: error instanceof Error ? error.message : String(error),
-      },
+      { error: 'Erro ao buscar briefing' },
       { status: 500 }
     )
   }
+}
+
+export async function PUT(
+  req: Request,
+  context: { params: { eventId: string } }
+) {
+  try {
+    const eventId = context.params?.eventId
+    const briefingData = await req.json()
+    
+    console.log(`💾 [PUT /api/briefings/${eventId}] Salvando briefing...`)
+    
+    if (!eventId) {
+      return NextResponse.json(
+        { error: 'ID de evento inválido' },
+        { status: 400 }
+      )
+    }
+
+    // Verificar se o evento existe
+    const event = await findEventById(eventId)
+    if (!event) {
+      return NextResponse.json(
+        { error: 'Evento não encontrado' },
+        { status: 404 }
+      )
+    }
+
+    // Preparar dados do briefing
+    const updatedBriefing = {
+      ...briefingData,
+      eventId,
+      eventTitle: event.title,
+      client: event.client,
+      updatedAt: new Date().toISOString(),
+      createdAt: briefingData.createdAt || new Date().toISOString()
+    }
+
+    // Salvar briefing
+    const briefings = await readBriefingsData()
+    briefings[eventId] = updatedBriefing
+    await saveBriefingsData(briefings)
+    
+    console.log(`✅ [PUT /api/briefings/${eventId}] Briefing salvo com sucesso`)
+    return NextResponse.json(updatedBriefing, { status: 200 })
+    
+  } catch (error) {
+    console.error(`❌ [PUT /api/briefings/${eventId}] Erro:`, error)
+    return NextResponse.json(
+      { error: 'Erro ao salvar briefing' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function POST(
+  req: Request,
+  context: { params: { eventId: string } }
+) {
+  // Redirecionar POST para PUT para manter consistência
+  return PUT(req, context)
 }

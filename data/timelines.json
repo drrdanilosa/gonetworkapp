@@ -3,5 +3,50 @@
     "version": "1.0",
     "lastUpdated": "2023-11-22T12:00:00.000Z",
     "description": "Arquivo de dados para armazenar as timelines dos eventos"
-  }
+  },
+  "e556271a-dda7-4559-b9c6-73ea3431f640": [
+    {
+      "id": "7b085d92-c556-46bb-893e-e10c4f5f0b9a",
+      "name": "Pré-produção",
+      "description": "Planejamento e preparação baseado no briefing",
+      "startDate": "2025-04-23T07:35:42.384Z",
+      "endDate": "2025-05-08T07:35:42.384Z",
+      "status": "pending",
+      "type": "planning",
+      "tasks": [
+        {
+          "id": "5dd24667-6b09-46fc-98b1-d33f3324ebb1",
+          "name": "Preparação para 1 sponsors",
+          "description": "Coordenação com sponsors baseada no briefing",
+          "status": "pending",
+          "dueDate": "2025-04-28T07:35:42.384Z"
+        },
+        {
+          "id": "b6670eb5-9fb0-4531-8514-11dfda6fb369",
+          "name": "Setup de 1 palcos",
+          "description": "Preparação dos palcos conforme briefing",
+          "status": "pending",
+          "dueDate": "2025-05-03T07:35:42.384Z"
+        }
+      ]
+    },
+    {
+      "id": "26195e75-0d84-435c-8daf-187d17862cf8",
+      "name": "Dia do Evento",
+      "description": "Execução baseada no briefing",
+      "startDate": "2025-05-23T07:35:42.384Z",
+      "endDate": "2025-05-24T07:35:42.384Z",
+      "status": "pending",
+      "type": "execution",
+      "tasks": [
+        {
+          "id": "cd49dda2-2517-4c2c-98e4-d08cdd022312",
+          "name": "Entregas em tempo real (1)",
+          "description": "Execução das entregas conforme briefing",
+          "status": "pending",
+          "dueDate": "2025-05-23T07:35:42.384Z"
+        }
+      ]
+    }
+  ]
 }

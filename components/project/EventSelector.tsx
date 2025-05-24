@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { useProjectsStore } from '@/store/projects-store'
+import { useProjectsStore } from '@/store/useProjectsStoreUnified'
 import { useUIStore } from '@/store/useUIStore'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'

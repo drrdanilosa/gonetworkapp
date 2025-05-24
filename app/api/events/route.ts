@@ -1,48 +1,43 @@
-// app/api/events/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { useProjectsStore } from '@/store/useProjectsStore'
 import { v4 as uuidv4 } from 'uuid'
+import { readEventsData, saveEventsData } from '@/lib/dataManager'
 
-/**
- * Handler GET para listar todos os eventos
- */
 export async function GET(req: NextRequest) {
   try {
-    // Parâmetros de filtro da URL
     const searchParams = req.nextUrl.searchParams
     const status = searchParams.get('status')
     const client = searchParams.get('client')
-    const sort = searchParams.get('sort') || 'desc' // default: mais recente primeiro
-
-    // Acessar o estado global através do Zustand
-    const store = useProjectsStore.getState()
-    let projects = [...store.projects]
-
-    // Aplicar filtros se necessário
+    const sort = searchParams.get('sort') || 'desc'
+    
+    console.log('🔍 [GET /api/events] Buscando eventos...')
+    
+    let events = await readEventsData()
+    console.log(`📊 [GET /api/events] Encontrados ${events.length} eventos`)
+    
+    // Aplicar filtros
     if (status) {
-      projects = projects.filter(p => p.status === status)
+      events = events.filter(p => p.status === status)
+      console.log(`🔍 Filtro status "${status}": ${events.length} eventos`)
     }
-
+    
     if (client) {
-      projects = projects.filter(p =>
+      events = events.filter(p => 
         p.client?.toLowerCase().includes(client.toLowerCase())
       )
+      console.log(`🔍 Filtro cliente "${client}": ${events.length} eventos`)
     }
-
-    // Aplicar ordenação
-    projects.sort((a, b) => {
+    
+    // Ordenação
+    events.sort((a, b) => {
       const dateA = new Date(a.createdAt || a.date || 0).getTime()
       const dateB = new Date(b.createdAt || b.date || 0).getTime()
       return sort === 'desc' ? dateB - dateA : dateA - dateB
     })
-
-    // Log de auditoria
-    console.log(`[GET /api/events] Listando ${projects.length} eventos`)
-
-    return NextResponse.json({
+    
+    const responseData = {
       success: true,
-      count: projects.length,
-      events: projects.map(p => ({
+      count: events.length,
+      events: events.map(p => ({
         id: p.id,
         title: p.title,
         client: p.client,
@@ -53,52 +48,53 @@ export async function GET(req: NextRequest) {
         thumbnail: p.thumbnail,
         videoCount: p.videos?.length || 0,
         deadlines: p.deadlines,
+        description: p.description,
+        tags: p.tags,
+        team: p.team,
+        briefing: p.briefing
       })),
-    })
+    }
+    
+    console.log('✅ [GET /api/events] Resposta enviada com sucesso')
+    return NextResponse.json(responseData)
+    
   } catch (error) {
-    console.error('Erro ao listar eventos:', error)
+    console.error('❌ [GET /api/events] Erro:', error)
     return NextResponse.json(
       {
         success: false,
         error: 'Erro interno ao processar eventos',
         details: error instanceof Error ? error.message : String(error),
-      },
+      }, 
       { status: 500 }
     )
   }
 }
 
-/**
- * Handler POST para criar um novo evento/projeto
- */
 export async function POST(req: Request) {
   try {
-    // Extrair dados da requisição
     const data = await req.json()
-    const { title, client, date, team, briefing } = data
-
-    // Validar campos obrigatórios
+    console.log('📝 [POST /api/events] Dados recebidos:', data)
+    
+    const { title, client, date, team, briefing, description, tags } = data
+    
     if (!title) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'O título do evento é obrigatório',
-        },
-        { status: 400 }
-      )
+      return NextResponse.json({
+        success: false,
+        error: 'O título do evento é obrigatório'
+      }, { status: 400 })
     }
-
-    // Criar um novo ID único
+    
     const newId = data.id || uuidv4()
-
-    // Preparar objeto do novo projeto com dados default
-    const newProject = {
+    const now = new Date().toISOString()
+    
+    const newEvent = {
       id: newId,
       title,
       client: client || 'Cliente não especificado',
-      date: date || new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      date: date || now,
+      createdAt: now,
+      updatedAt: now,
       status: 'active',
       team: team || [],
       briefing: briefing || null,
@@ -107,9 +103,8 @@ export async function POST(req: Request) {
       tasks: [],
       deadline: data.deadline || null,
       thumbnail: data.thumbnail || '/placeholder-event.jpg',
-      // Dados opcionais se fornecidos
-      description: data.description || '',
-      tags: data.tags || [],
+      description: description || '',
+      tags: tags || [],
       deliverySettings: data.deliverySettings || {
         allowRevisions: true,
         maxRevisions: 3,
@@ -117,31 +112,39 @@ export async function POST(req: Request) {
         notifyOnUpload: true,
       },
     }
-
-    // Acessar o store e adicionar o novo projeto
-    const store = useProjectsStore.getState()
-    store.addProject(newProject)
-
-    // Log de auditoria
-    console.log(`[POST /api/events] Novo evento criado: ${newId} - ${title}`)
-
-    return NextResponse.json(
-      {
-        success: true,
-        message: 'Evento criado com sucesso',
-        event: newProject,
-      },
-      { status: 201 }
-    )
+    
+    console.log('🆕 [POST /api/events] Criando evento:', newEvent.id, '-', newEvent.title)
+    
+    // Ler eventos existentes
+    const events = await readEventsData()
+    
+    // Verificar se já existe
+    const existingIndex = events.findIndex(e => e.id === newId)
+    if (existingIndex >= 0) {
+      // Atualizar existente
+      events[existingIndex] = { ...events[existingIndex], ...newEvent, updatedAt: now }
+      console.log('🔄 [POST /api/events] Evento atualizado:', newId)
+    } else {
+      // Adicionar novo
+      events.push(newEvent)
+      console.log('✅ [POST /api/events] Novo evento adicionado:', newId)
+    }
+    
+    // Salvar
+    await saveEventsData(events)
+    
+    return NextResponse.json({
+      success: true,
+      message: 'Evento criado com sucesso',
+      event: newEvent
+    }, { status: 201 })
+    
   } catch (error) {
-    console.error('Erro ao criar evento:', error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Erro interno ao criar evento',
-        details: error instanceof Error ? error.message : String(error),
-      },
-      { status: 500 }
-    )
+    console.error('❌ [POST /api/events] Erro ao criar evento:', error)
+    return NextResponse.json({
+      success: false,
+      error: 'Erro interno ao criar evento',
+      details: error instanceof Error ? error.message : String(error),
+    }, { status: 500 })
   }
 }

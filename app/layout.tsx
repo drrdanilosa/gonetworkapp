@@ -4,6 +4,7 @@ import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { ReactQueryProvider } from '@/components/providers/query-provider'
 import { NotificationsProvider } from '@/components/providers/notifications-provider'
+import { EventSyncProvider } from '@/components/providers/event-sync-provider'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -48,9 +49,11 @@ export default function RootLayout({
             enableSystem={true}
             disableTransitionOnChange
           >
-            {children}
-            {/* Componente de notificações global */}
-            <NotificationsProvider />
+            <EventSyncProvider>
+              {children}
+              {/* Componente de notificações global */}
+              <NotificationsProvider />
+            </EventSyncProvider>
           </ThemeProvider>
         </ReactQueryProvider>
       </body>

@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { useProjectsStore } from '@/store/projects-store'
+import { useProjectsStore } from '@/store/useProjectsStoreUnified'
 import { useUIStore } from '@/store/useUIStore'
 import EventSelector from '@/components/project/EventSelector'
 import { toast } from '@/components/ui/use-toast'

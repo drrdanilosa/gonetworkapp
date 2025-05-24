@@ -21,68 +21,51 @@ import {
   Video,
 } from 'lucide-react'
 
+import { useProjectsStore } from '@/store/useProjectsStoreUnified'
+import { useUIStore } from '@/store/useUIStore'
+
 export default function AssetsWidget() {
+  const { projects, assets } = useProjectsStore()
+  const { selectedEventId } = useUIStore()
+  
+  // Buscar projeto selecionado
+  const selectedProject = projects.find(p => p.id === selectedEventId)
+  
+  // Buscar assets do projeto selecionado
+  const projectAssets = assets.filter(asset => asset.projectId === selectedEventId)
+  
+  // Organizar por pastas baseado no tipo
   const folders = [
     {
-      id: 1,
-      name: 'Festival de Música',
+      id: 'videos',
+      name: 'Vídeos',
       type: 'folder',
-      items: 24,
-      date: '19/05/2025',
+      items: projectAssets.filter(a => a.type === 'video').length,
+      date: new Date().toLocaleDateString('pt-BR'),
     },
     {
-      id: 2,
-      name: 'Lançamento de Produto',
+      id: 'images',
+      name: 'Imagens',
       type: 'folder',
-      items: 12,
-      date: '15/05/2025',
+      items: projectAssets.filter(a => a.type === 'image').length,
+      date: new Date().toLocaleDateString('pt-BR'),
     },
     {
-      id: 3,
-      name: 'Conferência Tech',
+      id: 'documents',
+      name: 'Documentos',
       type: 'folder',
-      items: 8,
-      date: '10/05/2025',
+      items: projectAssets.filter(a => a.type === 'document').length,
+      date: new Date().toLocaleDateString('pt-BR'),
     },
   ]
 
-  const files = [
-    {
-      id: 1,
-      name: 'Teaser_Festival_v1.mp4',
-      type: 'video',
-      size: '120 MB',
-      date: '19/05/2025',
-    },
-    {
-      id: 2,
-      name: 'Logo_Patrocinador_A.png',
-      type: 'image',
-      size: '2.4 MB',
-      date: '18/05/2025',
-    },
-    {
-      id: 3,
-      name: 'Briefing_Festival.pdf',
-      type: 'document',
-      size: '1.2 MB',
-      date: '17/05/2025',
-    },
-    {
-      id: 4,
-      name: 'Abertura_Stories.mp4',
-      type: 'video',
-      size: '45 MB',
-      date: '19/05/2025',
-    },
-    {
-      id: 5,
-      name: 'Programacao_Festival.xlsx',
-      type: 'document',
-      size: '0.8 MB',
-      date: '16/05/2025',
-    },
-  ]
+  const files = projectAssets.map(asset => ({
+    id: asset.id,
+    name: asset.name,
+    type: asset.type,
+    size: asset.fileSize ? `${(asset.fileSize / 1024 / 1024).toFixed(1)} MB` : 'N/A',
+    date: new Date(asset.createdAt).toLocaleDateString('pt-BR'),
+  }))
 
   return (
     <div className="space-y-6">
@@ -92,20 +75,16 @@ export default function AssetsWidget() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Label>Evento:</Label>
-            <Select defaultValue="festival">
+            <Select value={selectedEventId || ''} onValueChange={(value) => useUIStore.getState().setSelectedEventId(value)}>
               <SelectTrigger className="w-[250px]">
                 <SelectValue placeholder="Selecione um evento" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="festival">
-                  Festival de Música - 18-20 Mai 2025
-                </SelectItem>
-                <SelectItem value="lancamento">
-                  Lançamento de Produto - 25 Mai 2025
-                </SelectItem>
-                <SelectItem value="conferencia">
-                  Conferência Tech - 01 Jun 2025
-                </SelectItem>
+                {projects.map(project => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name} - {project.startDate ? new Date(project.startDate).toLocaleDateString('pt-BR') : 'Data não definida'}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

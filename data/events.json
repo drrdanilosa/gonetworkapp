@@ -1,9 +1,50 @@
 [
   {
-    "id": "1",
-    "name": "Evento de Exemplo",
-    "description": "Descrição do evento de exemplo.",
-    "date": "2023-10-01T00:00:00Z",
-    "location": "Local de Exemplo"
+    "id": "e556271a-dda7-4559-b9c6-73ea3431f640",
+    "title": "Teste Debug",
+    "client": "Cliente Teste",
+    "date": "2025-05-23T07:35:42.384Z",
+    "createdAt": "2025-05-23T07:35:42.384Z",
+    "updatedAt": "2025-05-23T07:35:42.384Z",
+    "status": "active",
+    "team": [],
+    "briefing": null,
+    "videos": [],
+    "assets": [],
+    "tasks": [],
+    "deadline": null,
+    "thumbnail": "/placeholder-event.jpg",
+    "description": "",
+    "tags": [],
+    "deliverySettings": {
+      "allowRevisions": true,
+      "maxRevisions": 3,
+      "autoApprove": false,
+      "notifyOnUpload": true
+    }
+  },
+  {
+    "id": "d348f040-33b2-4eac-a4c8-01e99c718681",
+    "title": "Evento de Teste Integração",
+    "client": "Cliente Teste",
+    "date": "2025-06-15T10:00:00.000Z",
+    "createdAt": "2025-05-24T06:46:44.700Z",
+    "updatedAt": "2025-05-24T06:46:44.700Z",
+    "status": "active",
+    "team": [],
+    "briefing": null,
+    "videos": [],
+    "assets": [],
+    "tasks": [],
+    "deadline": null,
+    "thumbnail": "/placeholder-event.jpg",
+    "description": "Evento para testar a integração briefing -> timeline",
+    "tags": [],
+    "deliverySettings": {
+      "allowRevisions": true,
+      "maxRevisions": 3,
+      "autoApprove": false,
+      "notifyOnUpload": true
+    }
   }
 ]

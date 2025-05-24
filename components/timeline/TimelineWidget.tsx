@@ -13,6 +13,8 @@ import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { RefreshCcw, Download, Calendar, Timeline as TimelineIcon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useProjectsStore } from '@/store/useProjectsStoreUnified'
+import { useUIStore } from '@/store/useUIStore'
 
 // Definição dos tipos de dados
 interface Phase {
@@ -67,20 +69,13 @@ export default function TimelineWidget({
   const [selectedStatus, setSelectedStatus] = useState<string>("all")
   const [activeView, setActiveView] = useState<string>("detailed")
   
-  // Eventos disponíveis (em uma aplicação real, isso viria da API)
-  const events = [
-    { id: "festival", name: "Festival de Música - 18-20 Mai 2025" },
-    { id: "lancamento", name: "Lançamento de Produto - 25 Mai 2025" },
-    { id: "conferencia", name: "Conferência Tech - 01 Jun 2025" }
-  ]
+  // Obter dados do state unificado
+  const { projects } = useProjectsStore()
+  const { selectedEventId, setSelectedEventId } = useUIStore()
   
-  // Membros da equipe (em uma aplicação real, isso viria da API)
-  const members = [
-    { id: "joao", name: "João Silva", role: "Cinegrafia" },
-    { id: "maria", name: "Maria Souza", role: "Edição" },
-    { id: "carlos", name: "Carlos Lima", role: "Drone" },
-    { id: "ana", name: "Ana Costa", role: "Coordenação" }
-  ]
+  // Obter membros da equipe do projeto selecionado
+  const selectedProject = projects.find(p => p.id === selectedEventId)
+  const teamMembers = selectedProject?.teamMembers || []
 
   // Efeito para carregar dados com base no evento selecionado
   useEffect(() => {
@@ -95,7 +90,7 @@ export default function TimelineWidget({
         if (data.success && data.timeline) {
           setTimelineData({
             projectId: selectedEvent,
-            projectName: events.find(e => e.id === selectedEvent)?.name || "",
+            projectName: projects.find(p => p.id === selectedEvent)?.name || "",
             phases: data.timeline.map((phase: any) => ({
               id: phase.id,
               name: phase.name,
@@ -122,7 +117,7 @@ export default function TimelineWidget({
           // Caso a API retorne dados vazios, usamos os dados de exemplo
           const mockData: TimelineData = {
             projectId: selectedEvent,
-            projectName: events.find(e => e.id === selectedEvent)?.name || "",
+            projectName: projects.find(p => p.id === selectedEvent)?.name || "",
             phases: [
               {
                 id: "phase1",
@@ -546,9 +541,9 @@ export default function TimelineWidget({
                   <SelectValue placeholder="Selecione um evento" />
                 </SelectTrigger>
                 <SelectContent>
-                  {events.map(event => (
-                    <SelectItem key={event.id} value={event.id}>
-                      {event.name}
+                  {projects.map(project => (
+                    <SelectItem key={project.id} value={project.id}>
+                      {project.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
