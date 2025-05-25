@@ -121,12 +121,12 @@ async function saveTimelineData(data: Record<string, Phase[]>) {
   try {
     const dir = path.dirname(TIMELINES_FILE)
     await fs.mkdir(dir, { recursive: true })
-    
+
     const locked = await acquireLock(TIMELINES_FILE)
     if (!locked) {
       throw new Error('Timeout ao adquirir lock do arquivo de timeline')
     }
-    
+
     try {
       await fs.writeFile(TIMELINES_FILE, JSON.stringify(data, null, 2))
     } finally {
@@ -196,14 +196,17 @@ function validateTimelineData(data: Phase[]): string[] {
 }
 
 // Gera automaticamente uma timeline baseada no briefing
-function generateTimelineFromBriefing(briefing: BriefingData | null, event: Event | null): Phase[] {
+function generateTimelineFromBriefing(
+  briefing: BriefingData | null,
+  event: Event | null
+): Phase[] {
   if (!briefing && !event) {
     return []
   }
 
   // Extrair data do evento de várias fontes possíveis
   let eventDate = new Date()
-  
+
   if (briefing?.formData?.eventDate) {
     eventDate = new Date(briefing.formData.eventDate)
   } else if (briefing?.eventDate) {
@@ -223,7 +226,9 @@ function generateTimelineFromBriefing(briefing: BriefingData | null, event: Even
     name: 'Pré-produção',
     description: 'Fase de planejamento e preparação',
     startDate: preProductionDate.toISOString(),
-    endDate: new Date(preProductionDate.getTime() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+    endDate: new Date(
+      preProductionDate.getTime() + 15 * 24 * 60 * 60 * 1000
+    ).toISOString(),
     status: 'pending',
     type: 'planning',
     tasks: [
@@ -232,14 +237,18 @@ function generateTimelineFromBriefing(briefing: BriefingData | null, event: Even
         name: 'Reunião inicial',
         description: 'Alinhamento de expectativas',
         status: 'pending',
-        dueDate: new Date(preProductionDate.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+        dueDate: new Date(
+          preProductionDate.getTime() + 2 * 24 * 60 * 60 * 1000
+        ).toISOString(),
       },
       {
         id: uuidv4(),
         name: 'Elaboração de roteiro',
         description: 'Desenvolvimento do conteúdo base',
         status: 'pending',
-        dueDate: new Date(preProductionDate.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        dueDate: new Date(
+          preProductionDate.getTime() + 7 * 24 * 60 * 60 * 1000
+        ).toISOString(),
       },
     ],
   })
@@ -253,7 +262,9 @@ function generateTimelineFromBriefing(briefing: BriefingData | null, event: Even
     name: 'Produção',
     description: 'Fase de captação e criação de conteúdo',
     startDate: productionDate.toISOString(),
-    endDate: new Date(productionDate.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+    endDate: new Date(
+      productionDate.getTime() + 10 * 24 * 60 * 60 * 1000
+    ).toISOString(),
     status: 'pending',
     type: 'production',
     tasks: [
@@ -262,14 +273,18 @@ function generateTimelineFromBriefing(briefing: BriefingData | null, event: Even
         name: 'Captação de vídeo',
         description: 'Filmagem do conteúdo',
         status: 'pending',
-        dueDate: new Date(productionDate.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        dueDate: new Date(
+          productionDate.getTime() + 3 * 24 * 60 * 60 * 1000
+        ).toISOString(),
       },
       {
         id: uuidv4(),
         name: 'Backup de material',
         description: 'Organização e backup de todo o material',
         status: 'pending',
-        dueDate: new Date(productionDate.getTime() + 4 * 24 * 60 * 60 * 1000).toISOString(),
+        dueDate: new Date(
+          productionDate.getTime() + 4 * 24 * 60 * 60 * 1000
+        ).toISOString(),
       },
     ],
   })
@@ -283,7 +298,9 @@ function generateTimelineFromBriefing(briefing: BriefingData | null, event: Even
     name: 'Pós-produção',
     description: 'Fase de edição e finalização',
     startDate: postProductionDate.toISOString(),
-    endDate: new Date(postProductionDate.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+    endDate: new Date(
+      postProductionDate.getTime() + 3 * 24 * 60 * 60 * 1000
+    ).toISOString(),
     status: 'pending',
     type: 'post-production',
     tasks: [
@@ -292,21 +309,27 @@ function generateTimelineFromBriefing(briefing: BriefingData | null, event: Even
         name: 'Edição preliminar',
         description: 'Primeiro corte do vídeo',
         status: 'pending',
-        dueDate: new Date(postProductionDate.getTime() + 1 * 24 * 60 * 60 * 1000).toISOString(),
+        dueDate: new Date(
+          postProductionDate.getTime() + 1 * 24 * 60 * 60 * 1000
+        ).toISOString(),
       },
       {
         id: uuidv4(),
         name: 'Revisão e aprovação',
         description: 'Revisão pelo cliente',
         status: 'pending',
-        dueDate: new Date(postProductionDate.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+        dueDate: new Date(
+          postProductionDate.getTime() + 2 * 24 * 60 * 60 * 1000
+        ).toISOString(),
       },
       {
         id: uuidv4(),
         name: 'Finalização',
         description: 'Ajustes finais e entrega',
         status: 'pending',
-        dueDate: new Date(postProductionDate.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        dueDate: new Date(
+          postProductionDate.getTime() + 3 * 24 * 60 * 60 * 1000
+        ).toISOString(),
       },
     ],
   })
@@ -471,7 +494,8 @@ export async function POST(
       return NextResponse.json(
         {
           success: true,
-          message: 'Timeline gerada e salva automaticamente a partir do briefing',
+          message:
+            'Timeline gerada e salva automaticamente a partir do briefing',
           timeline: generatedTimeline,
         },
         { status: 201 }

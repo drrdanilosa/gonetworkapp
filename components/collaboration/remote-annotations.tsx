@@ -152,53 +152,55 @@ export default function RemoteAnnotations({
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
     // Desenhar todas as anotações ativas
-    Object.entries(activeAnnotators).forEach(([userId, annotation]: [string, RemoteAnnotation]) => {
-      const user = activeUsers.find(u => u.id === userId)
-      if (!user) return
+    Object.entries(activeAnnotators).forEach(
+      ([userId, annotation]: [string, RemoteAnnotation]) => {
+        const user = activeUsers.find(u => u.id === userId)
+        if (!user) return
 
-      ctx.strokeStyle = annotation.color
-      ctx.fillStyle = annotation.color
-      ctx.lineWidth = annotation.thickness
-      ctx.lineCap = 'round'
-      ctx.lineJoin = 'round'
+        ctx.strokeStyle = annotation.color
+        ctx.fillStyle = annotation.color
+        ctx.lineWidth = annotation.thickness
+        ctx.lineCap = 'round'
+        ctx.lineJoin = 'round'
 
-      switch (annotation.tool) {
-        case 'pen':
-          drawPen(ctx, annotation.points)
-          break
-        case 'highlighter':
-          drawHighlighter(ctx, annotation.points, annotation.thickness)
-          break
-        case 'arrow':
-          drawArrow(ctx, annotation.points)
-          break
-        case 'rectangle':
-          drawRectangle(ctx, annotation.points)
-          break
-        case 'ellipse':
-          drawEllipse(ctx, annotation.points)
-          break
-        case 'text':
-          if (annotation.text) {
-            drawText(
-              ctx,
-              annotation.points[0],
-              annotation.text,
-              annotation.color,
-              annotation.thickness
-            )
-          }
-          break
+        switch (annotation.tool) {
+          case 'pen':
+            drawPen(ctx, annotation.points)
+            break
+          case 'highlighter':
+            drawHighlighter(ctx, annotation.points, annotation.thickness)
+            break
+          case 'arrow':
+            drawArrow(ctx, annotation.points)
+            break
+          case 'rectangle':
+            drawRectangle(ctx, annotation.points)
+            break
+          case 'ellipse':
+            drawEllipse(ctx, annotation.points)
+            break
+          case 'text':
+            if (annotation.text) {
+              drawText(
+                ctx,
+                annotation.points[0],
+                annotation.text,
+                annotation.color,
+                annotation.thickness
+              )
+            }
+            break
+        }
+
+        // Desenhar o nome do usuário próximo à última posição da anotação
+        if (annotation.points.length > 0) {
+          const lastPoint = annotation.points[annotation.points.length - 1]
+          ctx.font = '12px sans-serif'
+          ctx.fillStyle = user.color
+          ctx.fillText(user.name, lastPoint.x + 10, lastPoint.y + 10)
+        }
       }
-
-      // Desenhar o nome do usuário próximo à última posição da anotação
-      if (annotation.points.length > 0) {
-        const lastPoint = annotation.points[annotation.points.length - 1]
-        ctx.font = '12px sans-serif'
-        ctx.fillStyle = user.color
-        ctx.fillText(user.name, lastPoint.x + 10, lastPoint.y + 10)
-      }
-    })
+    )
   }, [activeAnnotators, activeUsers, canvasWidth, canvasHeight])
 
   // Redimensionar o canvas quando as dimensões mudarem

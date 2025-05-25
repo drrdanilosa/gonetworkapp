@@ -490,5 +490,107 @@
         }
       ]
     }
+  ],
+  "test-event-1748146557175": [
+    {
+      "id": "0119835e-9fe4-46ec-a0b6-ac3ae583c3b6",
+      "name": "Pré-produção",
+      "description": "Fase de planejamento e preparação",
+      "startDate": "2025-04-25T00:00:00.000Z",
+      "endDate": "2025-05-10T00:00:00.000Z",
+      "status": "pending",
+      "type": "planning",
+      "tasks": [
+        {
+          "id": "151182d7-958a-42ee-9fb4-9af2c830b904",
+          "name": "Reunião inicial",
+          "description": "Alinhamento de expectativas",
+          "status": "pending",
+          "dueDate": "2025-04-27T00:00:00.000Z"
+        },
+        {
+          "id": "24feb5e8-1115-4c2a-9233-3bd47d94b33e",
+          "name": "Elaboração de roteiro",
+          "description": "Desenvolvimento do conteúdo base",
+          "status": "pending",
+          "dueDate": "2025-05-02T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "bbacb596-caeb-4d54-a85f-384d6ba47d5d",
+      "name": "Produção",
+      "description": "Fase de captação e criação de conteúdo",
+      "startDate": "2025-05-10T00:00:00.000Z",
+      "endDate": "2025-05-20T00:00:00.000Z",
+      "status": "pending",
+      "type": "production",
+      "tasks": [
+        {
+          "id": "2b17c09d-2a6b-46df-98c2-b2d4b8a3e13e",
+          "name": "Captação de vídeo",
+          "description": "Filmagem do conteúdo",
+          "status": "pending",
+          "dueDate": "2025-05-13T00:00:00.000Z"
+        },
+        {
+          "id": "192e9665-767e-43cc-b5b5-85828989f0e9",
+          "name": "Backup de material",
+          "description": "Organização e backup de todo o material",
+          "status": "pending",
+          "dueDate": "2025-05-14T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "c77b3324-aba8-4763-b50b-c77b9d80daa3",
+      "name": "Pós-produção",
+      "description": "Fase de edição e finalização",
+      "startDate": "2025-05-20T00:00:00.000Z",
+      "endDate": "2025-05-23T00:00:00.000Z",
+      "status": "pending",
+      "type": "post-production",
+      "tasks": [
+        {
+          "id": "5cd3be2a-f17c-40c8-bf54-e811efea99be",
+          "name": "Edição preliminar",
+          "description": "Primeiro corte do vídeo",
+          "status": "pending",
+          "dueDate": "2025-05-21T00:00:00.000Z"
+        },
+        {
+          "id": "81c22afa-85ef-4443-b1ca-783fd1e86672",
+          "name": "Revisão e aprovação",
+          "description": "Revisão pelo cliente",
+          "status": "pending",
+          "dueDate": "2025-05-22T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "37a1cead-0d2b-48b3-a26e-ac040ef8e02a",
+      "name": "Entrega",
+      "description": "Fase de finalização e entrega",
+      "startDate": "2025-05-23T00:00:00.000Z",
+      "endDate": "2025-05-24T00:00:00.000Z",
+      "status": "pending",
+      "type": "delivery",
+      "tasks": [
+        {
+          "id": "cae1746b-16e0-4d5f-b938-71de2d1b610f",
+          "name": "Exportação final",
+          "description": "Exportação em alta qualidade",
+          "status": "pending",
+          "dueDate": "2025-05-23T00:00:00.000Z"
+        },
+        {
+          "id": "8475bef5-6915-4b8b-a859-31d50c26f0be",
+          "name": "Entrega ao cliente",
+          "description": "Disponibilização dos arquivos finais",
+          "status": "pending",
+          "dueDate": "2025-05-23T12:00:00.000Z"
+        }
+      ]
+    }
   ]
 }

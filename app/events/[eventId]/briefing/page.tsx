@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, RefreshCw } from 'lucide-react'
+import { ArrowLeft, RefreshCw, Calendar } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import GeneralInfoTab from '@/features/briefing/components/GeneralInfoTab'
@@ -52,9 +52,14 @@ interface Notification {
 
 export default function BriefingPage() {
   const params = useParams()
-  const eventId = Array.isArray(params.eventId)
-    ? params.eventId[0]
-    : (params.eventId as string)
+
+  // NextJS 15 compatible - await params to avoid warnings
+  const eventId = React.useMemo(() => {
+    if (!params.eventId) return undefined
+    return Array.isArray(params.eventId)
+      ? params.eventId[0]
+      : (params.eventId as string)
+  }, [params.eventId])
 
   const [activeTab, setActiveTab] = useState('general-info')
   const [briefingState, setBriefingState] = useState<BriefingState>({
@@ -117,7 +122,7 @@ export default function BriefingPage() {
       setTimeout(() => {
         setActiveTab('timeline')
         setRefreshTrigger(prev => prev + 1)
-      }, 2000)
+      }, 1000)
     } else {
       addNotification('error', 'Erro ao gerar timeline. Tente novamente.')
     }
@@ -140,6 +145,93 @@ export default function BriefingPage() {
   // Função para voltar
   const handleGoBack = () => {
     window.history.back()
+  }
+
+  // Função para gerar timeline a partir do botão no cabeçalho
+  const generateTimelineFromHeader = async () => {
+    if (!eventId) {
+      addNotification('error', 'ID do evento não disponível')
+      return
+    }
+
+    addNotification('info', 'Iniciando geração de timeline...')
+
+    try {
+      console.log('🚀 Iniciando geração de timeline para evento:', eventId)
+
+      // Carregar dados do briefing
+      const briefingResponse = await fetch(
+        `/api/briefings/${eventId}?t=${Date.now()}`,
+        {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache',
+          },
+        }
+      )
+
+      if (!briefingResponse.ok) {
+        throw new Error('Erro ao buscar dados do briefing')
+      }
+
+      const briefingData = await briefingResponse.json()
+      console.log('📋 Dados do briefing carregados:', briefingData)
+
+      if (!briefingData || Object.keys(briefingData).length === 0) {
+        throw new Error('Briefing não encontrado ou vazio')
+      }
+
+      addNotification(
+        'info',
+        'Dados do briefing carregados, gerando timeline...'
+      )
+
+      // Gerar timeline
+      const timelineResponse = await fetch(`/api/timeline/${eventId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(briefingData),
+        cache: 'no-store',
+      })
+
+      if (!timelineResponse.ok) {
+        const errorText = await timelineResponse.text()
+        throw new Error(
+          `Erro na API: ${timelineResponse.status} - ${errorText}`
+        )
+      }
+
+      const timelineData = await timelineResponse.json()
+      console.log('✅ Timeline gerada com sucesso:', timelineData)
+
+      // Atualizar estado
+      setTimelineState({
+        data: Array.isArray(timelineData)
+          ? timelineData
+          : timelineData.phases
+            ? timelineData.phases
+            : [],
+        generated: true,
+        lastGenerated: new Date(),
+      })
+
+      // Notificar sucesso
+      addNotification('success', 'Timeline gerada com sucesso!')
+
+      // Redirecionar para a aba Timeline
+      setTimeout(() => {
+        setActiveTab('timeline')
+        setRefreshTrigger(prev => prev + 1)
+      }, 1000)
+    } catch (error) {
+      console.error('❌ Erro ao gerar timeline:', error)
+      addNotification(
+        'error',
+        error instanceof Error ? error.message : 'Erro desconhecido'
+      )
+    }
   }
 
   return (
@@ -182,17 +274,30 @@ export default function BriefingPage() {
               >
                 Timeline: {timelineState.generated ? 'Gerada' : 'Não gerada'}
               </Badge>
-            </div>
+            </div>{' '}
+            <div className="flex gap-2">
+              {/* Botão Gerar Timeline no header */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={generateTimelineFromHeader}
+                disabled={!eventId}
+                className="bg-[#50FA7B] text-[#282A36] hover:bg-[#50FA7B]/90 disabled:opacity-50"
+              >
+                <Calendar className="mr-2 size-4" />
+                Gerar Timeline
+              </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefresh}
-              className="text-[#F8F8F2]"
-            >
-              <RefreshCw className="mr-2 size-4" />
-              Atualizar
-            </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                className="text-[#F8F8F2]"
+              >
+                <RefreshCw className="mr-2 size-4" />
+                Atualizar
+              </Button>
+            </div>
           </div>
         </div>
 

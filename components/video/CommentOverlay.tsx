@@ -19,7 +19,7 @@ export default function CommentOverlay({
   tolerance = 1.5,
   onClick,
 }: CommentOverlayProps) {
-  const project = useProjectsStore((s) => s.currentProject as Project)
+  const project = useProjectsStore(s => s.currentProject as Project)
   const [visibleComments, setVisibleComments] = useState<Comment[]>([])
   const [fadeOut, setFadeOut] = useState<Record<string, boolean>>({})
 
@@ -28,7 +28,9 @@ export default function CommentOverlay({
     if (!project) return
 
     // Buscar o deliverable pelo ID
-    const deliverable = project.videos.find((v: VideoDeliverable) => v.id === deliverableId)
+    const deliverable = project.videos.find(
+      (v: VideoDeliverable) => v.id === deliverableId
+    )
     if (!deliverable) return
 
     // Filtrar comentários não resolvidos próximos ao tempo atual

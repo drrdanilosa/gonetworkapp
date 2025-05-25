@@ -42,11 +42,11 @@ interface TimelineTabProps {
   refreshTrigger?: number // Trigger para forçar refresh
 }
 
-const TimelineTabImproved = ({ 
-  eventId, 
-  initialData, 
+const TimelineTabImproved = ({
+  eventId,
+  initialData,
   onDataLoad,
-  refreshTrigger = 0 
+  refreshTrigger = 0,
 }: TimelineTabProps) => {
   const [timeline, setTimeline] = useState<Phase[]>(initialData || [])
   const [loading, setLoading] = useState(false)
@@ -104,10 +104,10 @@ const TimelineTabImproved = ({
       if (onDataLoad) {
         onDataLoad(timelineData)
       }
-
     } catch (err) {
       console.error('❌ Erro ao carregar timeline:', err)
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar timeline'
+      const errorMessage =
+        err instanceof Error ? err.message : 'Erro ao carregar timeline'
       setError(errorMessage)
     } finally {
       if (showLoading) {
@@ -204,9 +204,15 @@ const TimelineTabImproved = ({
 
   const getTimelineStats = () => {
     const total = timeline.length
-    const completed = timeline.filter(phase => phase.status === 'completed').length
-    const inProgress = timeline.filter(phase => phase.status === 'in-progress').length
-    const pending = timeline.filter(phase => phase.status === 'pending' || phase.status === 'planned').length
+    const completed = timeline.filter(
+      phase => phase.status === 'completed'
+    ).length
+    const inProgress = timeline.filter(
+      phase => phase.status === 'in-progress'
+    ).length
+    const pending = timeline.filter(
+      phase => phase.status === 'pending' || phase.status === 'planned'
+    ).length
 
     return { total, completed, inProgress, pending }
   }
@@ -318,15 +324,21 @@ const TimelineTabImproved = ({
           <div className="text-xs text-[#6272A4]">Total de Fases</div>
         </div>
         <div className="rounded-lg border border-green-500/30 bg-green-900/20 p-3 text-center">
-          <div className="text-2xl font-bold text-green-400">{stats.completed}</div>
+          <div className="text-2xl font-bold text-green-400">
+            {stats.completed}
+          </div>
           <div className="text-xs text-green-300">Concluídas</div>
         </div>
         <div className="rounded-lg border border-blue-500/30 bg-blue-900/20 p-3 text-center">
-          <div className="text-2xl font-bold text-blue-400">{stats.inProgress}</div>
+          <div className="text-2xl font-bold text-blue-400">
+            {stats.inProgress}
+          </div>
           <div className="text-xs text-blue-300">Em Andamento</div>
         </div>
         <div className="rounded-lg border border-yellow-500/30 bg-yellow-900/20 p-3 text-center">
-          <div className="text-2xl font-bold text-yellow-400">{stats.pending}</div>
+          <div className="text-2xl font-bold text-yellow-400">
+            {stats.pending}
+          </div>
           <div className="text-xs text-yellow-300">Pendentes</div>
         </div>
       </div>
