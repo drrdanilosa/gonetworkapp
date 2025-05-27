@@ -1,6 +1,6 @@
 // Script para criar projetos de teste
-const fs = require('fs')
-const path = require('path')
+import fs from 'fs'
+import path from 'path'
 
 // Estrutura dos projetos de teste
 const projetosDeExemplo = [

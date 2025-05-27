@@ -5,12 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useCaptacaoStore } from '@/store/useCaptacaoStore'
 import { useProjectsStore } from '@/store/useProjectsStore'
-import {
-  FileImage,
-  Video,
-  TrendingUp,
-  Clock,
-} from 'lucide-react'
+import { FileImage, Video, TrendingUp, Clock } from 'lucide-react'
 
 interface CaptacaoStatsProps {
   eventId?: string
@@ -125,7 +120,7 @@ export function CaptacaoStats({ eventId }: CaptacaoStatsProps) {
         <CardContent>
           {proximasReunioes.length > 0 ? (
             <div className="space-y-1">
-              {proximasReunioes.map((reuniao) => (
+              {proximasReunioes.map(reuniao => (
                 <div key={reuniao.id} className="text-xs">
                   <div className="truncate font-medium">{reuniao.titulo}</div>
                   <div className="text-muted-foreground">

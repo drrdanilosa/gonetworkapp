@@ -41,10 +41,10 @@ export default function TimelinePage() {
   // Voltar para a página principal do evento
   const handleBackToEvent = () => {
     router.push(`/events/${eventId}`)
-  }  // Converter fases do formato do store para o formato do componente Timeline
+  } // Converter fases do formato do store para o formato do componente Timeline
   const convertPhasesToTimelineFormat = (phases: TimelinePhase[]): any[] => {
     console.log('Converting phases:', phases)
-    
+
     return phases.map(phase => {
       // Verificar se os dados estão válidos
       if (!phase.start || !phase.end) {
@@ -61,7 +61,7 @@ export default function TimelinePage() {
 
       const startDate = new Date(phase.start)
       const endDate = new Date(phase.end)
-      
+
       // Verificar se as datas são válidas
       if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
         console.error('Invalid dates in phase:', phase)
@@ -81,9 +81,13 @@ export default function TimelinePage() {
         plannedStart: startDate,
         plannedEnd: endDate,
         completed: phase.completed || false,
-        duration: phase.duration || Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)),
+        duration:
+          phase.duration ||
+          Math.ceil(
+            (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+          ),
       }
-      
+
       console.log('Converted phase:', convertedPhase)
       return convertedPhase
     })

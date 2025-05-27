@@ -1,11 +1,11 @@
 // Script de inicialização do ambiente MelhorApp
-const path = require('path')
-const fs = require('fs')
+import path from 'path'
+import fs from 'fs'
 const { spawn } = require('child_process')
 
 // Utilitários
-const fsUtils = require('../services/filesystem-utils')
-const logService = require('../services/log-service')
+import fsUtils from '../services/filesystem-utils'
+import logService from '../services/log-service'
 
 // Função para inicializar o ambiente
 async function initializeEnvironment() {

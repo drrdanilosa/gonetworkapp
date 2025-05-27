@@ -5,12 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useCaptacaoStore } from '@/store/useCaptacaoStore'
 import { useProjectsStore } from '@/store/useProjectsStore'
-import {
-  FileImage,
-  Video,
-  TrendingUp,
-  Clock,
-} from 'lucide-react'
+import { FileImage, Video, TrendingUp, Clock } from 'lucide-react'
 
 interface CaptacaoStatsProps {
   eventId?: string

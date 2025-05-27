@@ -70,10 +70,7 @@ export async function GET(
     console.log(`✅ [GET /api/briefings/${eventId}] Briefing encontrado`)
     return NextResponse.json(briefing, { status: 200 })
   } catch (error) {
-    console.error(
-      `❌ [GET /api/briefings] Erro:`,
-      error
-    )
+    console.error(`❌ [GET /api/briefings] Erro:`, error)
     return NextResponse.json(
       { error: 'Erro ao buscar briefing' },
       { status: 500 }
@@ -127,10 +124,7 @@ export async function PUT(
     console.log(`✅ [PUT /api/briefings/${eventId}] Briefing salvo com sucesso`)
     return NextResponse.json(updatedBriefing, { status: 200 })
   } catch (error) {
-    console.error(
-      `❌ [PUT /api/briefings] Erro:`,
-      error
-    )
+    console.error(`❌ [PUT /api/briefings] Erro:`, error)
     return NextResponse.json(
       { error: 'Erro ao salvar briefing' },
       { status: 500 }

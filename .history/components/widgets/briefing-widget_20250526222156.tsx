@@ -512,7 +512,7 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
                 description: video.description,
                 status: video.status,
                 dueDate: video.dueDate,
-                ...video
+                ...video,
               })),
               // Incluindo dados adicionais do formulário que podem ser úteis
               sponsors: sponsors,

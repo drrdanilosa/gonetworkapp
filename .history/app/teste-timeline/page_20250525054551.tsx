@@ -34,7 +34,7 @@ export default function TestTimelineGeneration() {
   // Criar um projeto de teste se não existir
   const createTestProject = () => {
     const testProjectId = 'test-project-' + Date.now()
-    
+
     addProject({
       id: testProjectId,
       name: 'Projeto de Teste',
@@ -57,7 +57,7 @@ export default function TestTimelineGeneration() {
         },
       ],
     })
-    
+
     setEventId(testProjectId)
     toast({
       title: 'Projeto de teste criado',
@@ -78,78 +78,99 @@ export default function TestTimelineGeneration() {
   return (
     <div className="container mx-auto py-8">
       <h1 className="mb-8 text-3xl font-bold">Teste de Geração de Timeline</h1>
-      
+
       <div className="mb-8">
-        <h2 className="mb-4 text-xl font-semibold">1. Criar Projeto de Teste</h2>
+        <h2 className="mb-4 text-xl font-semibold">
+          1. Criar Projeto de Teste
+        </h2>
         <Button onClick={createTestProject} variant="outline">
           Criar Projeto de Teste
         </Button>
       </div>
-      
+
       <div className="mb-8">
-        <h2 className="mb-4 text-xl font-semibold">2. Modificar Dados do Formulário</h2>
+        <h2 className="mb-4 text-xl font-semibold">
+          2. Modificar Dados do Formulário
+        </h2>
         <div className="mb-4 space-y-4">
           <div>
             <label className="mb-2 block">Nome do Evento:</label>
-            <input 
-              type="text" 
-              value={testFormData.eventName} 
-              onChange={(e) => setTestFormData({...testFormData, eventName: e.target.value})}
+            <input
+              type="text"
+              value={testFormData.eventName}
+              onChange={e =>
+                setTestFormData({ ...testFormData, eventName: e.target.value })
+              }
               className="w-full rounded border p-2"
             />
           </div>
           <div>
             <label className="mb-2 block">Data do Evento:</label>
-            <input 
-              type="date" 
-              value={testFormData.eventDate} 
-              onChange={(e) => setTestFormData({...testFormData, eventDate: e.target.value})}
+            <input
+              type="date"
+              value={testFormData.eventDate}
+              onChange={e =>
+                setTestFormData({ ...testFormData, eventDate: e.target.value })
+              }
               className="w-full rounded border p-2"
             />
           </div>
           <div>
             <label className="mb-2 block">Número de Vídeos:</label>
-            <input 
-              type="number" 
-              value={testFormData.deliverables.length} 
-              onChange={(e) => {
+            <input
+              type="number"
+              value={testFormData.deliverables.length}
+              onChange={e => {
                 const numVideos = parseInt(e.target.value) || 0
-                const newDeliverables = Array(numVideos).fill(0).map((_, i) => ({
-                  id: `${i+1}`,
-                  name: `Entrega ${i+1}`,
-                  type: 'video',
-                }))
-                setTestFormData({...testFormData, deliverables: newDeliverables})
+                const newDeliverables = Array(numVideos)
+                  .fill(0)
+                  .map((_, i) => ({
+                    id: `${i + 1}`,
+                    name: `Entrega ${i + 1}`,
+                    type: 'video',
+                  }))
+                setTestFormData({
+                  ...testFormData,
+                  deliverables: newDeliverables,
+                })
               }}
               className="w-full rounded border p-2"
             />
           </div>
         </div>
       </div>
-      
+
       <div className="mb-8">
         <h2 className="mb-4 text-xl font-semibold">3. Gerar Timeline</h2>
-        <div className="mb-4">ID do evento atual: <strong>{eventId || 'Nenhum'}</strong></div>
+        <div className="mb-4">
+          ID do evento atual: <strong>{eventId || 'Nenhum'}</strong>
+        </div>
         <GenerateTimelineButton
           eventId={eventId}
           formData={testFormData}
           disabled={!eventId}
-          onGenerated={(success) => {
+          onGenerated={success => {
             console.log('Callback de geração:', success)
           }}
         />
       </div>
-      
+
       <div className="mb-8">
-        <h2 className="mb-4 text-xl font-semibold">4. Última Timeline Gerada</h2>
+        <h2 className="mb-4 text-xl font-semibold">
+          4. Última Timeline Gerada
+        </h2>
         {lastGeneratedTimeline ? (
           <div className="rounded border p-4">
-            <h3 className="mb-2 font-medium">Fases ({lastGeneratedTimeline.length}):</h3>
+            <h3 className="mb-2 font-medium">
+              Fases ({lastGeneratedTimeline.length}):
+            </h3>
             <ul className="space-y-2">
               {lastGeneratedTimeline.map(phase => (
                 <li key={phase.id} className="rounded bg-secondary/20 p-2">
                   <strong>{phase.name}</strong>
-                  <div>Início: {new Date(phase.startDate).toLocaleDateString()}</div>
+                  <div>
+                    Início: {new Date(phase.startDate).toLocaleDateString()}
+                  </div>
                   <div>Fim: {new Date(phase.endDate).toLocaleDateString()}</div>
                 </li>
               ))}

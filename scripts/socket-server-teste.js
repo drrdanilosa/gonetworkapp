@@ -1,9 +1,9 @@
 // scripts/socket-server-teste.js
 const { Server } = require('socket.io')
-const http = require('http')
-const crypto = require('crypto')
-const path = require('path')
-const fs = require('fs')
+import http from 'http'
+import crypto from 'crypto'
+import path from 'path'
+import fs from 'fs'
 
 // Tenta carregar variáveis de ambiente do arquivo .env se existir
 try {

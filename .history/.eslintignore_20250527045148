@@ -1,0 +1,20 @@
+# Ignore backup files
+.history/
+
+# Ignore build outputs
+.next/
+out/
+build/
+dist/
+
+# Ignore dependencies
+node_modules/
+
+# Ignore config files
+*.config.js
+*.config.mjs
+*.config.ts
+
+# Ignore other files
+next-env.d.ts
+public/

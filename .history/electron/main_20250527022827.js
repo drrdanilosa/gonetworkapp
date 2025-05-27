@@ -1,5 +1,5 @@
 const { app, BrowserWindow, Menu, shell, ipcMain, dialog } = require('electron')
-const path = require('path')
+import path from 'path'
 const isDev = process.env.NODE_ENV === 'development'
 const { spawn } = require('child_process')
 
@@ -7,7 +7,7 @@ let mainWindow
 let nextProcess
 
 async function findAvailablePort() {
-  const net = require('net')
+  import net from 'net'
 
   for (let port = 3000; port <= 3010; port++) {
     const server = net.createServer()
@@ -27,8 +27,10 @@ async function findAvailablePort() {
 }
 
 async function createWindow() {
-  console.log('Electron em modo desenvolvimento - conectando ao Next.js na porta 3000')
-  
+  console.log(
+    'Electron em modo desenvolvimento - conectando ao Next.js na porta 3000'
+  )
+
   // Criar a janela principal
   mainWindow = new BrowserWindow({
     width: 1400,

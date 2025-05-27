@@ -153,11 +153,7 @@
     "directories": {
       "output": "dist"
     },
-    "files": [
-      "out/**/*",
-      "electron/**/*",
-      "package.json"
-    ],
+    "files": ["out/**/*", "electron/**/*", "package.json"],
     "extraResources": [
       {
         "from": "public",
@@ -168,10 +164,7 @@
       "target": [
         {
           "target": "nsis",
-          "arch": [
-            "x64",
-            "ia32"
-          ]
+          "arch": ["x64", "ia32"]
         }
       ],
       "icon": "public/icon.ico"
@@ -180,10 +173,7 @@
       "target": [
         {
           "target": "dmg",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
+          "arch": ["x64", "arm64"]
         }
       ],
       "icon": "public/icon.icns",
@@ -193,15 +183,11 @@
       "target": [
         {
           "target": "AppImage",
-          "arch": [
-            "x64"
-          ]
+          "arch": ["x64"]
         },
         {
           "target": "deb",
-          "arch": [
-            "x64"
-          ]
+          "arch": ["x64"]
         }
       ],
       "icon": "public/icon.png",

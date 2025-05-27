@@ -10,7 +10,7 @@
  */
 
 const { io } = require('socket.io-client')
-const colors = require('colors/safe')
+import colors from 'colors/safe'
 
 // Pega a URL do servidor como argumento de linha de comando, ou usa o padrão
 let serverUrl =

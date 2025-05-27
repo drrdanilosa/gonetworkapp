@@ -1,8 +1,8 @@
 // Utilitário para verificação de sistema de arquivos
-const fs = require('fs')
-const path = require('path')
+import fs from 'fs'
+import path from 'path'
 const { exec } = require('child_process')
-const logService = require('./log-service')
+import logService from './log-service'
 
 class FileSystemUtils {
   constructor() {

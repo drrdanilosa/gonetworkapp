@@ -144,7 +144,8 @@ export default function TestTimelineGeneration() {
         <h2 className="mb-4 text-xl font-semibold">3. Gerar Timeline</h2>
         <div className="mb-4">
           ID do evento atual: <strong>{eventId || 'Nenhum'}</strong>
-        </div>        <GenerateTimelineButton
+        </div>{' '}
+        <GenerateTimelineButton
           eventId={eventId}
           formData={testFormData}
           disabled={!eventId}

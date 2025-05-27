@@ -389,7 +389,11 @@ export const useProjectsStore = create<ProjectsStore>()(set => ({
           return v
         })
 
-        return { ...deliv, versions: updatedVersions, status: 'changes_requested' as DeliverableStatus }
+        return {
+          ...deliv,
+          versions: updatedVersions,
+          status: 'changes_requested' as DeliverableStatus,
+        }
       })
 
       const updatedProject: Project = {

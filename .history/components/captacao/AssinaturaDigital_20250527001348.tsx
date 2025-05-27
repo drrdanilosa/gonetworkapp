@@ -12,7 +12,11 @@ interface AssinaturaDigitalProps {
   disabled?: boolean
 }
 
-export function AssinaturaDigital({ onSave, onCancel, disabled = false }: AssinaturaDigitalProps) {
+export function AssinaturaDigital({
+  onSave,
+  onCancel,
+  disabled = false,
+}: AssinaturaDigitalProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isDrawing, setIsDrawing] = useState(false)
   const [hasSignature, setHasSignature] = useState(false)
@@ -37,9 +41,11 @@ export function AssinaturaDigital({ onSave, onCancel, disabled = false }: Assina
     ctx.fillRect(0, 0, canvas.width, canvas.height)
   }, [])
 
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const startDrawing = (
+    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
+  ) => {
     if (disabled) return
-    
+
     const canvas = canvasRef.current
     if (!canvas) return
 
@@ -64,7 +70,9 @@ export function AssinaturaDigital({ onSave, onCancel, disabled = false }: Assina
     ctx.moveTo(x, y)
   }
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const draw = (
+    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
+  ) => {
     if (!isDrawing || disabled) return
 
     const canvas = canvasRef.current
@@ -132,7 +140,9 @@ export function AssinaturaDigital({ onSave, onCancel, disabled = false }: Assina
             onTouchEnd={stopDrawing}
           />
           <p className="text-sm text-gray-500 mt-2 text-center">
-            {disabled ? 'Assinatura capturada' : 'Assine aqui usando o mouse ou touch'}
+            {disabled
+              ? 'Assinatura capturada'
+              : 'Assine aqui usando o mouse ou touch'}
           </p>
         </div>
 

@@ -116,8 +116,7 @@ export const useProjectsStore = create<ProjectsState>()(
           return { currentProject: proj }
         }),
 
-      setCurrentProject: (project) =>
-        set({ currentProject: project }),
+      setCurrentProject: project => set({ currentProject: project }),
 
       addVideoVersion: (projectId, deliverableId, file) =>
         set(state => {

@@ -1,5 +1,5 @@
 const { app, BrowserWindow, Menu, shell, ipcMain, dialog } = require('electron')
-const path = require('path')
+import path from 'path'
 const isDev = process.env.NODE_ENV === 'development'
 const { spawn } = require('child_process')
 

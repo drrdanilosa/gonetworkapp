@@ -38,10 +38,7 @@ export async function GET(
     )
     return NextResponse.json(event, { status: 200 })
   } catch (error) {
-    console.error(
-      `❌ [GET /api/events] Erro:`,
-      error
-    )
+    console.error(`❌ [GET /api/events] Erro:`, error)
     return NextResponse.json(
       { error: 'Erro ao buscar evento' },
       { status: 500 }

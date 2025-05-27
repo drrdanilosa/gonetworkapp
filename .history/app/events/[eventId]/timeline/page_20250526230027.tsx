@@ -73,7 +73,9 @@ export default function TimelinePage() {
       <div className="container mx-auto p-6">
         <Card>
           <CardContent className="pt-6 text-center">
-            <h2 className="text-xl font-semibold mb-2">Projeto não encontrado</h2>
+            <h2 className="text-xl font-semibold mb-2">
+              Projeto não encontrado
+            </h2>
             <p className="text-muted-foreground mb-4">
               Não foi possível carregar os dados do projeto.
             </p>
@@ -87,13 +89,17 @@ export default function TimelinePage() {
     )
   }
 
-  const hasTimeline = currentProject.timeline && currentProject.timeline.length > 0
-  const timelinePhases = hasTimeline ? convertPhasesToTimelineFormat(currentProject.timeline) : []
+  const hasTimeline =
+    currentProject.timeline && currentProject.timeline.length > 0
+  const timelinePhases = hasTimeline
+    ? convertPhasesToTimelineFormat(currentProject.timeline)
+    : []
 
   // Estatísticas da timeline
   const completedPhases = timelinePhases.filter(phase => phase.completed).length
   const totalPhases = timelinePhases.length
-  const progressPercentage = totalPhases > 0 ? Math.round((completedPhases / totalPhases) * 100) : 0
+  const progressPercentage =
+    totalPhases > 0 ? Math.round((completedPhases / totalPhases) * 100) : 0
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -109,7 +115,7 @@ export default function TimelinePage() {
             <p className="text-muted-foreground">Timeline do Projeto</p>
           </div>
         </div>
-        <Badge variant={progressPercentage === 100 ? "default" : "secondary"}>
+        <Badge variant={progressPercentage === 100 ? 'default' : 'secondary'}>
           {progressPercentage}% Concluído
         </Badge>
       </div>
@@ -122,25 +128,29 @@ export default function TimelinePage() {
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-[#50FA7B]" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Total de Fases</p>
+                  <p className="text-sm text-muted-foreground">
+                    Total de Fases
+                  </p>
                   <p className="text-2xl font-bold">{totalPhases}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-green-500" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Fases Concluídas</p>
+                  <p className="text-sm text-muted-foreground">
+                    Fases Concluídas
+                  </p>
                   <p className="text-2xl font-bold">{completedPhases}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-2">
@@ -165,7 +175,7 @@ export default function TimelinePage() {
         </CardHeader>
         <CardContent>
           {hasTimeline ? (
-            <Timeline 
+            <Timeline
               phases={timelinePhases}
               projectName={currentProject.title}
               showDetails={true}
@@ -173,11 +183,14 @@ export default function TimelinePage() {
           ) : (
             <div className="text-center py-12">
               <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Nenhuma timeline criada</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                Nenhuma timeline criada
+              </h3>
               <p className="text-muted-foreground mb-4">
-                Este projeto ainda não possui uma timeline. Vá para a página de briefing para gerar uma.
+                Este projeto ainda não possui uma timeline. Vá para a página de
+                briefing para gerar uma.
               </p>
-              <Button 
+              <Button
                 onClick={() => router.push(`/events/${eventId}/briefing`)}
                 className="bg-[#50FA7B] text-[#282A36] hover:bg-[#50FA7B]/90"
               >
@@ -197,7 +210,7 @@ export default function TimelinePage() {
           <CardContent>
             <div className="space-y-4">
               {timelinePhases.map((phase, index) => (
-                <div 
+                <div
                   key={phase.id}
                   className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                 >
@@ -208,24 +221,38 @@ export default function TimelinePage() {
                       <Circle className="h-5 w-5 text-muted-foreground" />
                     )}
                   </div>
-                  
+
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-semibold">{phase.name}</h4>
-                      <Badge variant={phase.completed ? "default" : "secondary"}>
-                        {phase.completed ? "Concluída" : "Pendente"}
+                      <Badge
+                        variant={phase.completed ? 'default' : 'secondary'}
+                      >
+                        {phase.completed ? 'Concluída' : 'Pendente'}
                       </Badge>
                     </div>
-                    
+
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span>
-                        Início: {format(phase.plannedStart, "dd/MM/yyyy", { locale: ptBR })}
+                        Início:{' '}
+                        {format(phase.plannedStart, 'dd/MM/yyyy', {
+                          locale: ptBR,
+                        })}
                       </span>
                       <span>
-                        Fim: {format(phase.plannedEnd, "dd/MM/yyyy", { locale: ptBR })}
+                        Fim:{' '}
+                        {format(phase.plannedEnd, 'dd/MM/yyyy', {
+                          locale: ptBR,
+                        })}
                       </span>
                       <span>
-                        Duração: {Math.ceil((phase.plannedEnd.getTime() - phase.plannedStart.getTime()) / (1000 * 60 * 60 * 24))} dias
+                        Duração:{' '}
+                        {Math.ceil(
+                          (phase.plannedEnd.getTime() -
+                            phase.plannedStart.getTime()) /
+                            (1000 * 60 * 60 * 24)
+                        )}{' '}
+                        dias
                       </span>
                     </div>
                   </div>

@@ -1,5 +1,5 @@
 const { app, BrowserWindow, Menu, shell, ipcMain, dialog } = require('electron')
-const path = require('path')
+import path from 'path'
 const isDev = process.env.NODE_ENV === 'development'
 const { spawn } = require('child_process')
 
@@ -7,7 +7,7 @@ let mainWindow
 let nextProcess
 
 async function findAvailablePort() {
-  const net = require('net')
+  import net from 'net'
 
   for (let port = 3000; port <= 3010; port++) {
     const server = net.createServer()

@@ -1,253 +1,263 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teste Manual do Botão "Gerar Timeline"</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Teste Manual do Botão "Gerar Timeline"</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
-      background-color: #f5f5f5;
-    }
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
 
-    .container {
-      background: white;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
+      .step {
+        margin: 20px 0;
+        padding: 20px;
+        border-left: 4px solid #007bff;
+        background-color: #f8f9fa;
+      }
 
-    .step {
-      margin: 20px 0;
-      padding: 20px;
-      border-left: 4px solid #007bff;
-      background-color: #f8f9fa;
-    }
+      .step h3 {
+        margin-top: 0;
+        color: #007bff;
+      }
 
-    .step h3 {
-      margin-top: 0;
-      color: #007bff;
-    }
+      .success {
+        border-left-color: #28a745;
+        background-color: #d4edda;
+      }
 
-    .success {
-      border-left-color: #28a745;
-      background-color: #d4edda;
-    }
+      .success h3 {
+        color: #28a745;
+      }
 
-    .success h3 {
-      color: #28a745;
-    }
+      .error {
+        border-left-color: #dc3545;
+        background-color: #f8d7da;
+      }
 
-    .error {
-      border-left-color: #dc3545;
-      background-color: #f8d7da;
-    }
+      .error h3 {
+        color: #dc3545;
+      }
 
-    .error h3 {
-      color: #dc3545;
-    }
+      .btn {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        margin: 10px 5px;
+      }
 
-    .btn {
-      background-color: #007bff;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-      margin: 10px 5px;
-    }
+      .btn:hover {
+        background-color: #0056b3;
+      }
 
-    .btn:hover {
-      background-color: #0056b3;
-    }
+      .btn-success {
+        background-color: #28a745;
+      }
 
-    .btn-success {
-      background-color: #28a745;
-    }
+      .btn-success:hover {
+        background-color: #1e7e34;
+      }
 
-    .btn-success:hover {
-      background-color: #1e7e34;
-    }
+      code {
+        background-color: #f8f9fa;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: monospace;
+      }
 
-    code {
-      background-color: #f8f9fa;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-family: monospace;
-    }
+      .timeline-test {
+        margin: 20px 0;
+        padding: 15px;
+        border: 2px dashed #ccc;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
 
-    .timeline-test {
-      margin: 20px 0;
-      padding: 15px;
-      border: 2px dashed #ccc;
-      border-radius: 8px;
-    }
-  </style>
-</head>
+  <body>
+    <div class="container">
+      <h1>🧪 Teste Manual do Botão "Gerar Timeline"</h1>
+      <p>
+        <strong>Event ID de Teste:</strong>
+        <code>test-event-1748146557175</code>
+      </p>
 
-<body>
-  <div class="container">
-    <h1>🧪 Teste Manual do Botão "Gerar Timeline"</h1>
-    <p><strong>Event ID de Teste:</strong> <code>test-event-1748146557175</code></p>
+      <div class="step">
+        <h3>📋 Passo 1: Verificar Aplicação</h3>
+        <p>Certifique-se de que a aplicação esteja rodando:</p>
+        <a href="http://localhost:3000" target="_blank" class="btn">
+          🌐 Abrir Aplicação Principal
+        </a>
+      </div>
 
-    <div class="step">
-      <h3>📋 Passo 1: Verificar Aplicação</h3>
-      <p>Certifique-se de que a aplicação esteja rodando:</p>
-      <a href="http://localhost:3000" target="_blank" class="btn">
-        🌐 Abrir Aplicação Principal
-      </a>
+      <div class="step">
+        <h3>📝 Passo 2: Acessar Página do Briefing</h3>
+        <p>Acesse a página de briefing do evento de teste:</p>
+        <a
+          href="http://localhost:3000/events/test-event-1748146557175/briefing"
+          target="_blank"
+          class="btn"
+        >
+          📋 Abrir Briefing do Evento
+        </a>
+      </div>
+
+      <div class="step">
+        <h3>💾 Passo 3: Salvar Briefing</h3>
+        <p>Na página do briefing:</p>
+        <ol>
+          <li>Preencha os campos obrigatórios (se necessário)</li>
+          <li>Clique em <strong>"Salvar Informações"</strong></li>
+          <li>Aguarde a confirmação de salvamento</li>
+        </ol>
+      </div>
+
+      <div class="step">
+        <h3>⚡ Passo 4: Testar Botão "Gerar Timeline"</h3>
+        <p>Após salvar o briefing:</p>
+        <ol>
+          <li>Localize o botão <strong>"Gerar Timeline"</strong></li>
+          <li>Clique no botão</li>
+          <li>Observe o modal de progresso</li>
+          <li>Aguarde a conclusão</li>
+        </ol>
+      </div>
+
+      <div class="step">
+        <h3>📅 Passo 5: Verificar Timeline Gerada</h3>
+        <p>Após a geração:</p>
+        <ol>
+          <li>Navegue para a aba <strong>"Timeline"</strong></li>
+          <li>Verifique se as fases foram criadas</li>
+          <li>Confirme se há tarefas nas fases</li>
+        </ol>
+      </div>
+
+      <div class="timeline-test">
+        <h3>🔧 Teste Direto da API</h3>
+        <p>Para verificar se a API está funcionando:</p>
+        <button onclick="testAPI()" class="btn btn-success">
+          🧪 Testar API Diretamente
+        </button>
+        <div id="api-result"></div>
+      </div>
+
+      <div class="step">
+        <h3>✅ Critérios de Sucesso</h3>
+        <ul>
+          <li>✅ Briefing salvo com sucesso</li>
+          <li>✅ Botão "Gerar Timeline" visível e habilitado</li>
+          <li>✅ Modal de progresso exibido durante geração</li>
+          <li>✅ Timeline criada com 4 fases</li>
+          <li>✅ Cada fase contém tarefas</li>
+          <li>✅ Redirecionamento automático para aba Timeline</li>
+        </ul>
+      </div>
+
+      <div class="step error" id="error-section" style="display: none">
+        <h3>❌ Problemas Encontrados</h3>
+        <div id="error-details"></div>
+      </div>
+
+      <div class="step success" id="success-section" style="display: none">
+        <h3>🎉 Teste Concluído com Sucesso!</h3>
+        <p>O botão "Gerar Timeline" está funcionando corretamente!</p>
+      </div>
     </div>
 
-    <div class="step">
-      <h3>📝 Passo 2: Acessar Página do Briefing</h3>
-      <p>Acesse a página de briefing do evento de teste:</p>
-      <a href="http://localhost:3000/events/test-event-1748146557175/briefing" target="_blank" class="btn">
-        📋 Abrir Briefing do Evento
-      </a>
-    </div>
+    <script>
+      async function testAPI() {
+        const resultDiv = document.getElementById('api-result')
+        const eventId = 'test-event-1748146557175'
 
-    <div class="step">
-      <h3>💾 Passo 3: Salvar Briefing</h3>
-      <p>Na página do briefing:</p>
-      <ol>
-        <li>Preencha os campos obrigatórios (se necessário)</li>
-        <li>Clique em <strong>"Salvar Informações"</strong></li>
-        <li>Aguarde a confirmação de salvamento</li>
-      </ol>
-    </div>
+        resultDiv.innerHTML = '<p>🔄 Testando API...</p>'
 
-    <div class="step">
-      <h3>⚡ Passo 4: Testar Botão "Gerar Timeline"</h3>
-      <p>Após salvar o briefing:</p>
-      <ol>
-        <li>Localize o botão <strong>"Gerar Timeline"</strong></li>
-        <li>Clique no botão</li>
-        <li>Observe o modal de progresso</li>
-        <li>Aguarde a conclusão</li>
-      </ol>
-    </div>
+        try {
+          // Teste 1: Verificar briefing
+          const briefingResponse = await fetch(`/api/briefings/${eventId}`)
+          if (!briefingResponse.ok) {
+            throw new Error(
+              `Erro ao carregar briefing: ${briefingResponse.status}`
+            )
+          }
 
-    <div class="step">
-      <h3>📅 Passo 5: Verificar Timeline Gerada</h3>
-      <p>Após a geração:</p>
-      <ol>
-        <li>Navegue para a aba <strong>"Timeline"</strong></li>
-        <li>Verifique se as fases foram criadas</li>
-        <li>Confirme se há tarefas nas fases</li>
-      </ol>
-    </div>
+          const briefingData = await briefingResponse.json()
 
-    <div class="timeline-test">
-      <h3>🔧 Teste Direto da API</h3>
-      <p>Para verificar se a API está funcionando:</p>
-      <button onclick="testAPI()" class="btn btn-success">
-        🧪 Testar API Diretamente
-      </button>
-      <div id="api-result"></div>
-    </div>
-
-    <div class="step">
-      <h3>✅ Critérios de Sucesso</h3>
-      <ul>
-        <li>✅ Briefing salvo com sucesso</li>
-        <li>✅ Botão "Gerar Timeline" visível e habilitado</li>
-        <li>✅ Modal de progresso exibido durante geração</li>
-        <li>✅ Timeline criada com 4 fases</li>
-        <li>✅ Cada fase contém tarefas</li>
-        <li>✅ Redirecionamento automático para aba Timeline</li>
-      </ul>
-    </div>
-
-    <div class="step error" id="error-section" style="display: none;">
-      <h3>❌ Problemas Encontrados</h3>
-      <div id="error-details"></div>
-    </div>
-
-    <div class="step success" id="success-section" style="display: none;">
-      <h3>🎉 Teste Concluído com Sucesso!</h3>
-      <p>O botão "Gerar Timeline" está funcionando corretamente!</p>
-    </div>
-  </div>
-
-  <script>
-    async function testAPI() {
-      const resultDiv = document.getElementById('api-result');
-      const eventId = 'test-event-1748146557175';
-
-      resultDiv.innerHTML = '<p>🔄 Testando API...</p>';
-
-      try {
-        // Teste 1: Verificar briefing
-        const briefingResponse = await fetch(`/api/briefings/${eventId}`);
-        if (!briefingResponse.ok) {
-          throw new Error(`Erro ao carregar briefing: ${briefingResponse.status}`);
-        }
-
-        const briefingData = await briefingResponse.json();
-
-        // Teste 2: Gerar timeline
-        const timelineResponse = await fetch(`/api/timeline/${eventId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            generateFromBriefing: true,
-            briefingData: briefingData
+          // Teste 2: Gerar timeline
+          const timelineResponse = await fetch(`/api/timeline/${eventId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              generateFromBriefing: true,
+              briefingData: briefingData,
+            }),
           })
-        });
 
-        if (!timelineResponse.ok) {
-          throw new Error(`Erro ao gerar timeline: ${timelineResponse.status}`);
-        }
+          if (!timelineResponse.ok) {
+            throw new Error(
+              `Erro ao gerar timeline: ${timelineResponse.status}`
+            )
+          }
 
-        const timelineData = await timelineResponse.json();
+          const timelineData = await timelineResponse.json()
 
-        // Teste 3: Verificar timeline salva
-        const savedResponse = await fetch(`/api/timeline/${eventId}`);
-        if (!savedResponse.ok) {
-          throw new Error(`Erro ao recuperar timeline: ${savedResponse.status}`);
-        }
+          // Teste 3: Verificar timeline salva
+          const savedResponse = await fetch(`/api/timeline/${eventId}`)
+          if (!savedResponse.ok) {
+            throw new Error(
+              `Erro ao recuperar timeline: ${savedResponse.status}`
+            )
+          }
 
-        const savedData = await savedResponse.json();
+          const savedData = await savedResponse.json()
 
-        resultDiv.innerHTML = `
+          resultDiv.innerHTML = `
                     <div style="background: #d4edda; padding: 15px; border-radius: 4px; margin-top: 10px;">
                         <h4 style="color: #155724; margin: 0 0 10px 0;">✅ API Funcionando!</h4>
                         <p><strong>Briefing:</strong> ${briefingData.eventTitle}</p>
                         <p><strong>Timeline gerada:</strong> ${timelineData.timeline?.length || 0} fases</p>
-                        <p><strong>Timeline salva:</strong> ${Array.isArray(savedData) ? savedData.length : (savedData.timeline?.length || 0)} fases</p>
+                        <p><strong>Timeline salva:</strong> ${Array.isArray(savedData) ? savedData.length : savedData.timeline?.length || 0} fases</p>
                     </div>
-                `;
+                `
 
-        document.getElementById('success-section').style.display = 'block';
-
-      } catch (error) {
-        resultDiv.innerHTML = `
+          document.getElementById('success-section').style.display = 'block'
+        } catch (error) {
+          resultDiv.innerHTML = `
                     <div style="background: #f8d7da; padding: 15px; border-radius: 4px; margin-top: 10px;">
                         <h4 style="color: #721c24; margin: 0 0 10px 0;">❌ Erro na API</h4>
                         <p>${error.message}</p>
                     </div>
-                `;
+                `
 
-        const errorSection = document.getElementById('error-section');
-        const errorDetails = document.getElementById('error-details');
-        errorDetails.innerHTML = `<p>Erro na API: ${error.message}</p>`;
-        errorSection.style.display = 'block';
+          const errorSection = document.getElementById('error-section')
+          const errorDetails = document.getElementById('error-details')
+          errorDetails.innerHTML = `<p>Erro na API: ${error.message}</p>`
+          errorSection.style.display = 'block'
+        }
       }
-    }
 
-    // Auto-executar teste da API ao carregar a página
-    window.addEventListener('load', () => {
-      setTimeout(testAPI, 1000);
-    });
-  </script>
-</body>
-
+      // Auto-executar teste da API ao carregar a página
+      window.addEventListener('load', () => {
+        setTimeout(testAPI, 1000)
+      })
+    </script>
+  </body>
 </html>

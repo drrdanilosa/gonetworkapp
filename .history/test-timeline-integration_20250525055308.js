@@ -1,5 +1,5 @@
 // Teste de integração completa do botão "Gerar Timeline"
-const puppeteer = require('puppeteer')
+import puppeteer from 'puppeteer'
 
 /**
  * Este script testa o fluxo completo de geração de timeline

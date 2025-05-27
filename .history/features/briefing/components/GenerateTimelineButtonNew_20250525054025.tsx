@@ -25,7 +25,7 @@ export default function GenerateTimelineButtonNew({
   const [isGenerating, setIsGenerating] = useState(false)
   const router = useRouter()
   const { briefing } = useBriefing(eventId || '')
-  
+
   // Store global de projetos para atualizar a timeline
   const { projects, updateProject } = useProjectsStore()
 
@@ -43,24 +43,27 @@ export default function GenerateTimelineButtonNew({
 
     try {
       console.log('🚀 Iniciando geração de timeline para evento:', eventId)
-      
+
       // Usar dados do formulário se disponíveis, ou dados do briefing atual
       const briefingData = formData || briefing
-      
+
       if (!briefingData) {
         throw new Error('Dados de briefing não encontrados')
       }
-      
+
       console.log('📋 Dados do briefing carregados:', briefingData)
-      
+
       // Extrair dados necessários do briefing para gerar a timeline
       const projectName = briefingData.eventName || 'Projeto'
-      const numVideos = briefingData.deliverables?.filter(d => d.type === 'video')?.length || 1
-      const eventDate = briefingData.eventDate ? new Date(briefingData.eventDate) : undefined
+      const numVideos =
+        briefingData.deliverables?.filter(d => d.type === 'video')?.length || 1
+      const eventDate = briefingData.eventDate
+        ? new Date(briefingData.eventDate)
+        : undefined
       const finalDueDate = undefined // Poderia ser extraído do briefing se disponível
-      
+
       console.log('⏱️ Gerando timeline localmente...')
-      
+
       // Gerar timeline usando a função local
       const phases = generateScheduleFromBriefing(
         projectName,
@@ -68,16 +71,16 @@ export default function GenerateTimelineButtonNew({
         eventDate,
         finalDueDate
       )
-      
+
       console.log('✅ Timeline gerada com sucesso:', phases)
-      
+
       // Buscar o projeto atual
       const currentProject = projects.find(p => p.id === eventId)
-      
+
       if (!currentProject) {
         throw new Error('Projeto não encontrado')
       }
-      
+
       // Formatar as fases para o formato esperado pelo projeto
       const formattedPhases = phases.map(phase => ({
         id: crypto.randomUUID(),
@@ -87,32 +90,33 @@ export default function GenerateTimelineButtonNew({
         status: phase.completed ? 'completed' : 'pending',
         description: '',
         type: 'phase',
-        tasks: []
+        tasks: [],
       }))
-      
+
       // Atualizar o projeto com a nova timeline
       updateProject(eventId, {
         timeline: formattedPhases,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       })
-      
+
       // Mostrar toast de sucesso
       toast({
         title: 'Timeline gerada',
         description: 'A timeline do projeto foi gerada com sucesso!',
       })
-      
+
       // Redirecionar para a aba Timeline, se solicitado
       if (redirectToTimeline) {
         router.push(`/events/${eventId}/timeline`)
       }
     } catch (error) {
       console.error('❌ Erro ao gerar timeline:', error)
-      
+
       // Mostrar toast de erro
       toast({
         title: 'Erro ao gerar timeline',
-        description: error instanceof Error ? error.message : 'Ocorreu um erro inesperado',
+        description:
+          error instanceof Error ? error.message : 'Ocorreu um erro inesperado',
         variant: 'destructive',
       })
     } finally {

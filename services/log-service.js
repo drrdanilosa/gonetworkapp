@@ -1,6 +1,6 @@
 // Serviço de logs para o MelhorApp
-const fs = require('fs')
-const path = require('path')
+import fs from 'fs'
+import path from 'path'
 
 // Configurações
 const LOG_DIR = path.resolve(__dirname, '../logs')

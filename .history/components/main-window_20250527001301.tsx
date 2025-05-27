@@ -45,10 +45,7 @@ interface MainWindowProps {
   children?: React.ReactNode
 }
 
-export default function MainWindow({
-  currentUser,
-  onLogout,
-}: MainWindowProps) {
+export default function MainWindow({ currentUser, onLogout }: MainWindowProps) {
   const [isMaximized, setIsMaximized] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const isMobile = useMobile()

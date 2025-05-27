@@ -317,7 +317,9 @@ export async function PATCH(
     }
 
     // Encontrar o membro
-    const memberIndex = project.teamMembers.findIndex(m => m.id === data.memberId)
+    const memberIndex = project.teamMembers.findIndex(
+      m => m.id === data.memberId
+    )
     if (memberIndex === -1) {
       return NextResponse.json(
         {

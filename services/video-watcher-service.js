@@ -1,9 +1,9 @@
-const chokidar = require('chokidar')
-const path = require('path')
-const axios = require('axios')
-const fs = require('fs')
+import chokidar from 'chokidar'
+import path from 'path'
+import axios from 'axios'
+import fs from 'fs'
 const { spawn } = require('child_process')
-const logService = require('./log-service')
+import logService from './log-service'
 
 const EXPORTS_DIR = path.join(process.cwd(), 'public', 'exports')
 const SERVER_API = 'http://localhost:3001/api/events/upload-from-watcher'

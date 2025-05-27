@@ -1,7 +1,8 @@
 {
   "name": "melhorapp_final02",
   "version": "0.1.0",
-  "private": true,  "scripts": {
+  "private": true,
+  "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -141,7 +142,8 @@
     "tailwindcss": "^3.4.17",
     "tsx": "^4.19.4",
     "typescript": "^5.3.3",
-    "vitest": "^3.1.4",    "wait-on": "^8.0.3"
+    "vitest": "^3.1.4",
+    "wait-on": "^8.0.3"
   },
   "main": "electron/main.js",
   "homepage": "./",
@@ -151,11 +153,7 @@
     "directories": {
       "output": "dist"
     },
-    "files": [
-      "out/**/*",
-      "electron/**/*",
-      "package.json"
-    ],
+    "files": ["out/**/*", "electron/**/*", "package.json"],
     "extraResources": [
       {
         "from": "public",

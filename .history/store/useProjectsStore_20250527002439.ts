@@ -107,14 +107,14 @@ export const useProjectsStore = create<ProjectsState>()(
             projects: [...state.projects, newProject],
             currentProject: newProject,
           }
-        }),      selectProject: projectId =>
+        }),
+      selectProject: projectId =>
         set(state => {
           const proj = state.projects.find(p => p.id === projectId) || null
           return { currentProject: proj }
         }),
 
-      setCurrentProject: (project) =>
-        set({ currentProject: project }),
+      setCurrentProject: project => set({ currentProject: project }),
 
       addVideoVersion: (projectId, deliverableId, file) =>
         set(state => {

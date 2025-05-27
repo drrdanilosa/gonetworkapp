@@ -3,8 +3,8 @@ import axios from 'axios'
 
 export const DiagnosticTool = () => {
   const [endpoint, setEndpoint] = useState('')
-  const [response, setResponse] = useState(null)
-  const [error, setError] = useState(null)
+  const [response, setResponse] = useState<any>(null)
+  const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   const testEndpoint = async () => {
@@ -15,8 +15,12 @@ export const DiagnosticTool = () => {
     try {
       const res = await axios.get(endpoint)
       setResponse(res.data)
-    } catch (err) {
-      setError(err.message)
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError('Um erro desconhecido ocorreu')
+      }
     } finally {
       setLoading(false)
     }
@@ -50,5 +54,3 @@ export const DiagnosticTool = () => {
     </div>
   )
 }
-
-export default DiagnosticTool

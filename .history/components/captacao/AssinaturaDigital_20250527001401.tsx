@@ -45,7 +45,7 @@ export function AssinaturaDigital({
     e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
   ) => {
     if (disabled) return
-    
+
     const canvas = canvasRef.current
     if (!canvas) return
 
@@ -70,7 +70,9 @@ export function AssinaturaDigital({
     ctx.moveTo(x, y)
   }
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const draw = (
+    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
+  ) => {
     if (!isDrawing || disabled) return
 
     const canvas = canvasRef.current
@@ -138,7 +140,9 @@ export function AssinaturaDigital({
             onTouchEnd={stopDrawing}
           />
           <p className="text-sm text-gray-500 mt-2 text-center">
-            {disabled ? 'Assinatura capturada' : 'Assine aqui usando o mouse ou touch'}
+            {disabled
+              ? 'Assinatura capturada'
+              : 'Assine aqui usando o mouse ou touch'}
           </p>
         </div>
 

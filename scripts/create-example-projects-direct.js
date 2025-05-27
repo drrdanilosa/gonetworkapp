@@ -4,8 +4,8 @@
  * sem depender da API, útil para testes rápidos.
  */
 
-const fs = require('fs')
-const path = require('path')
+import fs from 'fs'
+import path from 'path'
 const { v4: uuidv4 } = require('uuid')
 
 // Função para criar projetos de exemplo

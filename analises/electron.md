@@ -34,16 +34,16 @@ function createWindow() {
       contextIsolation: true,
       enableRemoteModule: false,
       webSecurity: true,
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(__dirname, 'preload.js'),
     },
     icon: path.join(__dirname, '../assets/icon.png'), // Adicione um ícone se quiser
     show: false,
-    titleBarStyle: 'default'
+    titleBarStyle: 'default',
   })
 
   // URL da aplicação
-  const startUrl = isDev 
-    ? 'http://localhost:3000' 
+  const startUrl = isDev
+    ? 'http://localhost:3000'
     : `file://${path.join(__dirname, '../out/index.html')}`
 
   // Carregar a aplicação
@@ -81,7 +81,7 @@ function createMenu() {
           accelerator: 'CmdOrCtrl+N',
           click: () => {
             mainWindow.webContents.send('menu-new-project')
-          }
+          },
         },
         { type: 'separator' },
         {
@@ -89,7 +89,7 @@ function createMenu() {
           accelerator: 'CmdOrCtrl+,',
           click: () => {
             mainWindow.webContents.send('menu-settings')
-          }
+          },
         },
         { type: 'separator' },
         {
@@ -97,9 +97,9 @@ function createMenu() {
           accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
           click: () => {
             app.quit()
-          }
-        }
-      ]
+          },
+        },
+      ],
     },
     {
       label: 'Editar',
@@ -110,8 +110,8 @@ function createMenu() {
         { role: 'cut', label: 'Recortar' },
         { role: 'copy', label: 'Copiar' },
         { role: 'paste', label: 'Colar' },
-        { role: 'selectall', label: 'Selecionar Tudo' }
-      ]
+        { role: 'selectall', label: 'Selecionar Tudo' },
+      ],
     },
     {
       label: 'Visualizar',
@@ -124,15 +124,15 @@ function createMenu() {
         { role: 'zoomin', label: 'Aumentar Zoom' },
         { role: 'zoomout', label: 'Diminuir Zoom' },
         { type: 'separator' },
-        { role: 'togglefullscreen', label: 'Tela Cheia' }
-      ]
+        { role: 'togglefullscreen', label: 'Tela Cheia' },
+      ],
     },
     {
       label: 'Janela',
       submenu: [
         { role: 'minimize', label: 'Minimizar' },
-        { role: 'close', label: 'Fechar' }
-      ]
+        { role: 'close', label: 'Fechar' },
+      ],
     },
     {
       label: 'Ajuda',
@@ -144,12 +144,13 @@ function createMenu() {
               type: 'info',
               title: 'Sobre',
               message: 'GoNetwork AI',
-              detail: 'Plataforma de gerenciamento de produção audiovisual\nVersão 1.0.0'
+              detail:
+                'Plataforma de gerenciamento de produção audiovisual\nVersão 1.0.0',
             })
-          }
-        }
-      ]
-    }
+          },
+        },
+      ],
+    },
   ]
 
   const menu = Menu.buildFromTemplate(template)
@@ -161,10 +162,10 @@ function startNextServer() {
   if (isDev) {
     nextProcess = spawn('npm', ['run', 'dev'], {
       cwd: path.join(__dirname, '..'),
-      stdio: 'inherit'
+      stdio: 'inherit',
     })
 
-    nextProcess.on('error', (err) => {
+    nextProcess.on('error', err => {
       console.error('Erro ao iniciar servidor Next.js:', err)
     })
   }
@@ -179,7 +180,7 @@ app.whenReady().then(() => {
   } else {
     createWindow()
   }
-  
+
   createMenu()
 
   app.on('activate', () => {
@@ -192,7 +193,7 @@ app.on('window-all-closed', () => {
   if (nextProcess) {
     nextProcess.kill()
   }
-  
+
   if (process.platform !== 'darwin') app.quit()
 })
 
@@ -219,16 +220,16 @@ const { contextBridge, ipcRenderer } = require('electron')
 // Expor APIs seguras para o renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
   // Comunicação com o processo principal
-  onMenuAction: (callback) => ipcRenderer.on('menu-new-project', callback),
-  onSettingsAction: (callback) => ipcRenderer.on('menu-settings', callback),
-  
+  onMenuAction: callback => ipcRenderer.on('menu-new-project', callback),
+  onSettingsAction: callback => ipcRenderer.on('menu-settings', callback),
+
   // Utilitários do sistema
   platform: process.platform,
-  
+
   // Notificações
   showNotification: (title, body) => {
     new Notification(title, { body })
-  }
+  },
 })
 
 // Remover listeners quando a página for recarregada
@@ -306,12 +307,7 @@ Adicione estes scripts ao seu `package.json`:
   "directories": {
     "output": "dist"
   },
-  "files": [
-    "out/**/*",
-    "electron/**/*",
-    "node_modules/**/*",
-    "package.json"
-  ],
+  "files": ["out/**/*", "electron/**/*", "node_modules/**/*", "package.json"],
   "extraMetadata": {
     "main": "electron/main.js"
   },
@@ -362,7 +358,7 @@ export function useElectron() {
     // Verificar se está rodando no Electron
     const isElectronApp = typeof window !== 'undefined' && window.electronAPI
     setIsElectron(!!isElectronApp)
-    
+
     if (isElectronApp) {
       setElectronAPI(window.electronAPI)
     }
@@ -371,7 +367,7 @@ export function useElectron() {
   return {
     isElectron,
     electronAPI,
-    platform: electronAPI?.platform || 'web'
+    platform: electronAPI?.platform || 'web',
   }
 }
 
@@ -407,7 +403,7 @@ export function ElectronTitleBar() {
       <div className="flex items-center space-x-2">
         <span className="text-sm font-medium">GoNetwork AI</span>
       </div>
-      
+
       <div className="flex items-center space-x-1 no-drag">
         <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
           <Minimize2 className="h-3 w-3" />
@@ -415,7 +411,11 @@ export function ElectronTitleBar() {
         <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
           <Maximize2 className="h-3 w-3" />
         </Button>
-        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-red-500">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 w-6 p-0 hover:bg-red-500"
+        >
           <X className="h-3 w-3" />
         </Button>
       </div>
@@ -467,7 +467,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body className={`${inter.variable} ${firaCode.variable} font-sans antialiased`}>
+      <body
+        className={`${inter.variable} ${firaCode.variable} font-sans antialiased`}
+      >
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
@@ -477,9 +479,7 @@ export default function RootLayout({
           <ElectronTitleBar />
           <ReactQueryProvider>
             <NotificationsProvider>
-              <EventSyncProvider>
-                {children}
-              </EventSyncProvider>
+              <EventSyncProvider>{children}</EventSyncProvider>
             </NotificationsProvider>
           </ReactQueryProvider>
         </ThemeProvider>
@@ -536,6 +536,7 @@ echo "✅ Build concluído! Verifique a pasta 'dist' para os instaladores."
 ## 13. Comandos para Executar
 
 ### Desenvolvimento:
+
 ```bash
 # Executar em modo desenvolvimento (Next.js + Electron)
 npm run electron-dev
@@ -546,6 +547,7 @@ npm run electron   # Terminal 2: Electron
 ```
 
 ### Produção:
+
 ```bash
 # Build completo para distribuição
 npm run build-electron
@@ -556,6 +558,7 @@ npm run electron-pack    # Criar executáveis
 ```
 
 ### Testar Build de Produção:
+
 ```bash
 # Testar localmente sem criar instaladores
 npm run export && npx electron .

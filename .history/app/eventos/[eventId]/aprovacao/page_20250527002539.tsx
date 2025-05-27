@@ -47,12 +47,8 @@ const VideoPlayer = dynamic(() => import('@/components/video/VideoPlayer'), {
 export default function ApprovalPage() {
   const { eventId } = useParams() as { eventId: string }
   const router = useRouter()
-  const {
-    projects,
-    currentProject,
-    approveVideoVersion,
-    addComment,
-  } = useProjectsStore()
+  const { projects, currentProject, approveVideoVersion, addComment } =
+    useProjectsStore()
   const { user } = useAuthStore()
   const { addNotification } = useUIStore()
   const [rejectReason, setRejectReason] = useState('')

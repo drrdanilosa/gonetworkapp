@@ -51,8 +51,10 @@ export default function TimelinePage() {
   // Voltar para a página principal do evento
   const handleBackToEvent = () => {
     router.push(`/events/${eventId}`)
-  }  // Converter fases do formato do store para o formato do componente Timeline
-  const convertPhasesToTimelineFormat = (phases: TimelinePhase[]): ProcessedPhase[] => {
+  } // Converter fases do formato do store para o formato do componente Timeline
+  const convertPhasesToTimelineFormat = (
+    phases: TimelinePhase[]
+  ): ProcessedPhase[] => {
     console.log('Converting phases:', phases)
 
     return phases.map(phase => {

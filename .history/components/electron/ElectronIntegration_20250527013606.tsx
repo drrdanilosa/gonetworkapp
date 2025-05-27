@@ -1,10 +1,10 @@
-'use client';
+'use client'
 
-import React, { useEffect, useState } from 'react';
-import { useElectron } from '@/hooks/useElectron';
-import { Button } from '@/components/ui/button';
-import { Download, Folder, FileText } from 'lucide-react';
-import { toast } from 'sonner';
+import React, { useEffect, useState } from 'react'
+import { useElectron } from '@/hooks/useElectron'
+import { Button } from '@/components/ui/button'
+import { Download, Folder, FileText } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface ElectronIntegrationProps {
   children: React.ReactNode

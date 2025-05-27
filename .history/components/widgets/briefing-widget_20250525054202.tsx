@@ -514,7 +514,7 @@ export function BriefingWidget({ projectId }: BriefingWidgetProps) {
               visualStyle: visualStyle,
               references: references,
               postEventDeadline: postEventDeadline,
-              deadlineUnit: deadlineUnit
+              deadlineUnit: deadlineUnit,
             }}
             onGenerated={success => {
               // Funções de callback já integradas no componente com toasts apropriados

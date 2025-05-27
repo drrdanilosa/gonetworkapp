@@ -112,7 +112,9 @@ export default function VideoComments({
                         <User className="size-4 text-slate-500" />
                       </div>
                       <div>
-                        <p className="font-medium">{comment.userName || comment.author || 'Usuário'}</p>
+                        <p className="font-medium">
+                          {comment.userName || comment.author || 'Usuário'}
+                        </p>
                         <div className="flex items-center text-xs text-muted-foreground">
                           <Clock className="mr-1 size-3" />
                           <span>

@@ -107,14 +107,14 @@ export const useProjectsStore = create<ProjectsState>()(
             projects: [...state.projects, newProject],
             currentProject: newProject,
           }
-        }),      selectProject: projectId =>
+        }),
+      selectProject: projectId =>
         set(state => {
           const proj = state.projects.find(p => p.id === projectId) || null
           return { currentProject: proj }
         }),
 
-      setCurrentProject: (project) =>
-        set({ currentProject: project }),
+      setCurrentProject: project => set({ currentProject: project }),
 
       addVideoVersion: (projectId, deliverableId, file) =>
         set(state => {
@@ -291,7 +291,8 @@ export const useProjectsStore = create<ProjectsState>()(
               state.currentProject?.id === projectId
                 ? updatedProject
                 : state.currentProject,
-          }        }),
+          }
+        }),
 
       // Função para marcar/desmarcar um comentário como resolvido
       setCommentResolved: (commentId, resolved) =>
@@ -300,9 +301,7 @@ export const useProjectsStore = create<ProjectsState>()(
             const updatedVideos = project.videos.map(deliverable => {
               if (deliverable.comments) {
                 const updatedComments = deliverable.comments.map(comment =>
-                  comment.id === commentId
-                    ? { ...comment, resolved }
-                    : comment
+                  comment.id === commentId ? { ...comment, resolved } : comment
                 )
                 return { ...deliverable, comments: updatedComments }
               }
@@ -313,9 +312,10 @@ export const useProjectsStore = create<ProjectsState>()(
 
           return {
             projects: updatedProjects,
-            currentProject: state.currentProject 
-              ? updatedProjects.find(p => p.id === state.currentProject?.id) || null
-              : null
+            currentProject: state.currentProject
+              ? updatedProjects.find(p => p.id === state.currentProject?.id) ||
+                null
+              : null,
           }
         }),
 

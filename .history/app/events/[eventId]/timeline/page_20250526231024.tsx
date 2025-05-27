@@ -47,7 +47,7 @@ export default function TimelinePage() {
     return phases.map(phase => {
       // Debug para verificar os dados recebidos
       console.log('Convertendo fase:', phase)
-      
+
       return {
         id: phase.id,
         name: phase.name,

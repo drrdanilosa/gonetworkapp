@@ -1,8 +1,8 @@
 // scripts/video-watcher.js
-const chokidar = require('chokidar')
-const path = require('path')
-const fs = require('fs-extra')
-const axios = require('axios')
+import chokidar from 'chokidar'
+import path from 'path'
+import fs from 'fs-extra'
+import axios from 'axios'
 
 const EXPORTS_PATH = path.resolve(__dirname, '../public/exports')
 const LOG_PATH = path.resolve(__dirname, '../logs')
