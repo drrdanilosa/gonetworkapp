@@ -1,8 +1,7 @@
 {
   "name": "melhorapp_final02",
   "version": "0.1.0",
-  "private": true,
-  "scripts": {
+  "private": true,  "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -28,7 +27,7 @@
     "format:check": "prettier --check .",
     "test": "vitest",
     "electron": "electron .",
-    "electron:dev": "concurrently \"cross-env NODE_ENV=development npm run dev\" \"wait-on http://localhost:3000 http://localhost:3001 http://localhost:3002 && cross-env NODE_ENV=development electron .\"",
+    "electron:dev": "concurrently \"cross-env NODE_ENV=development npm run dev\" \"wait-on http://localhost:3000 && cross-env NODE_ENV=development electron .\"",
     "electron:pack": "npm run build && electron-builder",
     "electron:dist": "npm run build && electron-builder --publish=never",
     "electron:build": "cross-env NODE_ENV=production npm run build && electron-builder",
@@ -142,8 +141,7 @@
     "tailwindcss": "^3.4.17",
     "tsx": "^4.19.4",
     "typescript": "^5.3.3",
-    "vitest": "^3.1.4",
-    "wait-on": "^8.0.3"
+    "vitest": "^3.1.4",    "wait-on": "^8.0.3"
   },
   "main": "electron/main.js",
   "homepage": "./",
@@ -168,10 +166,7 @@
       "target": [
         {
           "target": "nsis",
-          "arch": [
-            "x64",
-            "ia32"
-          ]
+          "arch": ["x64", "ia32"]
         }
       ],
       "icon": "public/icon.ico"
@@ -180,10 +175,7 @@
       "target": [
         {
           "target": "dmg",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
+          "arch": ["x64", "arm64"]
         }
       ],
       "icon": "public/icon.icns",
@@ -193,15 +185,11 @@
       "target": [
         {
           "target": "AppImage",
-          "arch": [
-            "x64"
-          ]
+          "arch": ["x64"]
         },
         {
           "target": "deb",
-          "arch": [
-            "x64"
-          ]
+          "arch": ["x64"]
         }
       ],
       "icon": "public/icon.png",

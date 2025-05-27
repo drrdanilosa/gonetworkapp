@@ -10,11 +10,11 @@ const nextConfig = {
     unoptimized: true,
   },
   reactStrictMode: true,
-
+  
   // Configurações para Electron
   output: process.env.NODE_ENV === 'production' ? 'export' : undefined,
   trailingSlash: true,
-
+  
   // Configurações webpack para Electron
   webpack: (config, { isServer, dev }) => {
     // Configurações específicas para Electron
@@ -24,20 +24,20 @@ const nextConfig = {
         fs: false,
         path: false,
         os: false,
-      }
+      };
     }
-
+    
     // Configurações para desenvolvimento com Electron
     if (dev) {
       config.watchOptions = {
         poll: 1000,
         aggregateTimeout: 300,
-      }
+      };
     }
-
-    return config
+    
+    return config;
   },
-
+  
   // Configurações de headers para desenvolvimento
   async headers() {
     return [
@@ -58,9 +58,9 @@ const nextConfig = {
           },
         ],
       },
-    ]
+    ];
   },
-
+  
   // Configurações para build estático (produção)
   ...(process.env.NODE_ENV === 'production' && {
     basePath: '',

@@ -50,13 +50,11 @@ export default function RootLayout({
             enableSystem={true}
             disableTransitionOnChange
           >
-            <ElectronIntegration>
-              <EventSyncProvider>
-                {children}
-                {/* Componente de notificações global */}
-                <NotificationsProvider />
-              </EventSyncProvider>
-            </ElectronIntegration>
+            <EventSyncProvider>
+              {children}
+              {/* Componente de notificações global */}
+              <NotificationsProvider />
+            </EventSyncProvider>
           </ThemeProvider>
         </ReactQueryProvider>
       </body>

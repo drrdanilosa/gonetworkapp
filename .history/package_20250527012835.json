@@ -28,7 +28,7 @@
     "format:check": "prettier --check .",
     "test": "vitest",
     "electron": "electron .",
-    "electron:dev": "concurrently \"cross-env NODE_ENV=development npm run dev\" \"wait-on http://localhost:3000 http://localhost:3001 http://localhost:3002 && cross-env NODE_ENV=development electron .\"",
+    "electron:dev": "concurrently \"cross-env NODE_ENV=development npm run dev\" \"wait-on http://localhost:3000 && cross-env NODE_ENV=development electron .\"",
     "electron:pack": "npm run build && electron-builder",
     "electron:dist": "npm run build && electron-builder --publish=never",
     "electron:build": "cross-env NODE_ENV=production npm run build && electron-builder",

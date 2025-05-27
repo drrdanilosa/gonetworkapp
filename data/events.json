@@ -2152,5 +2152,53 @@
       "autoApprove": false,
       "notifyOnUpload": true
     }
+  },
+  {
+    "id": "1748320126936",
+    "title": "Projeto Demonstração",
+    "client": "Cliente não especificado",
+    "date": "2025-05-27T04:28:47.993Z",
+    "createdAt": "2025-05-27T04:28:47.993Z",
+    "updatedAt": "2025-05-27T04:28:47.993Z",
+    "status": "active",
+    "team": [],
+    "briefing": null,
+    "videos": [],
+    "assets": [],
+    "tasks": [],
+    "deadline": null,
+    "thumbnail": "/placeholder-event.jpg",
+    "description": "",
+    "tags": [],
+    "deliverySettings": {
+      "allowRevisions": true,
+      "maxRevisions": 3,
+      "autoApprove": false,
+      "notifyOnUpload": true
+    }
+  },
+  {
+    "id": "1748320147440",
+    "title": "Projeto Demonstração",
+    "client": "Cliente não especificado",
+    "date": "2025-05-27T04:29:07.571Z",
+    "createdAt": "2025-05-27T04:29:07.571Z",
+    "updatedAt": "2025-05-27T04:29:07.571Z",
+    "status": "active",
+    "team": [],
+    "briefing": null,
+    "videos": [],
+    "assets": [],
+    "tasks": [],
+    "deadline": null,
+    "thumbnail": "/placeholder-event.jpg",
+    "description": "",
+    "tags": [],
+    "deliverySettings": {
+      "allowRevisions": true,
+      "maxRevisions": 3,
+      "autoApprove": false,
+      "notifyOnUpload": true
+    }
   }
 ]
