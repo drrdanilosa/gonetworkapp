@@ -11,7 +11,6 @@ const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
 })
-
 const firaCode = Fira_Code({
   subsets: ['latin'],
   variable: '--font-fira-code',
@@ -34,7 +33,6 @@ export const metadata = {
   applicationName: 'GoNetwork AI',
   keywords: ['produção audiovisual', 'gestão de projetos', 'AI'],
 }
-
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
