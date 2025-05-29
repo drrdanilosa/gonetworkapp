@@ -16,7 +16,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Upload, X, FileVideo, Clock, HardDrive } from 'lucide-react'
+import {
+  Upload,
+  PlayCircle,
+  X,
+  FileVideo,
+  Clock,
+  HardDrive,
+} from 'lucide-react'
 import { toast } from '@/components/ui/use-toast'
 import { Progress } from '@/components/ui/progress'
 
@@ -99,16 +106,13 @@ export default function VideoUploader({
 
       video.onerror = () => {
         resolve(0)
-      }
-
-      video.src = URL.createObjectURL(file)
-    })
+      }    video.src = URL.createObjectURL(file)
   }
 
   // Função para obter classes CSS baseadas na proporção
   const getPreviewContainerClasses = (): string => {
-    const baseClasses = 'relative mx-auto overflow-hidden rounded-lg bg-black'
-
+    const baseClasses = "relative mx-auto overflow-hidden rounded-lg bg-black"
+    
     switch (aspectRatio) {
       case '16:9':
         return `${baseClasses} max-w-2xl aspect-video`
@@ -131,8 +135,9 @@ export default function VideoUploader({
     { value: '9:16', label: '9:16 (Vertical)', icon: '📱' },
     { value: '1:1', label: '1:1 (Quadrado)', icon: '⬜' },
     { value: '4:3', label: '4:3 (Tradicional)', icon: '🖥️' },
-    { value: '21:9', label: '21:9 (Cinema)', icon: '🎬' },
+    { value: '21:9', label: '21:9 (Cinema)', icon: '🎬' }
   ]
+  }
 
   // Validar arquivo
   const validateFile = (file: File): string | null => {
@@ -207,18 +212,15 @@ export default function VideoUploader({
     }
   }, [])
 
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      setDragActive(false)
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
 
-      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-        handleFileSelect(e.dataTransfer.files[0])
-      }
-    },
-    [handleFileSelect]
-  )
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileSelect(e.dataTransfer.files[0])
+    }
+  }, [])
 
   const handleRemoveFile = () => {
     if (preview) {
@@ -364,28 +366,7 @@ export default function VideoUploader({
           </div>
         ) : (
           <div className="space-y-4">
-            {/* Controles de Proporção */}
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Proporção do Preview:</span>
-              <Select value={aspectRatio} onValueChange={setAspectRatio}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Proporção" />
-                </SelectTrigger>
-                <SelectContent>
-                  {aspectRatioOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      <div className="flex items-center gap-2">
-                        <span>{option.icon}</span>
-                        <span className="text-xs">{option.value}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Preview com Proporção Dinâmica */}
-            <div className={getPreviewContainerClasses()}>
+            <div className="relative h-64 overflow-hidden rounded-lg bg-black">
               {preview && (
                 <video
                   src={preview}

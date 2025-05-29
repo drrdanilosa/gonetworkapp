@@ -519,6 +519,7 @@ onLoadMore()
 
 if (loading && items.length === 0) {
 return (
+
 <div className="flex justify-center items-center p-8">
 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
 </div>
@@ -526,6 +527,7 @@ return (
 }
 
 return (
+
 <div className="detailed-timeline-view">
 <div className="timeline-items">
 {items.map((item) => (
@@ -629,6 +631,7 @@ handleVideoStatusUpdate(videoId, statusUpdate)
 }
 
 return (
+
 <div className="event-widget bg-white rounded-lg shadow-md p-6">
 <div className="event-header mb-4">
 {isEditing ? (
@@ -839,6 +842,7 @@ body: JSON.stringify(updatedEvent)
 
 if (loading) {
 return (
+
 <div className="flex justify-center items-center min-h-screen">
 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
 </div>
@@ -847,6 +851,7 @@ return (
 
 if (error || !event) {
 return (
+
 <div className="flex justify-center items-center min-h-screen">
 <div className="text-center">
 <h1 className="text-2xl font-bold text-red-600 mb-2">Erro</h1>
@@ -857,6 +862,7 @@ return (
 }
 
 return (
+
 <div className="container mx-auto px-4 py-8">
 <div className="mb-6">
 <h1 className="text-3xl font-bold mb-2">Briefing do Evento</h1>

@@ -71,7 +71,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 // Definir interfaces necessárias
 interface TimelineClip {
@@ -416,10 +416,7 @@ export interface EditingWidgetProps {
  *
  * @returns A complex video editing interface with playback controls, timeline, and asset management
  */
-export function EditingWidget({
-  projectId: _projectId,
-  videoId: _videoId,
-}: EditingWidgetProps) {
+export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
   // Estado principal
   const [activeTab, setActiveTab] = useState('timeline')
   const [isPlaying, setIsPlaying] = useState(false)
@@ -448,9 +445,9 @@ export function EditingWidget({
   const [showResolvedComments, setShowResolvedComments] = useState(true)
 
   // Anotações
-  const [_annotations, _setAnnotations] =
+  const [annotations, setAnnotations] =
     useState<Annotation[]>(INITIAL_ANNOTATIONS)
-  const [_selectedAnnotation, _setSelectedAnnotation] = useState<string | null>(
+  const [selectedAnnotation, setSelectedAnnotation] = useState<string | null>(
     null
   )
 
@@ -472,7 +469,7 @@ export function EditingWidget({
   // Histórico e clipboard com tipagem correta
   const [undoStack, setUndoStack] = useState<UndoAction[]>([])
   const [redoStack, setRedoStack] = useState<UndoAction[]>([])
-  const [_clipboard, _setClipboard] = useState<unknown>(null)
+  const [clipboard, setClipboard] = useState<any>(null)
 
   // Refs
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -664,7 +661,7 @@ export function EditingWidget({
     setMarkers([...markers, newMarker])
   }
 
-  const _handleDeleteMarker = (markerId: string) => {
+  const handleDeleteMarker = (markerId: string) => {
     setMarkers(markers.filter(marker => marker.id !== markerId))
   }
 
@@ -1142,7 +1139,7 @@ export function EditingWidget({
                 />
 
                 {/* Camadas e clips */}
-                {layers.map((layer, _layerIndex) => (
+                {layers.map((layer, layerIndex) => (
                   <div
                     key={layer.id}
                     className="relative mb-2 flex h-12 items-center"

@@ -416,10 +416,7 @@ export interface EditingWidgetProps {
  *
  * @returns A complex video editing interface with playback controls, timeline, and asset management
  */
-export function EditingWidget({
-  projectId: _projectId,
-  videoId: _videoId,
-}: EditingWidgetProps) {
+export function EditingWidget({ projectId: _projectId, videoId: _videoId }: EditingWidgetProps) {
   // Estado principal
   const [activeTab, setActiveTab] = useState('timeline')
   const [isPlaying, setIsPlaying] = useState(false)
@@ -664,7 +661,7 @@ export function EditingWidget({
     setMarkers([...markers, newMarker])
   }
 
-  const _handleDeleteMarker = (markerId: string) => {
+  const handleDeleteMarker = (markerId: string) => {
     setMarkers(markers.filter(marker => marker.id !== markerId))
   }
 
@@ -1142,7 +1139,7 @@ export function EditingWidget({
                 />
 
                 {/* Camadas e clips */}
-                {layers.map((layer, _layerIndex) => (
+                {layers.map((layer, layerIndex) => (
                   <div
                     key={layer.id}
                     className="relative mb-2 flex h-12 items-center"

@@ -16,7 +16,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Upload, X, FileVideo, Clock, HardDrive } from 'lucide-react'
+import {
+  Upload,
+  X,
+  FileVideo,
+  Clock,
+  HardDrive,
+} from 'lucide-react'
 import { toast } from '@/components/ui/use-toast'
 import { Progress } from '@/components/ui/progress'
 
@@ -107,8 +113,8 @@ export default function VideoUploader({
 
   // Função para obter classes CSS baseadas na proporção
   const getPreviewContainerClasses = (): string => {
-    const baseClasses = 'relative mx-auto overflow-hidden rounded-lg bg-black'
-
+    const baseClasses = "relative mx-auto overflow-hidden rounded-lg bg-black"
+    
     switch (aspectRatio) {
       case '16:9':
         return `${baseClasses} max-w-2xl aspect-video`
@@ -131,7 +137,7 @@ export default function VideoUploader({
     { value: '9:16', label: '9:16 (Vertical)', icon: '📱' },
     { value: '1:1', label: '1:1 (Quadrado)', icon: '⬜' },
     { value: '4:3', label: '4:3 (Tradicional)', icon: '🖥️' },
-    { value: '21:9', label: '21:9 (Cinema)', icon: '🎬' },
+    { value: '21:9', label: '21:9 (Cinema)', icon: '🎬' }
   ]
 
   // Validar arquivo
@@ -207,18 +213,15 @@ export default function VideoUploader({
     }
   }, [])
 
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      setDragActive(false)
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
 
-      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-        handleFileSelect(e.dataTransfer.files[0])
-      }
-    },
-    [handleFileSelect]
-  )
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileSelect(e.dataTransfer.files[0])
+    }
+  }, [handleFileSelect])
 
   const handleRemoveFile = () => {
     if (preview) {

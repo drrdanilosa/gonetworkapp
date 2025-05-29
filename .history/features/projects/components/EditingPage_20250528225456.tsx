@@ -4,13 +4,6 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { AlertCircle, Video, MessageSquare, Check, X } from 'lucide-react'
 import { useProjectsStore } from '@/store/useProjectsStoreUnified'
 import { useUIStore } from '@/store/useUIStore'
@@ -22,7 +15,6 @@ import { Badge } from '@/components/ui/badge'
 
 export default function EditingPage() {
   const [activeTab, setActiveTab] = useState<string>('videos')
-  const [aspectRatio, setAspectRatio] = useState('16:9')
 
   const { projects, addVideoToProject, updateDeliverableStatus } =
     useProjectsStore()
@@ -31,35 +23,6 @@ export default function EditingPage() {
   const selectedProject = projects.find(p => p.id === selectedEventId)
   const videoDeliverables =
     selectedProject?.deliverables?.filter(d => d.type === 'video') || []
-
-  // Função para obter classes CSS baseadas na proporção dos cards de vídeo
-  const getVideoCardClasses = () => {
-    const baseClasses = 'bg-black'
-
-    switch (aspectRatio) {
-      case '16:9':
-        return `${baseClasses} aspect-video`
-      case '9:16':
-        return `${baseClasses} aspect-[9/16]`
-      case '1:1':
-        return `${baseClasses} aspect-square`
-      case '4:3':
-        return `${baseClasses} aspect-[4/3]`
-      case '21:9':
-        return `${baseClasses} aspect-[21/9]`
-      default:
-        return `${baseClasses} aspect-video`
-    }
-  }
-
-  // Opções de proporção disponíveis
-  const aspectRatioOptions = [
-    { value: '16:9', label: '16:9 (Widescreen)', icon: '📺' },
-    { value: '9:16', label: '9:16 (Vertical)', icon: '📱' },
-    { value: '1:1', label: '1:1 (Quadrado)', icon: '⬜' },
-    { value: '4:3', label: '4:3 (Tradicional)', icon: '🖥️' },
-    { value: '21:9', label: '21:9 (Cinema)', icon: '🎬' },
-  ]
 
   const handleVideoUpload = (videoData: unknown) => {
     if (!selectedEventId) {
@@ -143,29 +106,7 @@ export default function EditingPage() {
                 isDisabled={!selectedEventId}
               />
 
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium">Vídeos do Evento</h3>
-
-                {/* Controles de Proporção */}
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Proporção:</span>
-                  <Select value={aspectRatio} onValueChange={setAspectRatio}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Proporção" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {aspectRatioOptions.map(option => (
-                        <SelectItem key={option.value} value={option.value}>
-                          <div className="flex items-center gap-2">
-                            <span>{option.icon}</span>
-                            <span className="text-xs">{option.value}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              <h3 className="mt-8 text-lg font-medium">Vídeos do Evento</h3>
 
               {videoDeliverables.length === 0 ? (
                 <div className="rounded-md border p-8 text-center">
@@ -178,10 +119,10 @@ export default function EditingPage() {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   {videoDeliverables.map(video => (
                     <Card key={video.id}>
-                      <div className={getVideoCardClasses()}>
+                      <div className="h-48 bg-black">
                         {video.localUrl && (
                           <video
                             src={video.localUrl}

@@ -33,7 +33,9 @@ import VideoErrorDisplay from '@/components/video/VideoErrorDisplay'
 // Importação dinâmica do componente de player para evitar problemas de SSR
 const VideoPlayer = dynamic(() => import('@/components/video/VideoPlayer'), {
   ssr: false,
-  loading: () => <div className="h-64 animate-pulse rounded-md bg-muted" />,
+  loading: () => (
+    <div className="h-64 animate-pulse rounded-md bg-muted" />
+  ),
 })
 
 // Componente para página de Aprovação

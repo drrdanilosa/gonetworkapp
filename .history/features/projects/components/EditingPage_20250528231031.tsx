@@ -143,29 +143,7 @@ export default function EditingPage() {
                 isDisabled={!selectedEventId}
               />
 
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium">Vídeos do Evento</h3>
-
-                {/* Controles de Proporção */}
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Proporção:</span>
-                  <Select value={aspectRatio} onValueChange={setAspectRatio}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Proporção" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {aspectRatioOptions.map(option => (
-                        <SelectItem key={option.value} value={option.value}>
-                          <div className="flex items-center gap-2">
-                            <span>{option.icon}</span>
-                            <span className="text-xs">{option.value}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              <h3 className="mt-8 text-lg font-medium">Vídeos do Evento</h3>
 
               {videoDeliverables.length === 0 ? (
                 <div className="rounded-md border p-8 text-center">
@@ -178,10 +156,10 @@ export default function EditingPage() {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   {videoDeliverables.map(video => (
                     <Card key={video.id}>
-                      <div className={getVideoCardClasses()}>
+                      <div className="h-48 bg-black">
                         {video.localUrl && (
                           <video
                             src={video.localUrl}

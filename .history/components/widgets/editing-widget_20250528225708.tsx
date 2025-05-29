@@ -17,6 +17,8 @@ import {
   ZoomOut,
   Move,
   Type,
+  Palette,
+  Layers,
   Music,
   Settings,
   Eye,
@@ -62,6 +64,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
   Table,
   TableBody,
   TableCell,
@@ -71,7 +82,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 // Definir interfaces necessárias
 interface TimelineClip {
@@ -416,10 +427,7 @@ export interface EditingWidgetProps {
  *
  * @returns A complex video editing interface with playback controls, timeline, and asset management
  */
-export function EditingWidget({
-  projectId: _projectId,
-  videoId: _videoId,
-}: EditingWidgetProps) {
+export function EditingWidget({ projectId, videoId }: EditingWidgetProps) {
   // Estado principal
   const [activeTab, setActiveTab] = useState('timeline')
   const [isPlaying, setIsPlaying] = useState(false)
@@ -428,9 +436,6 @@ export function EditingWidget({
   const [volume, setVolume] = useState(80)
   const [selectedTool, setSelectedTool] = useState('select')
   const [zoomLevel, setZoomLevel] = useState(100)
-
-  // Proporção do player de vídeo
-  const [aspectRatio, setAspectRatio] = useState('16:9')
 
   // Timeline e estado de edição
   const [clips, setClips] = useState<TimelineClip[]>(SAMPLE_CLIPS)
@@ -448,9 +453,9 @@ export function EditingWidget({
   const [showResolvedComments, setShowResolvedComments] = useState(true)
 
   // Anotações
-  const [_annotations, _setAnnotations] =
+  const [annotations, setAnnotations] =
     useState<Annotation[]>(INITIAL_ANNOTATIONS)
-  const [_selectedAnnotation, _setSelectedAnnotation] = useState<string | null>(
+  const [selectedAnnotation, setSelectedAnnotation] = useState<string | null>(
     null
   )
 
@@ -472,7 +477,7 @@ export function EditingWidget({
   // Histórico e clipboard com tipagem correta
   const [undoStack, setUndoStack] = useState<UndoAction[]>([])
   const [redoStack, setRedoStack] = useState<UndoAction[]>([])
-  const [_clipboard, _setClipboard] = useState<unknown>(null)
+  const [clipboard, setClipboard] = useState<any>(null)
 
   // Refs
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -510,36 +515,6 @@ export function EditingWidget({
       videoRef.current.currentTime = value
     }
   }, [])
-
-  // Função para obter classes CSS baseadas na proporção
-  const getVideoContainerClasses = useCallback(() => {
-    const baseClasses =
-      'relative mb-2 mx-auto overflow-hidden rounded-md bg-black'
-
-    switch (aspectRatio) {
-      case '16:9':
-        return `${baseClasses} max-w-2xl aspect-video`
-      case '9:16':
-        return `${baseClasses} max-w-sm aspect-[9/16]`
-      case '1:1':
-        return `${baseClasses} max-w-lg aspect-square`
-      case '4:3':
-        return `${baseClasses} max-w-xl aspect-[4/3]`
-      case '21:9':
-        return `${baseClasses} max-w-4xl aspect-[21/9]`
-      default:
-        return `${baseClasses} max-w-2xl aspect-video`
-    }
-  }, [aspectRatio])
-
-  // Opções de proporção disponíveis
-  const aspectRatioOptions = [
-    { value: '16:9', label: '16:9 (Widescreen)', icon: '📺' },
-    { value: '9:16', label: '9:16 (Vertical)', icon: '📱' },
-    { value: '1:1', label: '1:1 (Quadrado)', icon: '⬜' },
-    { value: '4:3', label: '4:3 (Tradicional)', icon: '🖥️' },
-    { value: '21:9', label: '21:9 (Cinema)', icon: '🎬' },
-  ]
 
   const handleSkipBack = () => {
     const newTime = Math.max(0, currentTime - 5)
@@ -664,7 +639,7 @@ export function EditingWidget({
     setMarkers([...markers, newMarker])
   }
 
-  const _handleDeleteMarker = (markerId: string) => {
+  const handleDeleteMarker = (markerId: string) => {
     setMarkers(markers.filter(marker => marker.id !== markerId))
   }
 
@@ -807,30 +782,7 @@ export function EditingWidget({
       {/* Área do Player de Vídeo */}
       <Card className="w-full">
         <CardContent className="p-4">
-          {/* Controles de Proporção */}
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">Proporção:</span>
-              <Select value={aspectRatio} onValueChange={setAspectRatio}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Selecione a proporção" />
-                </SelectTrigger>
-                <SelectContent>
-                  {aspectRatioOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      <div className="flex items-center gap-2">
-                        <span>{option.icon}</span>
-                        <span>{option.label}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Player de Vídeo com Proporção Dinâmica */}
-          <div className={getVideoContainerClasses()}>
+          <div className="relative mb-2 h-64 max-h-80 overflow-hidden rounded-md bg-black">
             {/* Player de vídeo */}
             <video
               ref={videoRef}
@@ -1142,7 +1094,7 @@ export function EditingWidget({
                 />
 
                 {/* Camadas e clips */}
-                {layers.map((layer, _layerIndex) => (
+                {layers.map((layer, layerIndex) => (
                   <div
                     key={layer.id}
                     className="relative mb-2 flex h-12 items-center"
@@ -1583,6 +1535,7 @@ export function EditingWidget({
                   />
                 </div>
               </div>
+
               {/* Progresso de upload */}
               {isUploading && (
                 <div className="space-y-2">
@@ -1593,8 +1546,8 @@ export function EditingWidget({
                   <Progress value={uploadProgress} />
                 </div>
               )}
-              {/* Lista de assets */}{' '}
-              <div className="grid grid-cols-3 gap-4">
+
+              {/* Lista de assets */}                <div className="grid grid-cols-3 gap-4">
                 {filteredAssets.map(asset => (
                   <Card key={asset.id}>
                     <CardContent className="p-3">

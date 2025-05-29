@@ -145,7 +145,7 @@ export default function EditingPage() {
 
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-medium">Vídeos do Evento</h3>
-
+                
                 {/* Controles de Proporção */}
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">Proporção:</span>
