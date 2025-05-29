@@ -1,149 +1,220 @@
-# MelhorApp - Sistema de Gerenciamento de Eventos Audiovisuais
+# GoNetworkApp - Plataforma Completa de Gerenciamento de Eventos Audiovisuais
 
-MelhorApp é uma plataforma moderna e completa para gerenciamento de projetos audiovisuais em eventos, facilitando a colaboração entre editores, produtores e clientes através de um sistema integrado de briefing, edição, aprovação e entrega.
+GoNetworkApp é uma plataforma moderna e abrangente para gerenciamento de projetos audiovisuais em eventos, oferecendo um ecossistema completo que vai desde a captação inicial de clientes até a entrega final dos projetos, incluindo sistemas avançados de autorização digital, gerenciamento de reuniões online e colaboração em tempo real.
 
-## 🌟 Características Principais
+## 🚀 Funcionalidades Implementadas
 
-### Gerenciamento de Eventos e Projetos
+### 📋 Sistema de Captação e Autorização Digital
 
-- **Dashboard Centralizado**: Visualize todos os eventos e projetos em andamento.
+- **Autorização de Uso de Imagem**: Sistema completo com upload de documentos (PDF, DOC, DOCX, TXT), captura de assinatura digital via canvas e formulário estruturado para dados pessoais
+- **Assinatura Digital**: Componente avançado de captura de assinatura com suporte a dispositivos touch e mouse
+- **Gerenciamento de Documentos**: Download automático de autorizações assinadas e validação de tipos de arquivo
+- **Organização por Eventos**: Todas as autorizações são organizadas por evento específico
 
-- **Organização por Cliente**: Agrupe projetos por cliente para melhor organização.
+### 🎥 Gerenciamento de Reuniões Online
 
-- **Acompanhamento de Status**: Monitore o progresso de todos os projetos em tempo real.
+- **Múltiplas Plataformas**: Suporte completo para Google Meet, Zoom, Microsoft Teams e outras plataformas
+- **Extração Automática**: Sistema inteligente que extrai informações automaticamente dos links de reunião
+- **Controle de Status**: Gerenciamento completo do ciclo de vida das reuniões (agendada, em andamento, finalizada, cancelada)
+- **Gestão de Participantes**: Controle detalhado de participantes e seus papéis
+- **Upload de Arquivos**: Sistema para anexar arquivos relacionados às reuniões
 
-### Briefing Completo
+### 📊 Dashboard e Estatísticas
 
-- **Editor de Briefing Integrado**: Formulário estruturado para capturar todos os requisitos do evento.
+- **Dashboard Centralizado**: Visualização completa de todos os eventos e projetos em andamento
+- **Estatísticas de Captação**: Métricas detalhadas sobre autorizações coletadas e reuniões realizadas
+- **Organização por Cliente**: Agrupamento inteligente de projetos por cliente
+- **Acompanhamento em Tempo Real**: Monitoramento do progresso de todos os projetos
 
-- **Gestão de Patrocinadores**: Cadastre patrocinadores e suas necessidades específicas.
+### 📝 Sistema de Briefing Avançado
 
-- **Programação de Palcos e Atrações**: Organize a programação completa do evento.
+- **Editor de Briefing Integrado**: Formulário estruturado para capturar todos os requisitos do evento
+- **Gestão de Patrocinadores**: Cadastro completo de patrocinadores e suas necessidades específicas
+- **Programação de Palcos e Atrações**: Organização detalhada da programação completa do evento
+- **Planejamento de Entregas**: Definição de entregas em tempo real e pós-evento
+- **Abas Sincronizadas**: Sistema de navegação fluida entre diferentes seções do briefing
 
-- **Planejamento de Entregas**: Defina entregas em tempo real e pós-evento.
+### 🎬 Produção e Edição de Vídeo
 
-### Produção e Edição de Vídeo
+- **Upload Manual de Vídeos**: Interface intuitiva para upload de arquivos de vídeo
+- **Sistema de Versionamento**: Gerenciamento completo de múltiplas versões de cada entrega
+- **Importação de Vídeos Existentes**: Importação automática de vídeos de pastas locais
+- **Comentários com Timestamp**: Sistema avançado de anotações em momentos específicos do vídeo
+- **Player Personalizado**: Player de vídeo com ferramentas de marcação e desenho
 
-- **Upload Manual de Vídeos**: Faça upload de arquivos de vídeo diretamente pela interface.
+### ✅ Aprovação e Feedback Colaborativo
 
-- **Sistema de Versionamento**: Gerencie múltiplas versões de cada entrega.
+- **Sistema de Aprovação**: Interface para clientes aprovarem ou solicitarem alterações
+- **Comentários Visuais**: Anotações visuais diretamente no player de vídeo
+- **Histórico de Revisões**: Registro completo de todas as revisões e alterações
+- **Colaboração em Tempo Real**: Atualizações instantâneas via Socket.IO
 
-- **Importação de Vídeos Existentes**: Importe vídeos de pastas para manter tudo organizado.
+### ⏰ Timeline e Gestão de Tempo
 
-- **Comentários com Timestamp**: Adicione comentários em momentos específicos do vídeo.
+- **Geração Automática de Timeline**: Criação automática de timelines a partir do briefing
+- **Organização por Fases**: Divisão inteligente do projeto em fases (pré-evento, evento, pós-evento)
+- **Prazos e Lembretes**: Sistema de acompanhamento de deadlines com notificações
+- **Timeline Integrada**: Sistema completamente funcional e testado
 
-### Aprovação e Feedback
+### 👥 Equipe e Colaboração
 
-- **Sistema de Aprovação**: Cliente pode aprovar ou solicitar alterações em vídeos.
+- **Gestão de Equipe**: Sistema completo para adicionar e gerenciar membros da equipe
+- **Atribuição de Tarefas**: Distribuição eficiente de tarefas específicas para cada membro
+- **Controle de Acesso**: Sistema de perfis e permissões por usuário
+- **Comunicação Integrada**: Ferramentas de comunicação integradas ao workflow
 
-- **Comentários Visuais**: Adicione anotações diretamente no player de vídeo.
+## 🔧 Tecnologias e Arquitetura
 
-- **Histórico de Revisões**: Mantenha o registro completo de todas as revisões e alterações.
+### Frontend Moderno
 
-### Timeline e Gestão de Tempo
+- **[Next.js 15](https://nextjs.org/)** - Framework React com App Router para SSR e SSG
+- **[TypeScript](https://www.typescriptlang.org/)** - Tipagem estática para maior segurança no desenvolvimento
+- **[Tailwind CSS](https://tailwindcss.com/)** - Framework CSS utilitário para design responsivo
+- **[shadcn/UI](https://ui.shadcn.com/)** - Biblioteca de componentes UI modernos e acessíveis
+- **[React Hook Form](https://react-hook-form.com/)** + **[Zod](https://zod.dev/)** - Formulários performáticos com validação robusta
 
-- **Geração Automática de Timeline**: Gere timelines a partir do briefing.
+### Gerenciamento de Estado e Dados
 
-- **Organização por Fases**: Divida o projeto em fases (pré-evento, evento, pós-evento).
+- **[Zustand](https://github.com/pmndrs/zustand)** - Gerenciamento de estado leve e eficiente
+- **Store Centralizado** - Sistema de stores organizados por domínio (captação, reuniões, projetos)
+- **Persistência Local** - Dados salvos automaticamente no localStorage
 
-- **Prazos e Lembretes**: Acompanhe prazos e receba notificações de deadlines.
+### Comunicação e APIs
 
-### Equipe e Colaboração
+- **[Socket.IO](https://socket.io/)** - Comunicação em tempo real para colaboração
+- **API Routes do Next.js** - Endpoints REST integrados
+- **Middleware Personalizado** - Sistema de interceptação e processamento de requisições
 
-- **Gestão de Equipe**: Adicione e gerencie membros da equipe.
+### Ferramentas de Desenvolvimento
 
-- **Atribuição de Tarefas**: Atribua tarefas específicas para cada membro.
+- **[ESLint](https://eslint.org/)** - Linting avançado com regras personalizadas
+- **[Prettier](https://prettier.io/)** - Formatação automática de código
+- **[Vitest](https://vitest.dev/)** - Framework de testes unitários
+- **Scripts Personalizados** - Automação de tarefas de desenvolvimento e auditoria
 
-- **Colaboração em Tempo Real**: Acompanhe mudanças e atualizações em tempo real.
+### Funcionalidades Avançadas
 
-## 🚀 Tecnologias Utilizadas
-
-- **Frontend**:
-
-  - [Next.js 15](https://nextjs.org/) - Framework React com App Router.
-
-  - [TypeScript](https://www.typescriptlang.org/) - Tipagem estática.
-
-  - [Tailwind CSS](https://tailwindcss.com/) - Framework CSS utilitário.
-
-  - [shadcn/UI](https://ui.shadcn.com/) - Componentes UI reutilizáveis.
-
-  - [Zustand](https://github.com/pmndrs/zustand) - Gerenciamento de estado.
-
-  - [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/) - Formulários com validação.
-
-- **Player de Vídeo e Edição**:
-
-  - Player personalizado com suporte a anotações visuais.
-
-  - Sistema de comentários com timestamp.
-
-  - Ferramentas de desenho e marcação no vídeo.
-
-- **Backend e Serviços**:
-
-  - [API Routes do Next.js](https://nextjs.org/docs/api-routes/introduction) - APIs REST.
-
-  - Socket.IO - Comunicação em tempo real.
-
-  - [Zustand](https://github.com/pmndrs/zustand) - Gerenciamento de estado persistente.
+- **Canvas API** - Captura de assinatura digital
+- **File API** - Upload e processamento de arquivos
+- **Regex Patterns** - Extração automática de dados de URLs de reunião
+- **Responsive Design** - Interface adaptável para desktop e mobile
 
 ## 📁 Estrutura do Projeto
 
 ```plaintext
-melhorapp/
+gonetworkapp/
 ├── app/                  # Next.js App Router e páginas
 │   ├── api/              # Rotas de API (endpoints REST)
 │   ├── project/          # Páginas de projeto
-│   └── events/           # Páginas de eventos
+│   ├── events/           # Páginas de eventos
+│   └── globals.css       # Estilos globais
 ├── components/           # Componentes React reutilizáveis
 │   ├── ui/               # Componentes base (shadcn/UI)
 │   ├── widgets/          # Widgets principais (briefing, timeline, etc.)
 │   ├── video/            # Player de vídeo e componentes relacionados
-│   └── project/          # Componentes específicos de projeto
+│   ├── project/          # Componentes específicos de projeto
+│   └── captacao/         # 🆕 Componentes de captação e autorização
+│       ├── AutorizacaoUsoImagem.tsx    # Sistema de autorização
+│       ├── AssinaturaDigital.tsx       # Captura de assinatura
+│       ├── ReuniaoOnline.tsx          # Gerenciamento de reuniões
+│       └── CaptacaoStats.tsx          # Estatísticas de captação
 ├── features/             # Funcionalidades organizadas por domínio
 │   ├── projects/         # Gerenciamento de projetos
 │   ├── briefing/         # Sistema de briefing
 │   └── timeline/         # Funcionalidades de timeline
-├── hooks/                # Hooks personalizados
+├── config/               # 🆕 Configurações modulares
+│   └── captacao.ts       # Configurações do módulo de captação
 ├── store/                # Stores Zustand para gerenciamento de estado
 │   ├── useProjectsStoreUnified.ts  # Store unificado de projetos
-│   └── useUIStore.ts     # Store de interface do usuário
+│   ├── useCaptacaoStore.ts         # 🆕 Store de captação e reuniões
+│   └── useUIStore.ts               # Store de interface do usuário
+├── hooks/                # Hooks personalizados
 ├── types/                # Definições de tipos TypeScript
+├── scripts/              # Scripts de automação e auditoria
+├── docs/                 # Documentação técnica
 └── public/               # Arquivos estáticos
     └── exports/          # Pasta para vídeos importados
 ```
 
-## 🔄 Melhorias Recentes
+## 🔄 Melhorias e Implementações Recentes
 
-### Versão Atual - v0.1.0
+### Versão Atual - v0.2.0
 
-- **Correção de Carregamento de Eventos**: Resolvido problema de novos eventos não aparecendo no dropdown de seleção do Briefing.
+#### ✅ Sistema de Captação Completo
 
-- **Implementação do Sistema de Briefing**: Adicionado sistema completo de gerenciamento de briefings com abas sincronizadas.
+- **Autorização de Uso de Imagem**: Sistema completo implementado com upload de documentos, captura de assinatura digital e formulário estruturado
+- **Assinatura Digital**: Componente Canvas avançado com suporte a dispositivos touch e download automático
+- **Validação de Arquivos**: Sistema robusto de validação de tipos de arquivo (PDF, DOC, DOCX, TXT)
 
-- **Geração de Timeline**: Implementada funcionalidade para gerar timelines automáticas a partir do briefing.
+#### ✅ Gerenciamento de Reuniões Online
 
-- **Melhorias de UI/UX**: Interface redesenhada para melhor usabilidade e experiência do usuário.
+- **Múltiplas Plataformas**: Suporte completo para Google Meet, Zoom, Microsoft Teams e outras
+- **Extração Automática**: Sistema inteligente que identifica e extrai informações de links de reunião
+- **Gestão de Participantes**: Controle detalhado de participantes e upload de arquivos relacionados
 
-- **Correções de Bugs**: Resolvidos diversos problemas de responsividade e validação de dados.
+#### ✅ Arquitetura e Performance
+
+- **Store Zustand Centralizado**: Implementação do `useCaptacaoStore.ts` para gerenciamento unificado
+- **Persistência de Dados**: Sistema de persistência local para autorizações e reuniões
+- **Configurações Modulares**: Sistema preparado para futuras expansões via `config/captacao.ts`
+
+#### ✅ Correções Críticas Anteriores
+
+- **Timeline Integrada**: Sistema de timeline completamente funcional e testado
+- **Carregamento de Eventos**: Corrigido problema de novos eventos não aparecendo no dropdown
+- **Abas Sincronizadas**: Sistema de briefing com navegação fluida entre abas
+- **Next.js 15**: Migração completa e otimizada para Next.js 15 com App Router
+
+## 🎯 Funcionalidades em Destaque
+
+### 📋 Autorização Digital de Uso de Imagem
+
+```typescript
+// Exemplo de uso do componente
+<AutorizacaoUsoImagem
+  eventoId={evento.id}
+  onAutorizacaoSalva={(autorizacao) => console.log('Salva:', autorizacao)}
+  onError={(erro) => console.error('Erro:', erro)}
+/>
+```
+
+### 🎥 Gerenciamento de Reuniões
+
+```typescript
+// Exemplo de criação de reunião
+const novaReuniao = {
+  titulo: 'Reunião de Briefing',
+  plataforma: 'google-meet',
+  link: 'https://meet.google.com/abc-defg-hij',
+  dataHora: new Date(),
+  eventoId: evento.id,
+}
+```
+
+### 📊 Store Centralizado
+
+```typescript
+// Acesso ao store de captação
+const { autorizacoes, reunioes, adicionarAutorizacao, adicionarReuniao } =
+  useCaptacaoStore()
+```
 
 ## 💻 Como Executar o Projeto
 
 ### Pré-requisitos
 
-- [Node.js](https://nodejs.org/) versão 18 ou superior.
-
-- [npm](https://www.npmjs.com/) ou [yarn](https://yarnpkg.com/).
+- **[Node.js](https://nodejs.org/)** versão 18 ou superior
+- **[npm](https://www.npmjs.com/)** ou **[yarn](https://yarnpkg.com/)**
+- **Windows PowerShell** (para scripts de automação)
 
 ### Instalação
 
 ```bash
 # Clone o repositório
-git clone https://github.com/contatogonetwork/melhorapp_final02.git
+git clone https://github.com/contatogonetwork/gonetworkapp.git
 
 # Entre no diretório do projeto
-cd melhorapp_final02
+cd gonetworkapp
 
 # Instale as dependências
 npm install
@@ -182,26 +253,100 @@ npm run format
 
 # Executar verificação de tipos TypeScript
 npm run type-check
+
+# Executar auditoria de código
+npm run audit
+
+# Executar testes
+npm run test
 ```
 
-## 📋 Roadmap
+### Aplicação Desktop (Electron)
 
-- [ ] Sistema de autenticação completo.
+```bash
+# Executar em modo desenvolvimento
+npm run electron:dev
 
-- [ ] App mobile para aprovação de clientes.
+# Gerar executável
+npm run electron:dist
+```
 
-- [ ] Vídeos em tempo real via WebRTC.
+## 🗺️ Roadmap
 
-- [ ] Integração com serviços de armazenamento em nuvem.
+### ✅ Concluído (v0.2.0)
 
-- [ ] Recursos avançados de IA para geração de conteúdo.
+- ✅ Sistema completo de Autorização de Uso de Imagem
+- ✅ Gerenciamento de Reuniões Online
+- ✅ Timeline integrada e funcional
+- ✅ Sistema de briefing com abas sincronizadas
+- ✅ Store Zustand centralizado para captação
+- ✅ Migração completa para Next.js 15
+- ✅ Sistema de assinatura digital
 
-- [ ] Dashboard analítico para métricas de produtividade.
+### 🚧 Em Desenvolvimento (v0.3.0)
+
+- 🔄 Sistema de autenticação e autorização completo
+- 🔄 Dashboard analítico com métricas avançadas
+- 🔄 Notificações push em tempo real
+- 🔄 Sistema de backup automático
+
+### 📋 Planejado (v0.4.0+)
+
+- 📱 Aplicativo mobile para aprovação de clientes
+- 🎥 Streaming de vídeos em tempo real via WebRTC
+- ☁️ Integração com serviços de armazenamento em nuvem (AWS S3, Google Drive)
+- 🤖 Recursos avançados de IA para geração automática de conteúdo
+- 📊 Dashboard analítico com Business Intelligence
+- 🔐 Sistema de auditoria e logs detalhados
+- 🌐 API pública para integrações externas
+
+## 🛠️ Scripts Utilitários
+
+O projeto inclui diversos scripts PowerShell para automação:
+
+- **`fix-lint.ps1`** - Correção automática de problemas de linting
+- **`git-commit-push.bat`** - Automação de commits e push
+- **`test-timeline-flow.sh`** - Testes automatizados da timeline
+- **`iniciar.bat`** - Script de inicialização rápida
+
+## 📚 Documentação Técnica
+
+- **`TIMELINE_INTEGRATION_FINAL_REPORT.md`** - Relatório completo da integração da timeline
+- **`correcoes_criticas.md`** - Documentação de correções críticas implementadas
+- **`INTEGRATION_FINAL_REPORT.md`** - Relatório final de integração de funcionalidades
+- **Pasta `docs/`** - Documentação técnica detalhada
+
+## 🤝 Contribuindo
+
+Contribuições são sempre bem-vindas! Consulte o arquivo [CONTRIBUTING.md](CONTRIBUTING.md) para diretrizes detalhadas.
+
+### Como Contribuir
+
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
 
 ## 📄 Licença
 
 Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
+## 🏆 Créditos e Reconhecimentos
+
+- **Equipe de Desenvolvimento**: [GoNetwork AI](https://github.com/contatogonetwork)
+- **Tecnologias**: Agradecimento especial às comunidades das tecnologias utilizadas
+- **Design**: Interface inspirada em princípios de Design System modernos
+- **Testes**: Sistema de testes baseado em feedback de usuários reais
+
+## 📧 Contato e Suporte
+
+- **GitHub**: [contatogonetwork](https://github.com/contatogonetwork)
+- **Issues**: Use o sistema de issues do GitHub para reportar bugs ou solicitar features
+- **Documentação**: Consulte a pasta `docs/` para documentação técnica detalhada
+
 ---
 
-Desenvolvido por [GoNetwork AI](https://github.com/contatogonetwork).
+**GoNetworkApp** - Transformando a gestão de eventos audiovisuais através da tecnologia 🚀
+
+_Última atualização: Maio 2025_
