@@ -12,14 +12,14 @@ import { useBriefing } from '@/hooks/useBriefing'
 interface BriefingFormData {
   eventName?: string
   eventDate?: string | Date
-  deliverables?: Array<{ type: string; [key: string]: any }>
-  sponsors?: any[]
-  stages?: any[]
-  realTimeDeliveries?: any[]
-  visualStyle?: any
-  references?: any
-  postEventDeadline?: any
-  deadlineUnit?: any
+  deliverables?: Array<{ type: string; [key: string]: unknown }>
+  sponsors?: unknown[]
+  stages?: unknown[]
+  realTimeDeliveries?: unknown[]
+  visualStyle?: unknown
+  references?: unknown
+  postEventDeadline?: unknown
+  deadlineUnit?: unknown
 }
 
 interface GenerateTimelineButtonProps {

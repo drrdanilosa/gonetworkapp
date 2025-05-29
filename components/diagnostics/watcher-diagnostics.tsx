@@ -12,9 +12,9 @@ interface WatcherDiagnosticsProps {
 
 interface SystemInfo {
   diretorios: Record<string, boolean>
-  projetos: Record<string, any>
-  arquivos: Record<string, any>
-  ambiente: Record<string, any>
+  projetos: Record<string, unknown>
+  arquivos: Record<string, unknown>
+  ambiente: Record<string, unknown>
 }
 
 const WatcherDiagnostics = ({ onStatusChange }: WatcherDiagnosticsProps) => {

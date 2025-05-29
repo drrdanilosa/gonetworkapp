@@ -98,15 +98,15 @@ export default function TimelineWidget({
           setTimelineData({
             projectId: selectedEvent,
             projectName: projects.find(p => p.id === selectedEvent)?.name || '',
-            phases: data.timeline.map((phase: any) => ({
+            phases: data.timeline.map((phase: unknown) => ({
               id: phase.id,
               name: phase.name,
               plannedStart: new Date(phase.startDate),
               plannedEnd: new Date(phase.endDate),
               completed: phase.status === 'completed',
             })),
-            tasks: data.timeline.flatMap((phase: any) =>
-              (phase.tasks || []).map((task: any) => ({
+            tasks: data.timeline.flatMap((phase: unknown) =>
+              (phase.tasks || []).map((task: unknown) => ({
                 id: task.id,
                 name: task.name,
                 memberId: task.memberId || 'unassigned',

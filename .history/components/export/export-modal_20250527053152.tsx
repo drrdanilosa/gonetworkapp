@@ -70,7 +70,7 @@ export default function ExportModal({
     }
   }
 
-  const updateOption = (key: keyof ExportOptions, value: any) => {
+  const updateOption = (key: keyof ExportOptions, value: unknown) => {
     setOptions(prev => ({ ...prev, [key]: value }))
   }
 

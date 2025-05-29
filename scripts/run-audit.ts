@@ -186,7 +186,7 @@ class QuickAuditor {
       const issues: string[] = []
 
       // Verificações básicas
-      if (content.includes(': any')) {
+      if (content.includes(': unknown')) {
         issues.push('Uso de tipo "any" detectado')
       }
 

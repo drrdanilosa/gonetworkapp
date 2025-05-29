@@ -146,11 +146,11 @@ class SocketNotificationService {
       versionId: string,
       reason?: string
     ) => void
-    onNewAssetAdded?: (projectId: string, asset: any) => void
+    onNewAssetAdded?: (projectId: string, asset: unknown) => void
     onNewVideoVersionAdded?: (
       projectId: string,
       deliverableId: string,
-      version: any
+      version: unknown
     ) => void
     onTimeCommentAdded?: (
       projectId: string,

@@ -47,7 +47,7 @@ export default function NewProjectPage() {
   const router = useRouter()
   const { user } = useAuthStore()
   const { createProject } = useProjectsStore()
-  const [generatedTimeline, setGeneratedTimeline] = useState<any[]>([])
+  const [generatedTimeline, setGeneratedTimeline] = useState<unknown[]>([])
   const [previewVisible, setPreviewVisible] = useState(false)
   const [finalDueDate, setFinalDueDate] = useState<Date | undefined>(undefined)
 

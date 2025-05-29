@@ -40,7 +40,7 @@ export function SocketStatusIndicator({
     const startTime = Date.now()
     setLastPingTime(startTime)
 
-    socket.emit('ping', { timestamp: startTime }, (response: any) => {
+    socket.emit('ping', { timestamp: startTime }, (response: unknown) => {
       if (response && response.success) {
         const endTime = Date.now()
         setLatency(endTime - startTime)

@@ -62,7 +62,7 @@ class NotificationService {
       id: string
       name: string
     },
-    additionalInfo?: Record<string, any>
+    additionalInfo?: Record<string, unknown>
   ): void {
     const currentUser = useAuthStore.getState().user
 

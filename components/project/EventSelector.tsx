@@ -54,7 +54,7 @@ export default function EventSelector({
   }
 
   // Função para formatar data do evento para exibição
-  const formatEventDate = (event: any) => {
+  const formatEventDate = (event: unknown) => {
     try {
       if (!event.startDate) return ''
 

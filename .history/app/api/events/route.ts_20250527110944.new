@@ -1,0 +1,183 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { v4 as uuidv4 } from 'uuid'
+import { readEventsData, saveEventsData } from '@/lib/dataManager'
+import {
+  Event,
+  CreateEventRequest,
+  EventListResponse,
+  SearchParams,
+} from '@/types'
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const params: SearchParams = {
+      page: Number(searchParams.get('page')) || 1,
+      limit: Number(searchParams.get('limit')) || 10,
+      status: searchParams.get('status') || undefined,
+      client: searchParams.get('client') || undefined,
+      dateFrom: searchParams.get('dateFrom') || undefined,
+      dateTo: searchParams.get('dateTo') || undefined,
+    }
+    
+    console.log('🔍 [GET /api/events] Buscando eventos...')
+    
+    // Simulação de busca no banco de dados
+    const events = await fetchEventsFromDatabase(params)
+    
+    const response: EventListResponse = {
+      events,
+      total: events.length,
+      page: params.page,
+      limit: params.limit
+    }
+    
+    console.log(`📊 [GET /api/events] Retornando ${events.length} eventos`)
+    return NextResponse.json(response)
+  } catch (error) {
+    console.error('❌ [GET /api/events] Erro:', error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Erro interno ao processar eventos',
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 }
+    )
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json() as CreateEventRequest
+    
+    // Validação básica
+    if (!body.title || !body.client || !body.date) {
+      return NextResponse.json(
+        { error: 'Missing required fields: title, client, date' },
+        { status: 400 }
+      )
+    }
+    
+    const now = new Date().toISOString();
+    const newId = uuidv4();
+    
+    const newEvent: Event = {
+      id: newId,
+      title: body.title,
+      client: body.client,
+      status: body.status || 'pendente',
+      date: body.date,
+      createdAt: now,
+      updatedAt: now,
+      description: body.description || '',
+      location: body.location || '',
+      tags: body.tags || [],
+      deliverySettings: body.deliverySettings || {
+        allowRevisions: true,
+        maxRevisions: 3,
+        autoApprove: false,
+        notifyOnUpload: true,
+      },
+    }
+    
+    console.log(
+      '🆕 [POST /api/events] Criando evento:',
+      newEvent.id,
+      '-',
+      newEvent.title
+    )
+    
+    // Ler eventos existentes
+    const events = await readEventsData()
+    
+    // Verificar se já existe
+    const existingIndex = events.findIndex(e => e.id === newId)
+    if (existingIndex >= 0) {
+      // Atualizar existente
+      events[existingIndex] = {
+        ...events[existingIndex],
+        ...newEvent,
+        updatedAt: now,
+      }
+      console.log('🔄 [POST /api/events] Evento atualizado:', newId)
+    } else {
+      // Adicionar novo
+      events.push(newEvent)
+      console.log('✅ [POST /api/events] Novo evento adicionado:', newId)
+    }
+    
+    // Salvar
+    await saveEventsData(events)
+    
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Evento criado com sucesso',
+        event: newEvent,
+      },
+      { status: 201 }
+    )
+  } catch (error) {
+    console.error('❌ [POST /api/events] Erro ao criar evento:', error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Erro interno ao criar evento',
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 }
+    )
+  }
+}
+
+// Funções auxiliares (implementar conforme seu banco de dados)
+async function fetchEventsFromDatabase(params: SearchParams): Promise<Event[]> {
+  const events = await readEventsData()
+  
+  // Apply filtering based on search parameters
+  let filteredEvents = events as Event[]
+  
+  // Filter by status
+  if (params.status) {
+    filteredEvents = filteredEvents.filter(
+      event => event.status === params.status
+    )
+  }
+  
+  // Filter by client
+  if (params.client) {
+    filteredEvents = filteredEvents.filter(event =>
+      event.client.toLowerCase().includes(params.client!.toLowerCase())
+    )
+  }
+  
+  // Filter by date range
+  if (params.dateFrom) {
+    const fromDate = new Date(params.dateFrom)
+    filteredEvents = filteredEvents.filter(
+      event => new Date(event.date) >= fromDate
+    )
+  }
+  
+  if (params.dateTo) {
+    const toDate = new Date(params.dateTo)
+    filteredEvents = filteredEvents.filter(
+      event => new Date(event.date) <= toDate
+    )
+  }
+  
+  // Apply pagination
+  const startIndex = (params.page - 1) * params.limit
+  const endIndex = startIndex + params.limit
+  
+  return filteredEvents.slice(startIndex, endIndex)
+}
+
+async function saveEventToDatabase(event: Event): Promise<void> {
+  // Implementar salvamento no seu banco de dados
+  // Por enquanto, usa o dataManager
+  const events = await readEventsData()
+  events.push(event)
+  await saveEventsData(events)
+}

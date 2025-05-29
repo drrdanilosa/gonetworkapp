@@ -1,4 +1,4 @@
-export interface MeetingInfo {
+export interface _MeetingInfo {
   title?: string
   startTime?: string
   duration?: number

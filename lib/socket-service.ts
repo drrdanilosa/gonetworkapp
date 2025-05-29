@@ -30,7 +30,7 @@ export interface ServerToClientEvents {
     versionId: string,
     reason?: string
   ) => void
-  newAssetAdded: (projectId: string, asset: any) => void
+  newAssetAdded: (projectId: string, asset: unknown) => void
   newVideoVersionAdded: (
     projectId: string,
     deliverableId: string,
@@ -77,7 +77,7 @@ export interface ClientToServerEvents {
     versionId: string,
     reason?: string
   ) => void
-  notifyNewAssetAdded: (projectId: string, asset: any) => void
+  notifyNewAssetAdded: (projectId: string, asset: unknown) => void
   notifyNewVideoVersionAdded: (
     projectId: string,
     deliverableId: string,
@@ -257,7 +257,7 @@ export class SocketService {
         userId,
         token: this.authToken,
       },
-      (response: any) => {
+      (response: unknown) => {
         if (response && response.success) {
           console.log('[Socket.io] Autenticação bem-sucedida')
         } else {
@@ -395,7 +395,7 @@ export class SocketService {
       console.log('Socket desconectado')
     })
 
-    this.socket.on('error', (error: any) => {
+    this.socket.on('error', (error: unknown) => {
       console.error('Erro no socket:', error)
     })
   }

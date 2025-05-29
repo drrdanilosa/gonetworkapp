@@ -8,7 +8,7 @@ import React, {
 import axios from 'axios'
 
 interface TimelineContextType {
-  timeline: any[]
+  timeline: unknown[]
   loading: boolean
   error: string | null
   fetchTimeline: (id: string) => Promise<void>
@@ -21,7 +21,7 @@ const TimelineContext = createContext<TimelineContextType | undefined>(
 )
 
 export function TimelineProvider({ children }: { children: React.ReactNode }) {
-  const [timeline, setTimeline] = useState<any[]>([])
+  const [timeline, setTimeline] = useState<unknown[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [eventId, setEventId] = useState<string | null>(null)
@@ -52,7 +52,7 @@ export function TimelineProvider({ children }: { children: React.ReactNode }) {
         setTimeline([])
         setError('Formato de timeline inválido')
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('❌ Error fetching timeline:', err)
       setTimeline([])
       setError(`Erro ao carregar timeline: ${err.message}`)
@@ -92,7 +92,7 @@ export function TimelineProvider({ children }: { children: React.ReactNode }) {
 
       setRefreshKey(prev => prev + 1)
       return true
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('❌ Error generating timeline:', err)
       setError(`Erro ao gerar timeline: ${err.message}`)
       return false

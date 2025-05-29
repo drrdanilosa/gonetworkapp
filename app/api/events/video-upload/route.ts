@@ -4,7 +4,7 @@ import path from 'path'
 import fs from 'fs'
 
 // Função de log para auditoria
-function logAudit(action: string, data: Record<string, any>) {
+function logAudit(action: string, data: Record<string, unknown>) {
   const timestamp = new Date().toISOString()
   const logMessage = `[${timestamp}] ${action}: ${JSON.stringify(data)}`
   console.log(logMessage)

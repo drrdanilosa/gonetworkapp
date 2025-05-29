@@ -12,7 +12,7 @@ interface GenerateTimelineButtonProps {
   eventId?: string
   onGenerated?: (success: boolean) => void
   onTimelineGenerated?: () => void
-  formData?: any // Dados do formulário atual (não salvos)
+  formData?: unknown // Dados do formulário atual (não salvos)
   disabled?: boolean
 }
 

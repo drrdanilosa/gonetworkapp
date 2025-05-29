@@ -27,7 +27,7 @@ export async function readEventsData() {
   }
 }
 
-export async function saveEventsData(events: any[]) {
+export async function saveEventsData(events: unknown[]) {
   try {
     await ensureDataDir()
     await fs.writeFile(EVENTS_FILE, JSON.stringify(events, null, 2))
@@ -55,7 +55,7 @@ export async function readBriefingsData() {
   }
 }
 
-export async function saveBriefingsData(briefings: Record<string, any>) {
+export async function saveBriefingsData(briefings: Record<string, unknown>) {
   try {
     await ensureDataDir()
     await fs.writeFile(BRIEFINGS_FILE, JSON.stringify(briefings, null, 2))

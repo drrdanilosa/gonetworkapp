@@ -24,7 +24,7 @@ export const DiagnosticTool = () => {
     try {
       const res = await axios.get(endpoint)
       setResponse(res.data)
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message)
     } finally {
       setLoading(false)

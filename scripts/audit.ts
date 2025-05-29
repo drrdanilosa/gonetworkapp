@@ -73,7 +73,7 @@ class SimpleAuditor {
         }
 
         // Any type check
-        if (line.includes(': any')) {
+        if (line.includes(': unknown')) {
           this.addIssue('warning', 'Tipo "any" usado', relativePath, index + 1)
         }
 

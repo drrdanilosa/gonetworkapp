@@ -732,5 +732,14 @@
     "eventTitle": "Projeto Demonstração",
     "client": "Cliente não especificado",
     "createdAt": "2025-05-25T05:47:51.430Z"
+  },
+  "bf096939-c171-4fda-adf6-4309407efbad": {
+    "content": "Test briefing content",
+    "status": "draft",
+    "eventId": "bf096939-c171-4fda-adf6-4309407efbad",
+    "eventTitle": "Test Event",
+    "client": "Test Client",
+    "updatedAt": "2025-05-27T16:14:37.636Z",
+    "createdAt": "2025-05-27T16:14:37.636Z"
   }
 }

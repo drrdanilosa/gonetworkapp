@@ -30,7 +30,7 @@ export function sanitizeInput(input: string): string {
  * @param obj Objeto a ser sanitizado
  * @returns Objeto com strings sanitizadas
  */
-export function sanitizeObject<T extends Record<string, any>>(obj: T): T {
+export function sanitizeObject<T extends Record<string, unknown>>(obj: T): T {
   const result = { ...obj } as T
 
   Object.keys(obj).forEach(key => {

@@ -2560,5 +2560,71 @@
       "autoApprove": false,
       "notifyOnUpload": true
     }
+  },
+  {
+    "id": "1748341750421",
+    "title": "Projeto Demonstração",
+    "client": "Cliente não especificado",
+    "date": "2025-05-27T10:29:19.945Z",
+    "createdAt": "2025-05-27T10:29:19.945Z",
+    "updatedAt": "2025-05-27T10:29:19.945Z",
+    "status": "active",
+    "team": [],
+    "briefing": null,
+    "videos": [],
+    "assets": [],
+    "tasks": [],
+    "deadline": null,
+    "thumbnail": "/placeholder-event.jpg",
+    "description": "",
+    "tags": [],
+    "deliverySettings": {
+      "allowRevisions": true,
+      "maxRevisions": 3,
+      "autoApprove": false,
+      "notifyOnUpload": true
+    }
+  },
+  {
+    "id": "1748341762736",
+    "title": "Projeto Demonstração",
+    "client": "Cliente não especificado",
+    "date": "2025-05-27T10:29:27.848Z",
+    "createdAt": "2025-05-27T10:29:27.848Z",
+    "updatedAt": "2025-05-27T10:29:27.848Z",
+    "status": "active",
+    "team": [],
+    "briefing": null,
+    "videos": [],
+    "assets": [],
+    "tasks": [],
+    "deadline": null,
+    "thumbnail": "/placeholder-event.jpg",
+    "description": "",
+    "tags": [],
+    "deliverySettings": {
+      "allowRevisions": true,
+      "maxRevisions": 3,
+      "autoApprove": false,
+      "notifyOnUpload": true
+    }
+  },
+  {
+    "id": "bf096939-c171-4fda-adf6-4309407efbad",
+    "title": "Test Event",
+    "client": "Test Client",
+    "status": "pendente",
+    "date": "2024-12-19",
+    "createdAt": "2025-05-27T16:14:29.406Z",
+    "updatedAt": "2025-05-27T16:14:29.406Z",
+    "description": "Test Description",
+    "location": "Test Location",
+    "tags": [],
+    "deliverySettings": {
+      "allowRevisions": true,
+      "maxRevisions": 3,
+      "autoApprove": false,
+      "notifyOnUpload": true
+    }
   }
 ]

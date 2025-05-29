@@ -59,7 +59,7 @@ export default function SocketConnectionTest() {
           setTestResults(prev => ({ ...prev, directTest: false }))
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Erro durante o teste:', err)
       setTestResults(prev => ({
         ...prev,

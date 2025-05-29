@@ -1,0 +1,69 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { VideoStatusUpdate, Video } from '@/types'
+import { useProjectsStore } from '@/store/useProjectsStore'
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { eventId: string; videoId: string } }
+) {
+  try {
+    const body = await request.json() as VideoStatusUpdate
+
+    // Agora temos todas as propriedades tipadas corretamente
+    const statusUpdate: VideoStatusUpdate = {
+      status: body.status,
+      comment: body.comment,
+      reviewer: body.reviewer,
+      reviewedAt: new Date().toISOString()
+    }
+
+    const updatedVideo = await updateVideoStatus(params.videoId, statusUpdate)
+
+    if (!updatedVideo) {
+      return NextResponse.json(
+        { error: 'Video not found' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json(updatedVideo)
+
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to update video status' },
+      { status: 500 }
+    )
+  }
+}
+
+async function updateVideoStatus(
+  videoId: string,
+  statusUpdate: VideoStatusUpdate
+): Promise<Video | null> {
+  // Implementar atualização no banco de dados
+  // Por enquanto, usa o store
+  const store = useProjectsStore.getState()
+  let updatedVideo: Video | null = null
+  
+  // Buscar em todos os projetos
+  for (const project of store.projects) {
+    if (!project.videos) continue
+    
+    const videoIndex = project.videos.findIndex((v: any) => v.id === videoId)
+    
+    if (videoIndex !== -1) {
+      // Atualizar o status e outros campos
+      const video = project.videos[videoIndex] as Video
+      updatedVideo = {
+        ...video,
+        status: statusUpdate.status,
+        updatedAt: new Date().toISOString()
+      }
+      
+      project.videos[videoIndex] = updatedVideo
+      break
+    }
+  }
+  
+  return updatedVideo
+}

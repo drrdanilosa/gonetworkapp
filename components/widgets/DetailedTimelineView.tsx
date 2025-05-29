@@ -13,7 +13,7 @@ import {
 
 // Tipos
 interface DetailedTimelineViewProps {
-  selectedProject: any
+  selectedProject: unknown
 }
 
 // Dados mockados para demonstração (em uma implementação real, viriam do projeto)
@@ -183,7 +183,7 @@ export default function DetailedTimelineView({
   }
 
   // Helper para obter classe de cor com base no tipo e status
-  const getTaskClass = (task: any) => {
+  const getTaskClass = (task: unknown) => {
     if (task.status === 'concluido') return 'bg-green-500 text-white'
     if (task.status === 'atrasado') return 'bg-red-500 text-white'
 

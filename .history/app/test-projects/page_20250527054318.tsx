@@ -7,7 +7,7 @@ import { useProjectsStore } from '@/store/useProjectsStoreUnified'
 
 export default function TestProjectsInitPage() {
   const [initialized, setInitialized] = useState(false)
-  const [projects, setProjects] = useState<any[]>([])
+  const [projects, setProjects] = useState<unknown[]>([])
   const [watcherStatus, setWatcherStatus] = useState('Verificando...')
   const [apiStatus, setApiStatus] = useState<any>(null)
   const [directoryStatus, setDirectoryStatus] = useState<{

@@ -1,0 +1,84 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { Video, CreateVideoRequest } from '@/types'
+import { v4 as uuidv4 } from 'uuid'
+import { useProjectsStore } from '@/store/useProjectsStore'
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { eventId: string } }
+) {
+  try {
+    const videos = await getVideosByEventId(params.eventId)
+    return NextResponse.json(videos)
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to fetch videos' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { eventId: string } }
+) {
+  try {
+    const body = await request.json() as CreateVideoRequest
+
+    const newVideo: Video = {
+      id: generateId(),
+      eventId: params.eventId,
+      fileName: body.fileName,
+      filePath: body.filePath,
+      status: body.status || 'pendente',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      fileSize: body.fileSize,
+      duration: body.duration,
+      format: body.format,
+    }
+
+    await saveVideoToDatabase(newVideo)
+
+    return NextResponse.json(newVideo, { status: 201 })
+
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to create video' },
+      { status: 500 }
+    )
+  }
+}
+
+// Funções auxiliares (implementar conforme seu banco de dados)
+async function getVideosByEventId(eventId: string): Promise<Video[]> {
+  // Implementar busca no banco de dados
+  // Por enquanto, usa o store
+  const store = useProjectsStore.getState()
+  const event = store.projects.find(p => p.id === eventId)
+  
+  if (!event || !event.videos) return []
+  
+  return event.videos as Video[]
+}
+
+async function saveVideoToDatabase(video: Video): Promise<void> {
+  // Implementar salvamento no banco de dados
+  // Por enquanto, usa o store
+  const store = useProjectsStore.getState()
+  const eventIndex = store.projects.findIndex(p => p.id === video.eventId)
+  
+  if (eventIndex === -1) return
+  
+  // Garantir que o array de vídeos exista
+  if (!store.projects[eventIndex].videos) {
+    store.projects[eventIndex].videos = []
+  }
+  
+  // Adicionar o vídeo
+  store.projects[eventIndex].videos.push(video)
+}
+
+function generateId(): string {
+  return uuidv4()
+}

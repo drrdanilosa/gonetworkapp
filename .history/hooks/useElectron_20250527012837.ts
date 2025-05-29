@@ -5,21 +5,21 @@ interface ElectronAPI {
   platform: string
   getAppVersion: () => Promise<string>
   getAppPath: (name: string) => Promise<string>
-  showSaveDialog: (options: any) => Promise<any>
-  showOpenDialog: (options: any) => Promise<any>
+  showSaveDialog: (options: unknown) => Promise<unknown>
+  showOpenDialog: (options: unknown) => Promise<unknown>
   onMenuAction: (callback: (action: string) => void) => void
   removeMenuActionListener: () => void
   saveSignature: (dataURL: string, filename?: string) => Promise<string | null>
   saveDocument: (blob: Blob, filename?: string) => Promise<string | null>
-  openFile: (filters?: any[]) => Promise<string | null>
+  openFile: (filters?: unknown[]) => Promise<string | null>
   openDirectory: () => Promise<string | null>
   showNotification: (
     title: string,
     body: string,
-    options?: any
+    options?: unknown
   ) => Notification | null
   requestNotificationPermission: () => Promise<NotificationPermission>
-  log: (...args: any[]) => void
+  log: (...args: unknown[]) => void
   isOnline: () => boolean
   onOnline: (callback: () => void) => void
   onOffline: (callback: () => void) => void
@@ -127,7 +127,7 @@ export const useElectron = () => {
   const showNotification = (
     title: string,
     body: string,
-    options?: any
+    options?: unknown
   ): Notification | null => {
     if (!electronAPI) {
       // Fallback para web notification

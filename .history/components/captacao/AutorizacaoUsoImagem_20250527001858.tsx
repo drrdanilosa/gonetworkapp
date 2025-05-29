@@ -119,7 +119,7 @@ export function AutorizacaoUsoImagem({ eventId }: AutorizacaoUsoImagemProps) {
     setIsDialogOpen(false)
   }
 
-  const downloadAutorizacao = (autorizacao: any) => {
+  const downloadAutorizacao = (autorizacao: unknown) => {
     // Aqui você criaria um PDF com os dados da autorização
     // Por simplicidade, vou criar um blob com os dados
     const data = {

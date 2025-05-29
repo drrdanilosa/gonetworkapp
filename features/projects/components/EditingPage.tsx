@@ -24,7 +24,7 @@ export default function EditingPage() {
   const videoDeliverables =
     selectedProject?.deliverables?.filter(d => d.type === 'video') || []
 
-  const handleVideoUpload = (videoData: any) => {
+  const handleVideoUpload = (videoData: unknown) => {
     if (!selectedEventId) {
       toast({
         title: 'Nenhum evento selecionado',

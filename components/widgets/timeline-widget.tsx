@@ -37,7 +37,7 @@ import Timeline from './Timeline'
 import DetailedTimelineView from './DetailedTimelineView'
 
 // Função auxiliar para formatar datas de forma segura
-const formatProjectDate = (dateValue: any): string => {
+const formatProjectDate = (dateValue: unknown): string => {
   if (!dateValue) return 'Data não informada'
 
   try {

@@ -52,15 +52,17 @@ export default function VideoVersionList({
   deliverableId,
   onSelectVersion,
 }: VideoListProps) {
-  const project = useProjectsStore((s: any) => s.currentProject)
-  const addVideoVersion = useProjectsStore((s: any) => s.addVideoVersion)
+  const project = useProjectsStore((s: unknown) => s.currentProject)
+  const addVideoVersion = useProjectsStore((s: unknown) => s.addVideoVersion)
   const setActiveVideoVersion = useProjectsStore(
-    (s: any) => s.setActiveVideoVersion
+    (s: unknown) => s.setActiveVideoVersion
   )
   const approveVideoVersion = useProjectsStore(
-    (s: any) => s.approveVideoVersion
+    (s: unknown) => s.approveVideoVersion
   )
-  const rejectVideoVersion = useProjectsStore((s: any) => s.rejectVideoVersion)
+  const rejectVideoVersion = useProjectsStore(
+    (s: unknown) => s.rejectVideoVersion
+  )
   const user = useAuthStore(s => s.user)
   const addNotification = useUIStore(s => s.addNotification)
 
@@ -79,7 +81,9 @@ export default function VideoVersionList({
     return <div className="text-muted-foreground">Carregando projeto...</div>
   }
 
-  const deliverable = project.videos.find((v: any) => v.id === deliverableId)
+  const deliverable = project.videos.find(
+    (v: unknown) => v.id === deliverableId
+  )
   if (!deliverable) {
     return <div className="text-muted-foreground">Vídeo não encontrado</div>
   }
@@ -94,7 +98,7 @@ export default function VideoVersionList({
   })
 
   // Versão ativa atual (se existir)
-  const activeVersion = versions.find((v: any) => v.active)
+  const activeVersion = versions.find((v: unknown) => v.active)
   // Versão aprovada mais recente (se existir)
   const approvedVersion = [...versions]
     .filter(v => v.approved)

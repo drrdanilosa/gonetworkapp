@@ -50,10 +50,10 @@ export default function VideosForReviewPage() {
       }
 
       return videoAcc
-    }, [] as any[])
+    }, [] as unknown[])
 
     return [...acc, ...projectVideos]
-  }, [] as any[])
+  }, [] as unknown[])
 
   // Ordenar por data de upload (mais recente primeiro)
   pendingVideos.sort(

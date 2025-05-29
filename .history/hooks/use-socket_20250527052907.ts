@@ -6,7 +6,7 @@ import { Socket } from 'socket.io-client'
 import SocketService from '@/lib/socket-service'
 
 // Este hook permite usar o serviço Socket.io de forma fácil em qualquer componente
-export function useSocket(sessionId?: string, user?: any) {
+export function useSocket(sessionId?: string, user?: unknown) {
   const [socket, setSocket] = useState<Socket | null>(null)
   const [connected, setConnected] = useState(false)
   const [error, setError] = useState<Error | null>(null)

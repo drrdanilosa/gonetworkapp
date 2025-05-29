@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware'
 
 // Define types for video timeline and versions
 interface VideoVersion {
-  status: any
+  status: unknown
   id: string
   name: string // e.g. file name or version label
   url: string // URL or blob URL of the video

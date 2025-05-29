@@ -11,7 +11,7 @@ import { useBriefing } from '@/hooks/useBriefing'
 
 interface GenerateTimelineButtonProps {
   eventId?: string
-  formData?: any // Dados do formulário atual (não salvos)
+  formData?: unknown // Dados do formulário atual (não salvos)
   redirectToTimeline?: boolean
   disabled?: boolean
 }
