@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import MainWindow from '@/components/main-window'
 import { useAuthStore } from '@/store/useAuthStore'
 import { EditingApprovalTab } from '@/features/projects/EditingApproval'
+import TauriDemo from '@/components/TauriDemo'
 
 export default function Home() {
   const user = useAuthStore(state => state.user)
@@ -41,8 +42,11 @@ export default function Home() {
           <EditingApprovalTab />
         ) : (
           // Mostrar lista de projetos se nenhum projeto estiver selecionado
-          <div className="p-4">
-            <h1 className="text-2xl font-bold">Seus Projetos</h1>
+          <div className="p-4 space-y-6">
+            <TauriDemo />
+            
+            <div>
+              <h1 className="text-2xl font-bold">Seus Projetos</h1>
             <ul>
               {projects.map(project => (
                 <li
@@ -72,6 +76,7 @@ export default function Home() {
             >
               <Plus className="mr-2" /> Criar Novo Projeto
             </Button>
+          </div>
           </div>
         )}
       </MainWindow>
